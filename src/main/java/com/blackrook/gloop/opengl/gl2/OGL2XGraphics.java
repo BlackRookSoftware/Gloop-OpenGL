@@ -5,13 +5,15 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl2;
 
-package com.blackrook.gloop.opengl;
+import com.blackrook.gloop.opengl.gl1.OGL1XGraphics;
 
-public final class OGLTest 
+/**
+ * Common OpenGL 2.X functions.
+ * @author Matthew Tropiano
+ */
+public interface OGL2XGraphics extends OGL1XGraphics
 {
-	public static void main(String[] args) 
-	{
-		// TODO: Finish.
-	}
+	// TODO: Finish all of this.
 }

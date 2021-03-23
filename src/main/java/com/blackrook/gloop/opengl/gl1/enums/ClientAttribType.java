@@ -5,13 +5,21 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl1.enums;
 
-package com.blackrook.gloop.opengl;
+import static org.lwjgl.opengl.GL11.*;
 
-public final class OGLTest 
+/**
+ * Attribute types for attribute states
+ * @author Matthew Tropiano
+ */
+public enum ClientAttribType
 {
-	public static void main(String[] args) 
-	{
-		// TODO: Finish.
-	}
+	ALL((int)(GL_CLIENT_ALL_ATTRIB_BITS & 0xffffffff)),
+	PIXEL_STORE(GL_CLIENT_PIXEL_STORE_BIT),
+	VERTEX_ARRAY(GL_CLIENT_VERTEX_ARRAY_BIT);
+
+	public final int glValue;
+	private ClientAttribType (int val) {glValue = val;}
+
 }

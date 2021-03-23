@@ -5,13 +5,21 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl2.enums;
 
-package com.blackrook.gloop.opengl;
+import static org.lwjgl.opengl.GL21.*;
 
-public final class OGLTest 
+/**
+ * Shader program type.
+ * @author Matthew Tropiano
+ */
+public enum ShaderProgramType
 {
-	public static void main(String[] args) 
-	{
-		// TODO: Finish.
-	}
+	/** Vertex shader program. */
+	VERTEX(GL_VERTEX_SHADER),
+	/** Fragment shader program. */
+	FRAGMENT(GL_FRAGMENT_SHADER);
+	
+	public final int glValue;
+	private ShaderProgramType(int glValue) {this.glValue = glValue;}
 }

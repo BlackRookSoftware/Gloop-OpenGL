@@ -5,13 +5,24 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl1.enums;
 
-package com.blackrook.gloop.opengl;
+import static org.lwjgl.opengl.GL11.*;
 
-public final class OGLTest 
+/**
+ * Enum for fill modes.
+ * @author Matthew Tropiano
+ */
+public enum FillMode
 {
-	public static void main(String[] args) 
-	{
-		// TODO: Finish.
-	}
+	/** Points rendered only. */
+	POINTS(GL_POINT),
+	/** Lines/edges rendered only. */
+	LINES(GL_LINE),
+	/** Filled polygons. */
+	FILLED(GL_FILL);
+
+	public final int glValue;
+	FillMode(int gltype) 
+		{glValue = gltype;}
 }

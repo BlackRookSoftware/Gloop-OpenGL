@@ -5,13 +5,23 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.exception;
 
-package com.blackrook.gloop.opengl;
-
-public final class OGLTest 
+/**
+ * This is commonly thrown when an exception occurs in the graphics system.
+ * @author Matthew Tropiano
+ */
+public class GraphicsSystemException extends RuntimeException 
 {
-	public static void main(String[] args) 
+	private static final long serialVersionUID = -3748230790883081437L;
+
+	public GraphicsSystemException()
 	{
-		// TODO: Finish.
+		super("Something couldn't be allocated.");
+	}
+
+	public GraphicsSystemException(String message)
+	{
+		super(message);
 	}
 }

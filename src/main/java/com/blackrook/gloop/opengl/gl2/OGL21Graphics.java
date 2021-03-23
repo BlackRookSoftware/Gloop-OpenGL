@@ -5,13 +5,23 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl2;
 
-package com.blackrook.gloop.opengl;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL21.*;
 
-public final class OGLTest 
+import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
+
+/**
+ * OpenGL 2.1 Graphics Implementation.
+ * @author Matthew Tropiano
+ */
+public class OGL21Graphics extends OGL15Graphics implements OGL2XGraphics
 {
-	public static void main(String[] args) 
+	@Override
+	public String getShadingLanguageVersion()
 	{
-		// TODO: Finish.
+		return glGetString(GL_SHADING_LANGUAGE_VERSION);
 	}
+
 }

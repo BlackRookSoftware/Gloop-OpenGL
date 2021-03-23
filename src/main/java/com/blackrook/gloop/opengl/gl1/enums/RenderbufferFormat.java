@@ -5,13 +5,21 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl1.enums;
 
-package com.blackrook.gloop.opengl;
+import static org.lwjgl.opengl.GL11.*;
 
-public final class OGLTest 
+/**
+ * Enumeration of render buffer formats.
+ * @author Matthew Tropiano
+ */
+public enum RenderbufferFormat
 {
-	public static void main(String[] args) 
-	{
-		// TODO: Finish.
-	}
+	RGB(GL_RGB),
+	RGBA(GL_RGBA),
+	DEPTH(GL_DEPTH_COMPONENT),
+	STENCIL(GL_STENCIL_INDEX);
+	
+	public final int glid;
+	private RenderbufferFormat(int id) {glid = id;}
 }

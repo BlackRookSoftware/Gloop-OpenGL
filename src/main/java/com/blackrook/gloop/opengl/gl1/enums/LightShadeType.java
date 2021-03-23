@@ -5,13 +5,22 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
+package com.blackrook.gloop.opengl.gl1.enums;
 
-package com.blackrook.gloop.opengl;
+import static org.lwjgl.opengl.GL11.*;
 
-public final class OGLTest 
+/**
+ * Enumeration for shading types.
+ * @author Matthew Tropiano
+ */
+public enum LightShadeType
 {
-	public static void main(String[] args) 
-	{
-		// TODO: Finish.
-	}
+	/** Use smooth (Gouraud) shading on polygons. */
+	SMOOTH(GL_SMOOTH),
+	/** Use flat shading on polygons (one face, one color). */
+	FLAT(GL_FLAT);
+	
+	public final int glValue;
+	private LightShadeType(int gltype) {glValue = gltype;}
 }
+
