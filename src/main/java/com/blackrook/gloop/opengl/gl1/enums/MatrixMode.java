@@ -5,15 +5,26 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl2;
+package com.blackrook.gloop.opengl.gl1.enums;
 
-import com.blackrook.gloop.opengl.gl1.OGL1XGraphics;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Common OpenGL 2.X functions.
+ * Enumeration of Matrix types. 
  * @author Matthew Tropiano
  */
-public interface OGL2XGraphics extends OGL1XGraphics
+public enum MatrixMode
 {
-	// TODO: Finish all of this.
+	MODELVIEW(GL_MODELVIEW, GL_MODELVIEW_MATRIX),
+	PROJECTION(GL_PROJECTION, GL_PROJECTION_MATRIX),
+	TEXTURE(GL_TEXTURE, GL_TEXTURE_MATRIX);
+	
+	public final int glValue;
+	public final int glReadValue;
+	private MatrixMode(int glValue, int glReadValue) 
+	{
+		this.glValue = glValue;
+		this.glReadValue = glReadValue;
+	}
+
 }

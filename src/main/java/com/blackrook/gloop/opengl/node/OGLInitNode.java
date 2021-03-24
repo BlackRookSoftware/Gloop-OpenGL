@@ -7,7 +7,7 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.node;
 
-import com.blackrook.gloop.opengl.gl1.OGL1XGraphics;
+import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
 import com.blackrook.gloop.opengl.gl1.enums.FillMode;
 import com.blackrook.gloop.opengl.gl1.enums.HintType;
 import com.blackrook.gloop.opengl.gl1.enums.HintValue;
@@ -19,7 +19,7 @@ import com.blackrook.gloop.opengl.gl1.enums.HintValue;
  * will have to set it to be triggered again in order to take effect.
  * @author Matthew Tropiano
  */
-public class OGLInitNode extends OGLTriggeredNode<OGL1XGraphics>
+public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 {
 	/** Point smoothing hint. */
 	private HintValue pointSmoothHint;
@@ -54,7 +54,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL1XGraphics>
 	}
 	
 	@Override
-	public void doTriggeredFunction(OGL1XGraphics gl)
+	public void doTriggeredFunction(OGL11Graphics gl)
 	{
 		gl.setHint(HintType.POINT_SMOOTHING, pointSmoothHint);
 		gl.setHint(HintType.LINE_SMOOTHING, lineSmoothHint);

@@ -4,7 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.blackrook.gloop.opengl.exception.GraphicsException;
+import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
+import com.blackrook.gloop.opengl.gl1.OGL12Graphics;
+import com.blackrook.gloop.opengl.gl1.OGL13Graphics;
+import com.blackrook.gloop.opengl.gl1.OGL14Graphics;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
+import com.blackrook.gloop.opengl.gl2.OGL20Graphics;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.node.OGLNode;
 
@@ -13,7 +18,7 @@ import com.blackrook.gloop.opengl.node.OGLNode;
  * @param <GL> the graphics object to call.
  * @author Matthew Tropiano
  */
-public class OGLSystem<GL extends OGLGraphicsAbstract>
+public class OGLSystem<GL extends OGLGraphics>
 {
 	/** OpenGL graphics context. */
 	private GL graphics;
@@ -35,6 +40,46 @@ public class OGLSystem<GL extends OGLGraphicsAbstract>
 	private int framebufferHeight;
 	
 	/**
+	 * Creates an OpenGL 1.1 implementation system.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL11Graphics> getOpenGL11()
+	{
+		return new OGLSystem<OGL11Graphics>(new OGL11Graphics());
+	}
+	
+	/**
+	 * Creates an OpenGL 1.2 implementation system.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL12Graphics> getOpenGL12()
+	{
+		return new OGLSystem<OGL12Graphics>(new OGL12Graphics());
+	}
+	
+	/**
+	 * Creates an OpenGL 1.3 implementation system.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL13Graphics> getOpenGL13()
+	{
+		return new OGLSystem<OGL13Graphics>(new OGL13Graphics());
+	}
+	
+	/**
+	 * Creates an OpenGL 1.4 implementation system.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL14Graphics> getOpenGL14()
+	{
+		return new OGLSystem<OGL14Graphics>(new OGL14Graphics());
+	}
+	
+	/**
 	 * Creates an OpenGL 1.5 implementation system.
 	 * @return an OpenGL context entry.
 	 * @throws GraphicsException if the given implementation could not be created. 
@@ -42,6 +87,16 @@ public class OGLSystem<GL extends OGLGraphicsAbstract>
 	public static OGLSystem<OGL15Graphics> getOpenGL15()
 	{
 		return new OGLSystem<OGL15Graphics>(new OGL15Graphics());
+	}
+	
+	/**
+	 * Creates an OpenGL 2.0 implementation system.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL20Graphics> getOpenGL20()
+	{
+		return new OGLSystem<OGL20Graphics>(new OGL20Graphics());
 	}
 	
 	/**
@@ -59,10 +114,14 @@ public class OGLSystem<GL extends OGLGraphicsAbstract>
 	{
 		this.graphics = graphics;
 		this.nodes = new ArrayList<>();
-
+		
 		this.previousFrameNanos = -1L;
+		this.renderTimeNanos = -1L;
 		this.frameRenderTimeNanos = -1L;
 		this.polygonCount = 0;
+		
+		this.framebufferWidth = 0;
+		this.framebufferHeight = 0;
 	}
 
 	/**
@@ -74,7 +133,7 @@ public class OGLSystem<GL extends OGLGraphicsAbstract>
 		long rendertime = 0L;
 		int polys = 0;
 	
-		graphics.beginFrame();
+		graphics.startFrame();
 		
 	    for (int i = 0; i < nodes.size(); i++)
 	    {

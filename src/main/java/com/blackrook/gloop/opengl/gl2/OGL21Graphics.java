@@ -7,21 +7,11 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl2;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL21.*;
-
-import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
-
 /**
  * OpenGL 2.1 Graphics Implementation.
  * @author Matthew Tropiano
  */
-public class OGL21Graphics extends OGL15Graphics implements OGL2XGraphics
+public class OGL21Graphics extends OGL20Graphics
 {
-	@Override
-	public String getShadingLanguageVersion()
-	{
-		return glGetString(GL_SHADING_LANGUAGE_VERSION);
-	}
-
+	
 }

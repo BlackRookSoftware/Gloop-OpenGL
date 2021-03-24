@@ -7,13 +7,13 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.node;
 
-import com.blackrook.gloop.opengl.gl1.OGL1XGraphics;
+import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
 
 /**
  * Node that clears one or more buffers.
  * @author Matthew Tropiano
  */
-public class OGLClearNode extends OGLNodeAdapter<OGL1XGraphics>
+public class OGLClearNode extends OGLNodeAdapter<OGL11Graphics>
 {
 	/** The clear color to use for clearing - red component. */
 	private float clearRed;
@@ -66,7 +66,7 @@ public class OGLClearNode extends OGLNodeAdapter<OGL1XGraphics>
 	}
 	
 	@Override
-	public void onDisplay(OGL1XGraphics gl)
+	public void onDisplay(OGL11Graphics gl)
 	{
 		long nanos = System.nanoTime();
 		if (clearColorBuffer)

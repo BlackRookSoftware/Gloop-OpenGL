@@ -9,7 +9,7 @@ package com.blackrook.gloop.opengl.node;
 
 import java.util.Set;
 
-import com.blackrook.gloop.opengl.OGLGraphicsAbstract;
+import com.blackrook.gloop.opengl.OGLGraphics;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -20,7 +20,7 @@ import static org.lwjgl.opengl.GL33.*;
  * A node that gathers information from OpenGL to be queried later.
  * @author Matthew Tropiano
  */
-public class OGLInfoNode extends OGLTriggeredNode<OGLGraphicsAbstract>
+public class OGLInfoNode extends OGLTriggeredNode<OGLGraphics>
 {
 	/** OpenGL renderer name. */
 	private String renderer;
@@ -87,7 +87,7 @@ public class OGLInfoNode extends OGLTriggeredNode<OGLGraphicsAbstract>
 	private Float maxLineWidth;
 
 	@Override
-	public void doTriggeredFunction(OGLGraphicsAbstract gl)
+	public void doTriggeredFunction(OGLGraphics gl)
 	{
 		vendor = gl.getVendor();
 		version = gl.getVersion();
@@ -99,7 +99,7 @@ public class OGLInfoNode extends OGLTriggeredNode<OGLGraphicsAbstract>
 	}
 
 	// Sets the architecture flags.
-	protected void setArch(OGLGraphicsAbstract gl)
+	protected void setArch(OGLGraphics gl)
 	{
 		String rend = new String(renderer.toLowerCase());
 		isNVidia = rend.contains("nvidia");
@@ -111,7 +111,7 @@ public class OGLInfoNode extends OGLTriggeredNode<OGLGraphicsAbstract>
 	}
 	
 	// Sets the extension flags and values.
-	protected void setExtVars(OGLGraphicsAbstract gl)
+	protected void setExtVars(OGLGraphics gl)
 	{
 		occlusionQueryExtensionPresent = extensionIsPresent("gl_arb_occlusion_query");
 		vertexShaderExtensionPresent = extensionIsPresent("gl_arb_vertex_program");
