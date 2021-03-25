@@ -66,6 +66,21 @@ public class OGL20Graphics extends OGL15Graphics
 		return new Info20();
 	}
 	
+	@Override
+	protected void endFrame()
+	{
+	    // Clean up abandoned objects.
+	    OGLTexture.destroyUndeleted();
+	    OGLShader.destroyUndeleted();
+	    OGLShaderProgram.destroyUndeleted();
+		/*
+	    OGLBuffer.destroyUndeleted(this);
+	    OGLFrameBuffer.destroyUndeleted(this);
+	    OGLRenderBuffer.destroyUndeleted(this);
+	    OGLOcclusionQuery.destroyUndeleted(this);
+	    */
+	}
+
 	/**
 	 * Enables/Disables point sprite conversion.
 	 * Internally, OpenGL will convert point geometry into billboarded quads or
