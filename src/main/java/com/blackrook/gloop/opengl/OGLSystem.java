@@ -3,6 +3,8 @@ package com.blackrook.gloop.opengl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lwjgl.opengl.GL;
+
 import com.blackrook.gloop.glfw.GLFWContext;
 import com.blackrook.gloop.glfw.GLFWWindow;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowAdapter;
@@ -24,10 +26,10 @@ import com.blackrook.gloop.opengl.node.OGLNode;
  * (see {@link GLFWContext#makeWindowContextCurrent(GLFWWindow)}). The rendering thread 
  * can either fire refreshes at a steady rate or listen for a trigger via {@link #display()}
  * to kick off a frame draw, either by programmer request or . 
- * @param <GL> the graphics object to call.
+ * @param <G> the graphics object to call.
  * @author Matthew Tropiano
  */
-public class OGLSystem<GL extends OGLGraphics>
+public class OGLSystem<G extends OGLGraphics>
 {
 	/** The window attached to the rendering thread. */
 	private GLFWWindow window;
@@ -35,9 +37,9 @@ public class OGLSystem<GL extends OGLGraphics>
 	private RenderingThread renderingThread;
 
 	/** OpenGL graphics context. */
-	private GL graphics;
+	private G graphics;
 	/** All scene nodes. */
-	private List<OGLNode<? super GL>> nodes;
+	private List<OGLNode<? super G>> nodes;
 	
 	/** Nano time of the previous frame rendered. */
 	private long previousFrameNanos;
@@ -147,7 +149,7 @@ public class OGLSystem<GL extends OGLGraphics>
 	}
 	
 	// Creates the system.
-	private OGLSystem(GL graphics, GLFWWindow window)
+	private OGLSystem(G graphics, GLFWWindow window)
 	{
 		this.window = window;
 		this.renderingThread = new RenderingThread();
@@ -174,9 +176,8 @@ public class OGLSystem<GL extends OGLGraphics>
 			public void onRefresh(GLFWWindow window)
 			{
 				if (!ignoreRefresh)
-					redraw();
+					display();
 			}
-			
 		});
 		this.renderingThread.start();
 	}
@@ -223,7 +224,7 @@ public class OGLSystem<GL extends OGLGraphics>
 		
 	    for (int i = 0; i < nodes.size(); i++)
 	    {
-	    	OGLNode<? super GL> node = nodes.get(i);
+	    	OGLNode<? super G> node = nodes.get(i);
     		node.onDisplay(graphics);
     		rendertime += node.getRenderTimeNanos();
     		polys += node.getPolygonsRendered();
@@ -236,7 +237,7 @@ public class OGLSystem<GL extends OGLGraphics>
 	    polygonCount = polys;
 	    
 	    graphics.endFrame();
-	    
+	    window.swapBuffers();
 		redrawing = false;
 	}
 
@@ -244,7 +245,7 @@ public class OGLSystem<GL extends OGLGraphics>
 	 * Adds a node to this system.
 	 * @param node the node to add.
 	 */
-	public void addNode(OGLNode<? super GL> node)
+	public void addNode(OGLNode<? super G> node)
 	{
 		nodes.add(node);
 		node.onFramebufferResize(framebufferWidth, framebufferHeight);
@@ -255,7 +256,7 @@ public class OGLSystem<GL extends OGLGraphics>
 	 * @param node the node to remove.
 	 * @return true if removed, false if not (wasn't added).
 	 */
-	public boolean removeNode(OGLNode<? super GL> node)
+	public boolean removeNode(OGLNode<? super G> node)
 	{
 		return nodes.remove(node);
 	}
@@ -349,7 +350,7 @@ public class OGLSystem<GL extends OGLGraphics>
 		private RenderingThread()
 		{
 			super("Gloop-OGL-RenderingThread");
-			setDaemon(false);
+			setDaemon(true);
 			this.renderLatch = new Object();
 			this.waitMillis = null;
 			this.waitNanos = null;
@@ -368,12 +369,13 @@ public class OGLSystem<GL extends OGLGraphics>
 		public void run()
 		{
 			GLFWContext.makeWindowContextCurrent(window);
+	        GL.createCapabilities();
 			while (true)
 			{
 				synchronized (renderLatch)
 				{
 					try {
-						if (waitMillis == null)
+						if (waitMillis == null || waitNanos == null)
 							renderLatch.wait();
 						else if (waitMillis != 0 || waitNanos != 0)
 							renderLatch.wait(waitMillis, waitNanos);
