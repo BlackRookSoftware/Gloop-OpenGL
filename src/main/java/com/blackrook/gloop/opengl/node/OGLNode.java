@@ -23,6 +23,8 @@ public interface OGLNode<GL extends OGLGraphics>
 {
 	/**
 	 * Displays this node.
+	 * The rendering thread for the target window enters this method,
+	 * so it is safe to call all {@link OGLGraphics} functions here. 
 	 * @param gl the graphics object used for issuing commands to OpenGL.
 	 */
 	public void onDisplay(GL gl);

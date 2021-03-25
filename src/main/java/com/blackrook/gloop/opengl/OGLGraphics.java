@@ -26,6 +26,9 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
 
 /**
  * A common encapsulator for all OpenGL implementations.
+ * <p><b>NOTE: No functions outside of the rendering thread (the 
+ * thread that is triggered by {@link OGLSystem#display()}) should call any function in this.
+ * See 
  * @author Matthew Tropiano
  */
 public abstract class OGLGraphics
@@ -456,7 +459,7 @@ public abstract class OGLGraphics
 	}
 
 	/**
-	 * Called on frame end - does object cleanup.
+	 * Called on frame end - mostly does cleanup of objects that were abandoned in OpenGL.
 	 */
 	protected abstract void endFrame(); 
 
@@ -471,9 +474,9 @@ public abstract class OGLGraphics
 	/**
 	 * @return the seconds time from graphics creation, synced to the beginning of the current frame.
 	 */
-	public float currentTime()
+	public double currentTime()
 	{
-		return (currentMilliseconds - startMilliseconds) / 1000f;
+		return (currentMilliseconds - startMilliseconds) / 1000.0;
 	}
 
 	/**

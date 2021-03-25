@@ -46,7 +46,10 @@ public class OGLMultiNode<GL extends OGLGraphics> implements OGLNode<GL>
 	 */
 	public void addNode(OGLNode<? super GL> node)
 	{
-		nodeList.add(node);
+		synchronized (nodeList)
+		{
+			nodeList.add(node);
+		}
 	}
 
 	/**
@@ -56,9 +59,30 @@ public class OGLMultiNode<GL extends OGLGraphics> implements OGLNode<GL>
 	 */
 	public boolean removeNode(OGLNode<? super GL> node)
 	{
-		return nodeList.remove(node);
+		synchronized (nodeList)
+		{
+			return nodeList.remove(node);
+		}
 	}
 
+	/**
+	 * Called by {@link #onFramebufferResize(int, int)} before all of 
+	 * the attached nodes have {@link #onFramebufferResize(int, int)} called on them.
+	 * Does nothing by default.
+	 * @param newWidth the new framebuffer width.
+	 * @param newHeight  the new framebuffer height.
+	 */
+	public void preFramebufferResize(int newWidth, int newHeight)
+	{
+		// Do nothing.
+	}
+	
+	/**
+	 * Called when the system canvas gets resized, or once this node gets added to the system.
+	 * This calls {@link #onFramebufferResize(int, int)} on all of the added child nodes in the order that they were added.
+	 * @param newWidth the new framebuffer width. 
+	 * @param newHeight	the new framebuffer height.
+	 */
 	@Override
 	public void onFramebufferResize(int newWidth, int newHeight)
 	{
@@ -68,6 +92,34 @@ public class OGLMultiNode<GL extends OGLGraphics> implements OGLNode<GL>
 		postFramebufferResize(newWidth, newHeight);
 	}
 
+	/**
+	 * Called by {@link #onFramebufferResize(int, int)} after all of 
+	 * the added child nodes have {@link #onFramebufferResize(int, int)} called on them.
+	 * Does nothing by default.
+	 * @param newWidth the new framebuffer width.
+	 * @param newHeight  the new framebuffer height.
+	 */
+	public void postFramebufferResize(int newWidth, int newHeight)
+	{
+		// Do nothing.
+	}
+	
+	/**
+	 * Called by display() before all of the added child nodes are displayed.
+	 * Does nothing by default.
+	 * @param gl the GL object used for issuing commands to OpenGL.
+	 */
+	public void preNodeDisplay(GL gl)
+	{
+		// Do nothing.
+	}
+	
+	/**
+	 * Displays this node's children in the order they were added, if enabled.
+	 * The rendering thread for the target window enters this method,
+	 * so it is safe to call all {@link OGLGraphics} functions here. 
+	 * @param gl the graphics object used for issuing commands to OpenGL.
+	 */
 	@Override
 	public void onDisplay(GL gl)
 	{
@@ -87,41 +139,7 @@ public class OGLMultiNode<GL extends OGLGraphics> implements OGLNode<GL>
 	}
 
 	/**
-	 * Called by {@link #onFramebufferResize(int, int)} before all of 
-	 * the attached nodes have {@link #onFramebufferResize(int, int)} called on them.
-	 * Does nothing by default.
-	 * @param newWidth the new framebuffer width.
-	 * @param newHeight  the new framebuffer height.
-	 */
-	public void preFramebufferResize(int newWidth, int newHeight)
-	{
-		// Do nothing.
-	}
-	
-	/**
-	 * Called by {@link #onFramebufferResize(int, int)} after all of 
-	 * the attached nodes have {@link #onFramebufferResize(int, int)} called on them.
-	 * Does nothing by default.
-	 * @param newWidth the new framebuffer width.
-	 * @param newHeight  the new framebuffer height.
-	 */
-	public void postFramebufferResize(int newWidth, int newHeight)
-	{
-		// Do nothing.
-	}
-	
-	/**
-	 * Called by display() before all of the attached listeners are displayed.
-	 * Does nothing by default.
-	 * @param gl the GL object used for issuing commands to OpenGL.
-	 */
-	public void preNodeDisplay(GL gl)
-	{
-		// Do nothing.
-	}
-	
-	/**
-	 * Called by display() after all of the attached listeners are displayed.
+	 * Called by display() after all of the added child nodes are displayed.
 	 * Does nothing by default.
 	 * @param gl the GL object used for issuing commands to OpenGL.
 	 */
@@ -152,7 +170,10 @@ public class OGLMultiNode<GL extends OGLGraphics> implements OGLNode<GL>
 	}
 
 	/**
-	 * Sets if this node (and all of its contained nodes) are displayed.
+	 * Sets if this node (and all of its added child nodes) are displayed.
+	 * If this node is NOT enabled, neither {@link #preNodeDisplay(OGLGraphics)},
+	 * {@link #onDisplay(OGLGraphics)}, nor {@link #postNodeDisplay(OGLGraphics)} is called.
+	 * It will still receive calls to resize itself.
 	 * @param enabled true if so, false if not.
 	 * @see #isEnabled()
 	 * @see OGLMultiNode#onDisplay(OGLGraphics)
