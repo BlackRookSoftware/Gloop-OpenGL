@@ -8,8 +8,8 @@
 package com.blackrook.gloop.opengl;
 
 import static org.lwjgl.opengl.GL11.GL_FALSE;
-import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDisableClientState;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -30,6 +30,345 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
  */
 public abstract class OGLGraphics
 {
+	/**
+	 * Information about this context implementation.
+	 */
+	public abstract class Info
+	{
+		/** OpenGL renderer name. */
+		protected String renderer;
+		/** OpenGL version name. */
+		protected String version;
+		/** OpenGL shader version name. */
+		protected String shaderVersion;
+		/** OpenGL vendor name. */
+		protected String vendor;
+		/** OpenGL list of extensions. */
+		protected Set<String> extensions;
+		
+		/** Are we running NVidia architecture? */
+		protected boolean isNVidia;
+		/** Are we running AMD architecture? */
+		protected boolean isAMD;
+		/** Are we running ATi architecture? */
+		protected boolean isATi;
+		/** Are we running S3 architecture, and if so, WHY? */
+		protected boolean isS3;
+		/** Are we running Matrox architecture? */
+		protected boolean isMatrox;
+		/** Are we running Intel architecture? */
+		protected boolean isIntel;
+
+		/** Flag for presence of occlusion query extension. */
+		protected boolean occlusionQueryExtensionPresent;
+		/** Flag for presence of vertex shader extension. */
+		protected boolean vertexShaderExtensionPresent;
+		/** Flag for presence of fragment shader extension. */
+		protected boolean fragmentShaderExtensionPresent;
+		/** Flag for presence of geometry shader extension. */
+		protected boolean geometryShaderExtensionPresent;
+		/** Flag for presence of render buffer extension. */
+		protected boolean renderBufferExtensionPresent;
+		/** Flag for presence of vertex buffer extension. */
+		protected boolean vertexBufferExtensionPresent;
+		/** Flag for presence of non-power-of-two texture support. */
+		protected boolean nonPowerOfTwoTextures;
+		/** Flag for presence of point smoothing ability. */
+		protected boolean pointSmoothingPresent;
+		/** Flag for presence of point sprite extension. */
+		protected boolean pointSpritesPresent;
+		/** Flag for presence of texture anisotropy extension. */
+		protected boolean textureAnisotropyPresent;
+		
+		/** Maximum bindable lights. */
+		protected Integer maxLights;
+		/** Maximum texture size. */
+		protected Integer maxTextureSize;
+		/** Minimum point size range. */
+		protected Float minPointSize;
+		/** Maximum point size range. */
+		protected Float maxPointSize;
+		/** Minimum line width range. */
+		protected Float minLineWidth;
+		/** Maximum line width range. */
+		protected Float maxLineWidth;
+		
+		/** Maximum multitexture texture units. */
+		protected Integer maxMultitexture;
+		/** Maximum texture units. */
+		protected Integer maxTextureUnits;
+		/** Maximum texture anisotropy. */
+		protected Float maxTextureAnisotropy;
+		/** Maximum renderbuffer size. */
+		protected Integer maxRenderBufferSize;
+		/** Maximum renderbuffer color attachments. */
+		protected Integer maxRenderBufferColorAttachments;
+
+		protected Info() {}
+		
+		/**
+		 * Checks if an OpenGL extension is present.
+		 * If you keep calling this method for the same extension, you are
+		 * better off saving the results of the first call and using that, since
+		 * the list of present extensions never change during runtime. 
+		 * @param extensionName the extension name.
+		 * @return true if so, false if not.
+		 */
+		public boolean extensionIsPresent(String extensionName)
+		{
+			return extensions.contains(extensionName);
+		}
+
+		/** 
+		 * @return the maximum amount of lights. Null if not available.
+		 */
+		public Integer getMaxLights()
+		{
+			return maxLights;
+		}
+
+		/**
+		 * @return the maximum amount of multitexture units. Null if not available.
+		 */
+		public Integer getMaxMultitexture()
+		{
+			return maxMultitexture;
+		}
+
+		/**
+		 * @return the maximum amount of bindable texture units. Null if not available.
+		 */
+		public Integer getMaxTextureUnits()
+		{
+			return maxTextureUnits;
+		}
+
+		/**
+		 * @return max texture size in pixels. Null if not available.
+		 */
+		public Integer getMaxTextureSize()
+		{
+			return maxTextureSize;
+		}
+
+		/**
+		 * @return the maximum size of a render buffer object in pixels. Null if not available.
+		 */
+		public Integer getMaxRenderBufferSize()
+		{
+			return maxRenderBufferSize;
+		}
+
+		/**
+		 * @return the maximum amount of color buffer attachments for a render buffer. Null if not available.
+		 */
+		public Integer getMaxRenderBufferColorAttachments()
+		{
+			return maxRenderBufferColorAttachments;
+		}
+
+		/**
+		 * @return the minimum size a point can be rendered. Null if not available.
+		 */
+		public Float getMinPointSize()
+		{
+			return minPointSize;
+		}
+
+		/**
+		 * @return the maximum size a point can be rendered. Null if not available.
+		 */
+		public Float getMaxPointSize()
+		{
+			return maxPointSize;
+		}
+
+		/**
+		 * @return the minimum width for line geometry. Null if not available.
+		 */
+		public Float getMinLineWidth()
+		{
+			return minLineWidth;
+		}
+
+		/**
+		 * @return the maximum width for line geometry. Null if not available.
+		 */
+		public Float getMaxLineWidth()
+		{
+			return maxLineWidth;
+		}
+		
+		/**
+		 * @return the maximum texture anisotropy factor for mipmap generation. Null if not available.
+		 */
+		public Float getMaxTextureAnisotropy()
+		{
+			return maxTextureAnisotropy;
+		}
+
+		/** 
+		 * @return the rendering device of this GL system. Null if not available. 
+		 */
+		public String getRenderer()
+		{
+			return renderer;
+		}
+
+		/** 
+		 * @return the version of this GL system. Null if not available. 
+		 */
+		public String getVersion()
+		{
+			return version;
+		}
+
+		/** 
+		 * @return the vendor name of this GL system. Null if not available. 
+		 */
+		public String getVendor()
+		{
+			return vendor;
+		}
+
+		/** 
+		 * @return the shader version of this GL system. 
+		 */
+		public String getShaderVersion()
+		{
+			return shaderVersion;
+		}
+		
+		/**
+		 * @return true if occlusion query extensions are present for the video device, false otherwise.
+		 */
+		public boolean supportsOcclusionQueries()
+		{
+			return occlusionQueryExtensionPresent;
+		}
+
+		/**
+		 * @return true if vertex shader extensions are present for the video device, false otherwise.
+		 */
+		public boolean supportsVertexShaders()
+		{
+			return vertexShaderExtensionPresent;
+		}
+
+		/**
+		 * @return true if fragment shader extensions are present for the video device, false otherwise.
+		 */
+		public boolean supportsFragmentShaders()
+		{
+			return fragmentShaderExtensionPresent;
+		}
+
+		/**
+		 * @return true if geometry shader extensions are present for the video device, false otherwise.
+		 */
+		public boolean supportsGeometryShaders()
+		{
+			return geometryShaderExtensionPresent;
+		}
+
+		/**
+		 * @return true if render buffer extensions are present for the video device, false otherwise.
+		 */
+		public boolean supportsRenderBuffers()
+		{
+			return renderBufferExtensionPresent;
+		}
+
+		/**
+		 * @return true if vertex buffer extensions are present for the video device, false otherwise.
+		 */
+		public boolean supportsVertexBuffers()
+		{
+			return vertexBufferExtensionPresent;
+		}
+
+		/**
+		 * @return true if this device supports non-power-of-two textures, false otherwise.
+		 */
+		public boolean supportsNonPowerOfTwoTextures()
+		{
+			return nonPowerOfTwoTextures;
+		}
+
+		/**
+		 * @return true if this device supports smooth points, false otherwise.
+		 */
+		public boolean supportsPointSmoothing()
+		{
+			return pointSmoothingPresent;
+		}
+
+		/**
+		 * @return true if this device supports point sprites, false otherwise.
+		 */
+		public boolean supportsPointSprites()
+		{
+			return pointSpritesPresent;
+		}
+
+		/**
+		 * @return true if this device supports texture mipmap anisotropy, false otherwise.
+		 */
+		public boolean supportsTextureAnisotropy()
+		{
+			return textureAnisotropyPresent;
+		}
+		
+		/** 
+		 * @return true if this is running NVidia architecture.
+		 */
+		public boolean isNVidia()
+		{
+			return isNVidia;
+		}
+
+		/** 
+		 * @return true if this is running ATi architecture.
+		 */
+		public boolean isATi()
+		{
+			return isATi;
+		}
+
+		/** 
+		 * @return true if this is running AMD architecture.
+		 */
+		public boolean isAMD()
+		{
+			return isAMD;
+		}
+
+		/** 
+		 * @return true if this is running S3 architecture.
+		 */
+		public boolean isS3()
+		{
+			return isS3;
+		}
+
+		/** 
+		 * @return true if this is running Matrox architecture.
+		 */
+		public boolean isMatrox()
+		{
+			return isMatrox;
+		}
+
+		/** 
+		 * @return true if this is running Intel architecture.
+		 */
+		public boolean isIntel()
+		{
+			return isIntel;
+		}
+		
+	}
+	
 	/** The current frame rendered. */
 	private long currentFrame;
 	/** The starting millisecond at creation. */
@@ -50,6 +389,9 @@ public abstract class OGLGraphics
 	
 	/** Check errors? */
 	private boolean errorChecking;
+	
+	/** Graphics info. */
+	private Info info;
 
 	/**
 	 * Initializes this graphics.
@@ -66,6 +408,26 @@ public abstract class OGLGraphics
 		this.previousTimeNanos = -1L;
 		this.currentTimeStepNanos = -1L;
 		this.errorChecking = true;
+
+		this.info = null;
+	}
+	
+	/**
+	 * Called once in order to fetch context info.
+	 * @return the info object.
+	 */
+	protected abstract Info createInfo();
+	
+	/**
+	 * Gets an info object that returns a lot of OpenGL 
+	 * limits and such for this context implementation.
+	 * @return the graphics context info.
+	 */
+	public Info getInfo()
+	{
+		if (info == null)
+			info = createInfo();
+		return info;
 	}
 	
 	/**
@@ -96,20 +458,7 @@ public abstract class OGLGraphics
 	/**
 	 * Called on frame end - does object cleanup.
 	 */
-	final void endFrame() 
-	{
-	    // Clean up abandoned objects.
-		// TODO: Finish this.
-		/*
-	    OGLBuffer.destroyUndeleted(this);
-	    OGLFrameBuffer.destroyUndeleted(this);
-	    OGLRenderBuffer.destroyUndeleted(this);
-	    OGLOcclusionQuery.destroyUndeleted(this);
-	    OGLShader.destroyUndeleted(this);
-	    OGLShaderProgram.destroyUndeleted(this);
-	    OGLTexture.destroyUndeleted(this);
-	    */
-	}
+	protected abstract void endFrame(); 
 
 	/**
 	 * @return the system milliseconds time, synced to the beginning of the current frame.
@@ -294,30 +643,5 @@ public abstract class OGLGraphics
 	{
 		this.errorChecking = errorChecking;
 	}
-
-	/**
-	 * @return the OpenGL version string, according to the native implementation.
-	 */
-	public abstract String getVersion();
-	
-	/**
-	 * @return the OpenGL GLSL version string, according to the native implementation.
-	 */
-	public abstract String getShadingLanguageVersion();
-
-	/**
-	 * @return the OpenGL vendor string, according to the native implementation.
-	 */
-	public abstract String getVendor();
-
-	/**
-	 * @return the OpenGL renderer string, according to the native implementation.
-	 */
-	public abstract String getRenderer();
-
-	/**
-	 * @return the OpenGL extension names as a Set, according to the native implementation.
-	 */
-	public abstract Set<String> getExtensionNames();
 
 }

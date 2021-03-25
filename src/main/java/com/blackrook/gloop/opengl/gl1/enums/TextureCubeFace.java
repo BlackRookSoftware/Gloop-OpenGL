@@ -29,7 +29,5 @@ public enum TextureCubeFace
 	NZ(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 	
 	public final int glValue;
-	TextureCubeFace(int gltype) 
-		{glValue = gltype;}
-
+	private TextureCubeFace(int gltype) {glValue = gltype;}
 }

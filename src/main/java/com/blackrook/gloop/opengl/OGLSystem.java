@@ -11,6 +11,7 @@ import com.blackrook.gloop.opengl.gl1.OGL14Graphics;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
 import com.blackrook.gloop.opengl.gl2.OGL20Graphics;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
+import com.blackrook.gloop.opengl.gl3.OGL30Graphics;
 import com.blackrook.gloop.opengl.node.OGLNode;
 
 /**
@@ -107,6 +108,16 @@ public class OGLSystem<GL extends OGLGraphics>
 	public static OGLSystem<OGL21Graphics> getOpenGL21()
 	{
 		return new OGLSystem<OGL21Graphics>(new OGL21Graphics());
+	}
+	
+	/**
+	 * Creates an OpenGL 3.0 implementation system.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL30Graphics> getOpenGL30()
+	{
+		return new OGLSystem<OGL30Graphics>(new OGL30Graphics());
 	}
 	
 	// Creates the system.

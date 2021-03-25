@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl1.enums;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.*;
 
 /**
  * Texture internal storage format.
@@ -17,7 +18,7 @@ public enum TextureFormat
 	/** Grayscale, No alpha, default bit depth. */
 	LUMINANCE(GL_LUMINANCE, false, 1f),
 	/** Grayscale with alpha, default bit depth. */
-	LUMINANCE_ALPHA(GL_LUMINANCE_ALPHA, false, 1f),
+	LUMINANCE_ALPHA(GL_LUMINANCE_ALPHA, false, 2f),
 	/** White, Alpha only, default bit depth. */
 	INTENSITY(GL_INTENSITY, false, 1f),
 	/** RGB, No alpha, default bit depth. */
@@ -29,7 +30,20 @@ public enum TextureFormat
 	/** RGBA, forced 16-bit. */
 	RGB5A1(GL_RGB5_A1, false, 2f),
 	/** RGBA, forced 32-bit. */
-	RGBA8(GL_RGB8, false, 4f);
+	RGBA8(GL_RGB8, false, 4f),
+
+	/** Compressed Alpha Only. */
+	COMPRESSED_ALPHA(GL_COMPRESSED_ALPHA, true, 1f),
+	/** Compressed Alpha Only. */
+    COMPRESSED_LUMINANCE(GL_COMPRESSED_LUMINANCE, true, 1f),
+	/** Compressed Alpha Only. */
+    COMPRESSED_LUMINANCE_ALPHA(GL_COMPRESSED_LUMINANCE_ALPHA, true, 2f),
+	/** Compressed Alpha Only. */
+    COMPRESSED_INTENSITY(GL_COMPRESSED_INTENSITY, true, 1f),
+	/** Compressed Alpha Only. */
+    COMPRESSED_RGB(GL_COMPRESSED_RGB, true, 3f),
+	/** Compressed Alpha Only. */
+    COMPRESSED_RGBA(GL_COMPRESSED_RGBA, true, 4f);
 	
 	public final int glid;
 	public final boolean compressed;

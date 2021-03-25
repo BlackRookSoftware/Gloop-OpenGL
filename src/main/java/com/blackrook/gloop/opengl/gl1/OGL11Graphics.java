@@ -8,9 +8,11 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import java.awt.Color;
+import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -31,13 +33,19 @@ import com.blackrook.gloop.opengl.gl1.enums.HintValue;
 import com.blackrook.gloop.opengl.gl1.enums.LightShadeType;
 import com.blackrook.gloop.opengl.gl1.enums.LogicFunc;
 import com.blackrook.gloop.opengl.gl1.enums.MatrixMode;
+import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
 import com.blackrook.gloop.opengl.gl1.enums.StencilTestFunc;
 import com.blackrook.gloop.opengl.gl1.enums.TextureCoordType;
+import com.blackrook.gloop.opengl.gl1.enums.TextureFormat;
 import com.blackrook.gloop.opengl.gl1.enums.TextureGenMode;
+import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.gl1.enums.TextureMode;
+import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.gl1.objects.OGLBitmap;
 import com.blackrook.gloop.opengl.gl1.objects.OGLLight;
 import com.blackrook.gloop.opengl.gl1.objects.OGLMaterial;
+import com.blackrook.gloop.opengl.gl1.objects.OGLTexture;
 import com.blackrook.gloop.opengl.math.Matrix4F;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -49,42 +57,113 @@ import static org.lwjgl.opengl.GL11.*;
 public class OGL11Graphics extends OGLGraphics
 {
 	private static ThreadLocal<Matrix4F> MATRIX = ThreadLocal.withInitial(()->new Matrix4F());
-	private static Set<String> EXTENSIONS;
 
-	@Override
-	public String getVersion()
+	/**
+	 * Information about this context implementation.
+	 */
+	protected class Info11 extends Info
 	{
-		return glGetString(GL_VERSION);
-	}
-
-	@Override
-	public String getShadingLanguageVersion()
-	{
-		return null;
-	}
-
-	@Override
-	public String getVendor()
-	{
-		return glGetString(GL_VENDOR);
-	}
-
-	@Override
-	public String getRenderer()
-	{
-		return glGetString(GL_RENDERER);
-	}
-
-	@Override
-	public Set<String> getExtensionNames()
-	{
-		if (EXTENSIONS == null)
+		/**
+		 * Creates a new info object.
+		 */
+		protected Info11()
 		{
+			this.vendor = glGetString(GL_VENDOR);
+			this.version = glGetString(GL_VERSION);
+			this.renderer = glGetString(GL_RENDERER);
+
 			Set<String> set = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 			set.addAll(Arrays.asList(glGetString(GL_EXTENSIONS).split("\\s+")));
-			EXTENSIONS = set;
+			this.extensions = set;
+
+			String rend = new String(renderer.toLowerCase());
+			this.isNVidia = rend.contains("nvidia");
+			this.isAMD = rend.contains("amd");
+			this.isATi = rend.contains("ati"); 
+			this.isS3 = rend.contains("s3"); 
+			this.isMatrox = rend.contains("matrox");
+			this.isIntel = rend.contains("intel");
+			
+			this.occlusionQueryExtensionPresent = extensionIsPresent("gl_arb_occlusion_query");
+			this.vertexShaderExtensionPresent = extensionIsPresent("gl_arb_vertex_program");
+			this.fragmentShaderExtensionPresent = extensionIsPresent("gl_arb_fragment_program");
+			this.geometryShaderExtensionPresent = 
+				extensionIsPresent("gl_ext_geometry_program4") || 
+				extensionIsPresent("gl_nv_geometry_shader4") || 
+				extensionIsPresent("gl_arb_geometry_shader4");
+			this.renderBufferExtensionPresent = extensionIsPresent("gl_ext_framebuffer_object");
+			this.vertexBufferExtensionPresent = extensionIsPresent("gl_arb_vertex_buffer_object");
+			this.nonPowerOfTwoTextures =
+				extensionIsPresent("GL_ARB_texture_non_power_of_two") ||
+				extensionIsPresent("GL_texture_rectangle_ext") ||
+				extensionIsPresent("GL_texture_rectangle_nv") ||
+				extensionIsPresent("GL_texture_rectangle_arb");
+			this.pointSmoothingPresent = extensionIsPresent("gl_arb_point_smooth");
+			this.pointSpritesPresent = extensionIsPresent("gl_arb_point_sprite");
+			this.textureAnisotropyPresent = extensionIsPresent("ext_texture_filter_anisotropic");
+
+			this.maxLights = getInt(GL_MAX_LIGHTS);
+			this.maxTextureSize = getInt(GL_MAX_TEXTURE_SIZE);
+
+			float[] FLOAT_STATE = new float[2];
+			getFloats(GL_POINT_SIZE_RANGE, FLOAT_STATE);
+			this.minPointSize = FLOAT_STATE[0];
+			this.maxPointSize = FLOAT_STATE[1];
+			getFloats(GL_LINE_WIDTH_RANGE, FLOAT_STATE);
+			this.minLineWidth = FLOAT_STATE[0];
+			this.maxLineWidth = FLOAT_STATE[1];
+
+			if (textureAnisotropyPresent)
+				this.maxTextureAnisotropy = getFloat(0x084FF);
 		}
-		return EXTENSIONS;
+		
+	}
+
+	/**
+	 * A try-with-resources latch that unbinds a texture 1D target 
+	 * after it escapes the <code>try</code>. 
+	 */
+	public class Texture1DLatch implements Closeable
+	{
+		@Override
+		public void close()
+		{
+			unsetTexture1D();
+		}
+	}
+	
+	/**
+	 * A try-with-resources latch that unbinds a texture 2D target 
+	 * after it escapes the <code>try</code>. 
+	 */
+	public class Texture2DLatch implements Closeable
+	{
+		@Override
+		public void close()
+		{
+			unsetTexture2D();
+		}
+	}
+	
+	@Override
+	protected Info createInfo()
+	{
+		return new Info11();
+	}
+
+	@Override
+	protected void endFrame()
+	{
+	    // Clean up abandoned objects.
+	    OGLTexture.destroyUndeleted();
+		/*
+	    OGLBuffer.destroyUndeleted(this);
+	    OGLFrameBuffer.destroyUndeleted(this);
+	    OGLRenderBuffer.destroyUndeleted(this);
+	    OGLOcclusionQuery.destroyUndeleted(this);
+	    OGLShader.destroyUndeleted(this);
+	    OGLShaderProgram.destroyUndeleted(this);
+	    */
 	}
 
 	/**
@@ -565,13 +644,25 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Verifies that the light source id is valid.
+	 * @param sourceId the light source id.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
+	 */
+	protected void checkLightId(int sourceId)
+	{
+		if (sourceId < 0 || getInfo().getMaxLights() >= sourceId)
+			throw new IllegalArgumentException("Light id is invalid: Must be " + 0 + " to " + getInfo().getMaxLights());
+	}
+	
+	/**
 	 * Sets if certain lights are enabled.
 	 * @param sourceId the light source id.
 	 * @param enable true to enable, false to disable.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightEnabled(int sourceId, boolean enable)
 	{
+		checkLightId(sourceId);
 		setFlag(GL_LIGHT0 + sourceId, enable);
 		getError();
 	}
@@ -582,10 +673,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param sourceId the light source id. this cannot exceed the maximum number of lights
 	 * that OpenGL can handle.
 	 * @param light the Light to use.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLight(int sourceId, OGLLight light)
 	{
+		checkLightId(sourceId);
 		setLightPosition(sourceId, light.getXPosition(), light.getYPosition(), light.getZPosition(), light.getWPosition());
 		setLightAmbientColor(sourceId, light.getAmbientColor());
 		setLightDiffuseColor(sourceId, light.getDiffuseColor());
@@ -601,10 +693,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param constant the constant coefficient.
 	 * @param linear the linear coefficient.
 	 * @param quadratic the quadratic coefficient.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightAttenuation(int sourceId, float constant, float linear, float quadratic)
 	{
+		checkLightId(sourceId);
 		glLightf(GL_LIGHT0 + sourceId, GL_CONSTANT_ATTENUATION, constant);
 		getError();
 		glLightf(GL_LIGHT0 + sourceId, GL_LINEAR_ATTENUATION, linear);
@@ -617,7 +710,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the color for a ambient component for a light. 
 	 * @param sourceId the light source id.
 	 * @param color the color to use.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightAmbientColor(int sourceId, Color color)
 	{
@@ -628,7 +721,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the color for a ambient component for a light. 
 	 * @param sourceId the light source id.
 	 * @param argbColor the ARGB color to set.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightAmbientColor(int sourceId, int argbColor)
 	{
@@ -647,10 +740,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param green the green component of the color to use (0 to 1).
 	 * @param blue the blue component of the color to use (0 to 1).
 	 * @param alpha the alpha component of the color to use (0 to 1).
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightAmbientColor(int sourceId, float red, float green, float blue, float alpha)
 	{
+		checkLightId(sourceId);
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -667,7 +761,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the color for a diffuse component for a light. 
 	 * @param sourceId the light source id.
 	 * @param color the color to use.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightDiffuseColor(int sourceId, Color color)
 	{
@@ -678,7 +772,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the color for a diffuse component for a light. 
 	 * @param sourceId the light source id.
 	 * @param argbColor the ARGB color to set.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightDiffuseColor(int sourceId, int argbColor)
 	{
@@ -697,10 +791,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param green the green component of the color to use (0 to 1).
 	 * @param blue the blue component of the color to use (0 to 1).
 	 * @param alpha the alpha component of the color to use (0 to 1).
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightDiffuseColor(int sourceId, float red, float green, float blue, float alpha)
 	{
+		checkLightId(sourceId);
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -717,7 +812,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the color for a specular component for a light. 
 	 * @param sourceId the light source id.
 	 * @param color the color to use.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightSpecularColor(int sourceId, Color color)
 	{
@@ -728,7 +823,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the color for a specular component for a light. 
 	 * @param sourceId the light source id.
 	 * @param argbColor the ARGB color to set.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightSpecularColor(int sourceId, int argbColor)
 	{
@@ -747,10 +842,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param green the green component of the color to use (0 to 1).
 	 * @param blue the blue component of the color to use (0 to 1).
 	 * @param alpha the alpha component of the color to use (0 to 1).
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightSpecularColor(int sourceId, float red, float green, float blue, float alpha)
 	{
+		checkLightId(sourceId);
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -770,10 +866,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param y the y-axis position.
 	 * @param z the z-axis position.
 	 * @param w if 0, the light is a directional one. If nonzero, positional.
-	 * @throws GraphicsException if the specified sourceId is not a valid one.
+	 * @throws IllegalArgumentException if the specified sourceId is not a valid one.
 	 */
 	public void setLightPosition(int sourceId, float x, float y, float z, float w)
 	{
+		checkLightId(sourceId);
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1220,6 +1317,23 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Reads from the current-bound frame buffer into a target buffer.
+	 * @param imageData	the buffer to write the RGBA pixel data to (must be direct).
+	 * @param format the color format to write to the buffer.
+	 * @param x the starting screen offset, x-coordinate (0 is left).
+	 * @param y the starting screen offset, y-coordinate (0 is bottom).
+	 * @param width the capture width in pixels.
+	 * @param height the capture height in pixels.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void readFrameBuffer(ByteBuffer imageData, ColorFormat format, int x, int y, int width, int height)
+	{
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer.");
+		glReadPixels(x, y, width, height, format.glid, GL_UNSIGNED_BYTE, imageData);
+	}
+
+	/**
 	 * Sets the current pixel packing alignment value (GL-to-application).
 	 * This is used for pulling pixel data from an OpenGL buffer into a format
 	 * that the application can recognize/manipulate.
@@ -1569,6 +1683,434 @@ public class OGL11Graphics extends OGLGraphics
 	public void setAutoNormalGen(boolean enabled)
 	{
 		setFlag(GL_AUTO_NORMAL, enabled);
+	}
+
+	/**
+	 * Creates a new texture object.
+	 * @return a new, uninitialized texture object.
+	 * @throws GraphicsException if the object could not be created.
+	 */
+	public OGLTexture createTexture()
+	{
+		return new OGLTexture();
+	}
+
+	/**
+	 * Binds a 1D texture object to the current active texture unit.
+	 * This returns an optional latch object for unbinding the texture 
+	 * from the 1D target if this is used in a try-with-resources block.
+	 * @param texture the texture to bind.
+	 * @return an optional latch object.
+	 */
+	public Texture1DLatch setTexture1D(OGLTexture texture)
+	{
+		Objects.requireNonNull(texture);
+		glBindTexture(GL_TEXTURE_1D, texture.getName());
+		return new Texture1DLatch();
+	}
+
+	/**
+	 * Sets the current filtering for the current 1D texture.
+	 * @param minFilter the minification filter.
+	 * @param magFilter the magnification filter.
+	 */
+	public void setTextureFiltering1D(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	{
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+	}
+
+	/**
+	 * Sets the current filtering for the current 1D texture.
+	 * If anisotropy is not supported, 
+	 * @param minFilter the minification filter.
+	 * @param magFilter the magnification filter.
+	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
+	 */
+	public void setTextureFiltering1D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	{
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		
+		if (getInfo().supportsTextureAnisotropy())
+		{
+			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
+			glTexParameterf(GL_TEXTURE_1D, 0x084FE, anisotropy);
+		}
+	}
+
+	/**
+	 * Sets the current wrapping for the current 1D texture.
+	 * @param wrapS the wrapping mode, S-axis.
+	 */
+	public void setTextureWrapping1D(TextureWrapType wrapS)
+	{
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, wrapS.glid);
+	}
+
+	/**
+	 * Sends a texture into OpenGL's memory for the current 1D texture at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param format the internal texture format.
+	 * @param width the texture width in texels.
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureData1D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int border)
+	{
+		setTextureData1D(imageData, colorFormat, format, 0, width, border);
+	}
+
+	/**
+	 * Sends a texture into OpenGL's memory for the current 1D texture at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param format the internal texture format.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
+	 * @param width the texture width in texels.
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureData1D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
+	{
+		if (width > getInfo().getMaxTextureSize())
+			throw new GraphicsException("Texture is too large. Maximum width is "+ getInfo().getMaxTextureSize() + " pixels.");
+		
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+		
+		clearError();
+		glTexImage1D(
+			GL_TEXTURE_1D,
+			texlevel,
+			format.glid, 
+			width,
+			border,
+			colorFormat.glid,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 1D texture target already at the topmost mipmap level.
+	 * @param format    the internal texture format.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param border the texel border to add, if any.
+	 */
+	public void copyBufferToTextureData1D(TextureFormat format, int srcX, int srcY, int width, int border)
+	{
+		copyBufferToTextureData1D(format, 0, srcX, srcY, width, border);
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 1D texture target.
+	 * @param format    the internal texture format.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param border the texel border to add, if any.
+	 */
+	public void copyBufferToTextureData1D(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
+	{
+		glCopyTexImage1D(GL_TEXTURE_1D, texlevel, format.glid, srcX, srcY, width, border);
+	}
+
+	/**
+	 * Sends a subset of data to the currently-bound 1D texture already 
+	 * in OpenGL's memory at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param width the texture width in texels.
+	 * @param xoffs the texel offset.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureSubData1D(ByteBuffer imageData, ColorFormat colorFormat, int width, int xoffs)
+	{
+		setTextureSubData1D(imageData, colorFormat, 0, width, xoffs);
+	}
+
+	/**
+	 * Sends a subset of data to the currently-bound 1D texture already in OpenGL's memory.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
+	 * @param width the texture width in texels.
+	 * @param xoffs the texel offset.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureSubData1D(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
+	{
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+	
+		clearError();
+		glTexSubImage1D(
+			GL_TEXTURE_1D,
+			texlevel,
+			xoffs,
+			width,
+			colorFormat.glid,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 1D texture target already at the topmost mipmap level.
+	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 */
+	public void copyBufferToTextureSubData1D(int xoffset, int srcX, int srcY, int width)
+	{
+		copyBufferToTextureSubData1D(0, xoffset, srcX, srcY, width);
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 1D texture target.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
+	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 */
+	public void copyBufferToTextureSubData1D(int texlevel, int xoffset, int srcX, int srcY, int width)
+	{
+		glCopyTexSubImage1D(GL_TEXTURE_1D, texlevel, xoffset, srcX, srcY, width);
+	}
+
+	/**
+	 * Unbinds a texture from the current 1D target.
+	 */
+	public void unsetTexture1D()
+	{
+		glBindTexture(GL_TEXTURE_1D, 0);
+	}
+
+	/**
+	 * Binds a 2D texture object to the current active texture unit.
+	 * This returns an optional latch object for unbinding the texture 
+	 * from the 2D target if this is used in a try-with-resources block.
+	 * @param texture the texture to bind.
+	 * @return an optional latch object.
+	 */
+	public Texture2DLatch setTexture2D(OGLTexture texture)
+	{
+		Objects.requireNonNull(texture);
+		glBindTexture(GL_TEXTURE_2D, texture.getName());
+		return new Texture2DLatch();
+	}
+
+	/**
+	 * Sets the current filtering for the current 2D texture.
+	 * @param minFilter the minification filter.
+	 * @param magFilter the magnification filter.
+	 */
+	public void setTextureFiltering2D(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+	}
+
+	/**
+	 * Sets the current filtering for the current 2D texture.
+	 * @param minFilter the minification filter.
+	 * @param magFilter the magnification filter.
+	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
+	 */
+	public void setTextureFiltering2D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		
+		if (getInfo().supportsTextureAnisotropy())
+		{
+			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
+			glTexParameterf(GL_TEXTURE_2D, 0x084FE, anisotropy);
+		}
+	}
+
+	/**
+	 * Sets the current wrapping for the current 2D texture.
+	 * @param wrapS the wrapping mode, S-axis.
+	 * @param wrapT the wrapping mode, T-axis.
+	 */
+	public void setTextureWrapping2D(TextureWrapType wrapS, TextureWrapType wrapT)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS.glid);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT.glid);
+	}
+
+	/**
+	 * Sends a texture into OpenGL's memory for the current 2D texture at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param format the internal format.
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels.
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureData2D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
+	{
+		setTextureData2D(imageData, colorFormat, format, 0, width, height, border);
+	}
+
+	/**
+	 * Sends a texture into OpenGL's memory for the current 2D texture.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param format the internal format.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels.
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureData2D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
+	{
+		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
+			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
+	
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+		
+		clearError();
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			texlevel,
+			format.glid, 
+			width,
+			height,
+			border,
+			colorFormat.glid,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 2D texture target at the topmost mipmap level.
+	 * @param format    the internal format.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab.
+	 * @param border    the texel border to add, if any.
+	 */
+	public void copyBufferToTextureData2D(TextureFormat format, int srcX, int srcY, int width, int height, int border)
+	{
+		copyBufferToTextureData2D(format, 0, srcX, srcY, width, height, border);
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 2D texture target.
+	 * @param format    the internal format.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab.
+	 * @param border    the texel border to add, if any.
+	 */
+	public void copyBufferToTextureData2D(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
+	{
+		glCopyTexImage2D(GL_TEXTURE_2D, format.glid, texlevel, srcX, srcY, width, height, border);
+	}
+
+	/**
+	 * Sends a subset of data to the currently-bound 2D texture 
+	 * already in OpenGL's memory at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels.
+	 * @param xoffs the texel offset.
+	 * @param yoffs the texel offset.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureSubData2D(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
+	{
+		setTextureSubData2D(imageData, colorFormat, 0, width, height, xoffs, yoffs);
+	}
+
+	/**
+	 * Sends a subset of data to the currently-bound 2D texture already in OpenGL's memory.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels.
+	 * @param xoffs the texel offset.
+	 * @param yoffs the texel offset.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTextureSubData2D(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
+	{
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+	
+		clearError();
+		glTexSubImage2D(
+			GL_TEXTURE_2D,
+			texlevel,
+			xoffs,
+			yoffs,
+			width,
+			height,
+			colorFormat.glid,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the 
+	 * current 2D texture target already in OpenGL's memory at the topmost mipmap level.
+	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param yoffset	the offset in pixels on this texture (y-coordinate) to put this texture data.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab.
+	 */
+	public void copyBufferToTextureSubData2D(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	{
+		copyBufferToTextureSubData2D(0, xoffset, yoffset, srcX, srcY, width, height);
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the 
+	 * current 2D texture target already in OpenGL's memory.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
+	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param yoffset	the offset in pixels on this texture (y-coordinate) to put this texture data.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab.
+	 */
+	public void copyBufferToTextureSubData2D(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	{
+		glCopyTexSubImage2D(GL_TEXTURE_2D, texlevel, xoffset, yoffset, srcX, srcY, width, height);
+	}
+
+	/**
+	 * Unbinds a texture from the current 2D target.
+	 */
+	public void unsetTexture2D()
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	// TODO: Finish this.

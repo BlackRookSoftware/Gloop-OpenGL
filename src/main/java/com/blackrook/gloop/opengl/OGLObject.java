@@ -79,6 +79,14 @@ public abstract class OGLObject
 		allocated = false;
 	}
 
+	/**
+	 * @return true if allocated in OpenGL, false if not.
+	 */
+	protected boolean isAllocated()
+	{
+		return allocated;
+	}
+	
 	/**	 
 	 * Allocates a new type of this object in OpenAL.
 	 * Called by OALObject constructor.
@@ -93,6 +101,24 @@ public abstract class OGLObject
 	 * @throws GraphicsException if the deallocation cannot happen.
 	 */
 	protected abstract void free();
+
+	/**
+	 * Utility function to expand the "undeleted" GL name pool if it is below a certain length.
+	 * @param input the input array.
+	 * @param targetLength the target length.
+	 * @return the array itself (<code>input</code>) if no expansion needed, or a new array with the contents copied if
+	 * <code>input.length &lt; targetLength</code>. 
+	 */
+	protected static int[] expand(int[] input, int targetLength)
+	{
+		if (input.length < targetLength)
+		{
+			int[] newarr = new int[targetLength];
+			System.arraycopy(input, 0, newarr, 0, input.length);
+			input = newarr;
+		}
+		return input;
+	}
 	
 	@Override
 	public String toString()
