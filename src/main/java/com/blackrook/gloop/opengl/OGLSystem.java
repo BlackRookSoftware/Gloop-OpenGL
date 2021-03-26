@@ -23,7 +23,7 @@ import com.blackrook.gloop.opengl.node.OGLNode;
  * The starting point: the OpenGL subsystem.
  * <p> An implementation of OpenGL is initialized here, attached to a {@link GLFWWindow}
  * and spawns a thread that makes it responsible for the rendering the context 
- * (see {@link GLFWContext#makeWindowContextCurrent(GLFWWindow)}). The rendering thread 
+ * (see {@link GLFWContext#makeContextCurrent(GLFWWindow)}). The rendering thread 
  * can either fire refreshes at a steady rate or listen for a trigger via {@link #display()}
  * to kick off a frame draw, either by programmer request or . 
  * @param <G> the graphics object to call.
@@ -368,7 +368,7 @@ public class OGLSystem<G extends OGLGraphics>
 		@Override
 		public void run()
 		{
-			GLFWContext.makeWindowContextCurrent(window);
+			GLFWContext.makeContextCurrent(window);
 	        GL.createCapabilities();
 			while (true)
 			{

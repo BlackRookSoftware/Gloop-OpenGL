@@ -8,6 +8,18 @@
 package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
+import com.blackrook.gloop.opengl.exception.GraphicsException;
+import com.blackrook.gloop.opengl.gl1.objects.OGLTexture;
+import com.blackrook.gloop.opengl.gl3.enums.AttachPoint;
+import com.blackrook.gloop.opengl.gl3.enums.RenderbufferFormat;
+import com.blackrook.gloop.opengl.gl3.objects.OGLFramebuffer;
+import com.blackrook.gloop.opengl.gl3.objects.OGLRenderbuffer;
+
+import java.io.Closeable;
+import java.nio.IntBuffer;
+import java.util.Objects;
+
+import org.lwjgl.system.MemoryStack;
 
 import static org.lwjgl.opengl.GL30.*;
 
@@ -24,6 +36,32 @@ public class OGL30Graphics extends OGL21Graphics
 			super();
 			this.maxRenderBufferSize = getInt(GL_MAX_RENDERBUFFER_SIZE);
 			this.maxRenderBufferColorAttachments = getInt(GL_MAX_COLOR_ATTACHMENTS);
+		}
+	}
+	
+	/**
+	 * A try-with-resources latch that unbinds a renderbuffer
+	 * after it escapes the <code>try</code>. 
+	 */
+	public class RenderbufferLatch implements Closeable
+	{
+		@Override
+		public void close()
+		{
+			unsetRenderbuffer();
+		}
+	}
+	
+	/**
+	 * A try-with-resources latch that unbinds a framebuffer
+	 * after it escapes the <code>try</code>. 
+	 */
+	public class FramebufferLatch implements Closeable
+	{
+		@Override
+		public void close()
+		{
+			unsetFramebuffer();
 		}
 	}
 	
@@ -86,7 +124,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 * @param locationId the uniform location.
 	 * @param value the value to set.
 	 */
-	public void setShaderUniformIntUnsigned(int locationId, int value)
+	public void setShaderUniformUnsignedInt(int locationId, int value)
 	{
 		glUniform1ui(locationId, value);
 	}
@@ -96,9 +134,223 @@ public class OGL30Graphics extends OGL21Graphics
 	 * @param locationId the uniform location.
 	 * @param values the values to set.
 	 */
-	public void setShaderUniformIntUnsignedArray(int locationId, int ... values)
+	public void setShaderUniformUnsignedIntArray(int locationId, int ... values)
 	{
 		glUniform1uiv(locationId, values);
+	}
+
+	/**
+	 * Sets a uniform integer vec2 value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param value0 the first value to set.
+	 * @param value1 the second value to set.
+	 */
+	public void setShaderUniformUnsignedIVec2(int locationId, int value0, int value1)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer ibuf = stack.mallocInt(2);
+			ibuf.put(0, value0);
+			ibuf.put(1, value1);
+			glUniform2uiv(locationId, ibuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform integer vec3 value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param value0 the first value to set.
+	 * @param value1 the second value to set.
+	 * @param value2 the third value to set.
+	 */
+	public void setShaderUniformUnsignedIVec3(int locationId, int value0, int value1, int value2)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer ibuf = stack.mallocInt(3);
+			ibuf.put(0, value0);
+			ibuf.put(1, value1);
+			ibuf.put(2, value2);
+			glUniform3uiv(locationId, ibuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform integer vec4 value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param value0 the first value to set.
+	 * @param value1 the second value to set.
+	 * @param value2 the third value to set.
+	 * @param value3 the fourth value to set.
+	 */
+	public void setShaderUniformUnsignedIVec4(int locationId, int value0, int value1, int value2, int value3)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer ibuf = stack.mallocInt(4);
+			ibuf.put(0, value0);
+			ibuf.put(1, value1);
+			ibuf.put(2, value2);
+			ibuf.put(3, value3);
+			glUniform4uiv(locationId, ibuf);			
+		}
+	}
+
+	/**
+	 * Creates a new render buffer object.
+	 * @return a new, uninitialized render buffer object.
+	 */
+	public OGLRenderbuffer createRenderbuffer()
+	{
+		return new OGLRenderbuffer();
+	}
+
+	/**
+	 * Binds a FrameRenderBuffer to the current context.
+	 * @param renderbuffer the render buffer to bind to the current render buffer.
+	 * @return an optional latch object.
+	 */
+	public RenderbufferLatch setRenderbuffer(OGLRenderbuffer renderbuffer)
+	{
+		Objects.requireNonNull(renderbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer.getName());
+		return new RenderbufferLatch();
+	}
+
+	/**
+	 * Sets a render buffer's internal format and size.
+	 * @param format the buffer format.
+	 * @param width the width in pixel data.
+	 * @param height the height in pixel data.
+	 */
+	public void setRenderbufferSize(RenderbufferFormat format, int width, int height)
+	{
+		if (width < 1 || height < 1)
+			throw new GraphicsException("Render buffer size cannot be less than 1 in any dimension.");
+		glRenderbufferStorage(GL_RENDERBUFFER, format.glid, width, height);
+	}
+
+	/**
+	 * Unbinds a FrameRenderBuffer from the current context.
+	 */
+	public void unsetRenderbuffer()
+	{
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+
+	/**
+	 * Creates a new framebuffer object.
+	 * @return a new, uninitialized framebuffer object.
+	 * @throws GraphicsException if the object could not be created.
+	 */
+	public OGLFramebuffer createFramebuffer()
+	{
+		return new OGLFramebuffer();
+	}
+
+	/**
+	 * Binds a FrameBuffer for rendering.
+	 * @param framebuffer the framebuffer to set as the current one.
+	 * @return an optional latch object.
+	 */
+	public FramebufferLatch setFramebuffer(OGLFramebuffer framebuffer)
+	{
+		Objects.requireNonNull(framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.getName());
+		return new FramebufferLatch();
+	}
+
+	/**
+	 * Tests for frame buffer completeness on the bound framebuffer. 
+	 * If incomplete, this throws a GraphicsException with the error message.
+	 */
+	public void checkFramebufferStatus()
+	{
+		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		String errorString = null;
+		if (status != GL_FRAMEBUFFER_COMPLETE) 
+		{
+			switch (status)
+			{
+				case GL_FRAMEBUFFER_UNSUPPORTED:
+					errorString = "Framebuffer object format is unsupported by the video hardware.";
+					break;
+				case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+					errorString = "Incomplete attachment.";
+					break;
+				case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+					errorString = "Incomplete missing attachment.";
+					break;
+				case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+					errorString = "Incomplete draw buffer.";
+					break;
+				case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+					errorString = "Incomplete read buffer.";
+					break;
+				case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+					errorString = "Incomplete multisample buffer.";
+					break;
+				default:
+					errorString = "Framebuffer object status is invalid due to unknown error.";
+					break;
+			}
+			throw new GraphicsException("OpenGL raised error: "+errorString);
+		}
+	}
+
+	/**
+	 * Attaches a texture to this frame buffer for rendering directly to a texture.
+	 * @param attachPoint the attachment source point.
+	 * @param texture the texture to attach this to.
+	 */
+	public void attachFramebufferTexture2D(AttachPoint attachPoint, OGLTexture texture)
+	{
+		clearError();
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachPoint.glVal, GL_TEXTURE_2D, texture.getName(), 0);
+		getError();
+	}
+
+	/**
+	 * Detaches a texture from this frame buffer.
+	 * @param attachPoint the attachment source point.
+	 */
+	public void detachFramebufferTexture2D(AttachPoint attachPoint)
+	{
+		clearError();
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachPoint.glVal, GL_TEXTURE_2D, 0, 0);
+		getError();
+	}
+
+	/**
+	 * Attaches a render buffer to the current frame buffer.
+	 * @param attachPoint the attachment source point.
+	 * @param renderBuffer the render buffer to attach this to.
+	 */
+	public void attachFramebufferRenderbuffer(AttachPoint attachPoint, OGLRenderbuffer renderBuffer)
+	{
+		clearError();
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachPoint.glVal, GL_RENDERBUFFER, renderBuffer.getName());
+		getError();
+	}
+
+	/**
+	 * Detaches a render buffer from the current frame buffer.
+	 * @param attachPoint the attachment source point.
+	 */
+	public void detachFramebufferRenderbuffer(AttachPoint attachPoint)
+	{
+		clearError();
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachPoint.glVal, GL_RENDERBUFFER, 0);
+		getError();
+	}
+
+	/**
+	 * Unbinds a FrameBuffer for rendering.
+	 * The current buffer will then be the default target buffer.
+	 */
+	public void unsetFramebuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 }

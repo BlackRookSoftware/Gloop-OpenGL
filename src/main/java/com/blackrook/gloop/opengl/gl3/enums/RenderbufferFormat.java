@@ -5,7 +5,7 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl1.enums;
+package com.blackrook.gloop.opengl.gl3.enums;
 
 import static org.lwjgl.opengl.GL11.*;
 

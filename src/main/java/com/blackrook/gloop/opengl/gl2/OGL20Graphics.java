@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.Objects;
 
 import org.lwjgl.system.MemoryStack;
@@ -257,7 +258,7 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Sets a uniform value on the currently-bound shader.
+	 * Sets a uniform vec2 value on the currently-bound shader.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
@@ -274,7 +275,7 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Sets a uniform value on the currently-bound shader.
+	 * Sets a uniform vec3 value on the currently-bound shader.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
@@ -284,7 +285,7 @@ public class OGL20Graphics extends OGL15Graphics
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
-			FloatBuffer fbuf = stack.mallocFloat(2);
+			FloatBuffer fbuf = stack.mallocFloat(3);
 			fbuf.put(0, value0);
 			fbuf.put(1, value1);
 			fbuf.put(2, value2);
@@ -293,7 +294,7 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Sets a uniform value on the currently-bound shader.
+	 * Sets a uniform vec4 value on the currently-bound shader.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
@@ -304,7 +305,7 @@ public class OGL20Graphics extends OGL15Graphics
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
-			FloatBuffer fbuf = stack.mallocFloat(2);
+			FloatBuffer fbuf = stack.mallocFloat(4);
 			fbuf.put(0, value0);
 			fbuf.put(1, value1);
 			fbuf.put(2, value2);
@@ -313,6 +314,140 @@ public class OGL20Graphics extends OGL15Graphics
 		}
 	}
 	
+	/**
+	 * Sets a uniform integer vec2 value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param value0 the first value to set.
+	 * @param value1 the second value to set.
+	 */
+	public void setShaderUniformIVec2(int locationId, int value0, int value1)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer ibuf = stack.mallocInt(2);
+			ibuf.put(0, value0);
+			ibuf.put(1, value1);
+			glUniform2iv(locationId, ibuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform integer vec3 value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param value0 the first value to set.
+	 * @param value1 the second value to set.
+	 * @param value2 the third value to set.
+	 */
+	public void setShaderUniformIVec3(int locationId, int value0, int value1, int value2)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer ibuf = stack.mallocInt(3);
+			ibuf.put(0, value0);
+			ibuf.put(1, value1);
+			ibuf.put(2, value2);
+			glUniform3iv(locationId, ibuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform integer vec4 value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param value0 the first value to set.
+	 * @param value1 the second value to set.
+	 * @param value2 the third value to set.
+	 * @param value3 the fourth value to set.
+	 */
+	public void setShaderUniformIVec4(int locationId, int value0, int value1, int value2, int value3)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer ibuf = stack.mallocInt(4);
+			ibuf.put(0, value0);
+			ibuf.put(1, value1);
+			ibuf.put(2, value2);
+			ibuf.put(3, value3);
+			glUniform4iv(locationId, ibuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat2) value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param matrix the multidimensional array of values, each array as one row of values.
+	 * @throws ArrayIndexOutOfBoundsException if matrix is not 2x2 or greater and a value is fetched out-of-bounds.
+	 */
+	public void setShaderUniformMatrix2(int locationId, float[][] matrix)
+	{
+		// Fill in column major order!
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(4);
+			fbuf.put(0, matrix[0][0]);
+			fbuf.put(1, matrix[1][0]);
+			fbuf.put(2, matrix[0][1]);
+			fbuf.put(3, matrix[1][1]);
+			glUniformMatrix2fv(locationId, false, fbuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat3) value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param matrix the multidimensional array of values, each array as one row of values.
+	 * @throws ArrayIndexOutOfBoundsException if matrix is not 3x3 or greater and a value is fetched out-of-bounds.
+	 */
+	public void setShaderUniformMatrix3(int locationId, float[][] matrix)
+	{
+		// Fill in column major order!
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(9);
+			fbuf.put(0, matrix[0][0]);
+			fbuf.put(1, matrix[1][0]);
+			fbuf.put(2, matrix[2][0]);
+			fbuf.put(3, matrix[0][1]);
+			fbuf.put(4, matrix[1][1]);
+			fbuf.put(5, matrix[2][1]);
+			fbuf.put(6, matrix[0][2]);
+			fbuf.put(7, matrix[1][2]);
+			fbuf.put(8, matrix[2][2]);
+			glUniformMatrix3fv(locationId, false, fbuf);			
+		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat4) value on the currently-bound shader.
+	 * @param locationId the uniform location.
+	 * @param matrix the multidimensional array of values, each array as one row of values.
+	 * @throws ArrayIndexOutOfBoundsException if matrix is not 4x4 or greater and a value is fetched out-of-bounds.
+	 */
+	public void setShaderUniformMatrix4(int locationId, float[][] matrix)
+	{
+		// Fill in column major order!
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(16);
+			fbuf.put(0,  matrix[0][0]);
+			fbuf.put(1,  matrix[1][0]);
+			fbuf.put(2,  matrix[2][0]);
+			fbuf.put(3,  matrix[3][0]);
+			fbuf.put(4,  matrix[0][1]);
+			fbuf.put(5,  matrix[1][1]);
+			fbuf.put(6,  matrix[2][1]);
+			fbuf.put(7,  matrix[3][1]);
+			fbuf.put(8,  matrix[0][2]);
+			fbuf.put(9,  matrix[1][2]);
+			fbuf.put(10, matrix[2][2]);
+			fbuf.put(11, matrix[3][2]);
+			fbuf.put(12, matrix[0][3]);
+			fbuf.put(13, matrix[1][3]);
+			fbuf.put(14, matrix[2][3]);
+			fbuf.put(15, matrix[3][3]);
+			glUniformMatrix4fv(locationId, false, fbuf);			
+		}
+	}
+
 	/**
 	 * Unbinds a shader from the current context.
 	 */

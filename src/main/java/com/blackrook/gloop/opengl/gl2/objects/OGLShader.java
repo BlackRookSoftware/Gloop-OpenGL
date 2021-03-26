@@ -334,11 +334,7 @@ public class OGLShader extends OGLObject
 	private static void finalizeAddId(int id)
 	{
 		if (UNDELETED_LENGTH == UNDELETED_IDS.length)
-		{
-			int[] newArray = new int[UNDELETED_IDS.length * 2];
-			System.arraycopy(UNDELETED_IDS, 0, newArray, 0, UNDELETED_LENGTH);
-			UNDELETED_IDS = newArray;
-		}
+			UNDELETED_IDS = expand(UNDELETED_IDS, UNDELETED_IDS.length * 2);
 		UNDELETED_IDS[UNDELETED_LENGTH++] = id;
 	}
 	

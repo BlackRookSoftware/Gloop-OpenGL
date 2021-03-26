@@ -14,13 +14,7 @@ import com.blackrook.gloop.glfw.GLFWWindow;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowHints;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
-import com.blackrook.gloop.glfw.input.annotation.OnMouseAxisAction;
-import com.blackrook.gloop.glfw.input.annotation.OnMouseButtonAction;
-import com.blackrook.gloop.glfw.input.annotation.OnMousePositionAction;
-import com.blackrook.gloop.glfw.input.annotation.OnMouseScrollAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
-import com.blackrook.gloop.glfw.input.enums.MouseAxisType;
-import com.blackrook.gloop.glfw.input.enums.MouseButtonType;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.node.OGLNodeAdapter;
 
