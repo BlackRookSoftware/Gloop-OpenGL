@@ -9,14 +9,10 @@ package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
-import com.blackrook.gloop.opengl.gl1.objects.OGLTexture;
+import com.blackrook.gloop.opengl.gl1.enums.BufferBindingType;
+import com.blackrook.gloop.opengl.gl1.enums.DataType;
 import com.blackrook.gloop.opengl.gl2.enums.ShaderProgramType;
-import com.blackrook.gloop.opengl.gl2.objects.OGLShader;
-import com.blackrook.gloop.opengl.gl2.objects.OGLShaderProgram;
-import com.blackrook.gloop.opengl.gl2.objects.OGLShaderProgramFragment;
-import com.blackrook.gloop.opengl.gl2.objects.OGLShaderProgramVertex;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,7 +29,7 @@ import org.lwjgl.system.MemoryStack;
 import static org.lwjgl.opengl.GL20.*;
 
 /**
- * OpenGL 2.1 Graphics Implementation.
+ * OpenGL 2.0 Graphics Implementation.
  * @author Matthew Tropiano
  */
 public class OGL20Graphics extends OGL15Graphics
@@ -48,17 +44,12 @@ public class OGL20Graphics extends OGL15Graphics
 		}
 	}
 	
-	/**
-	 * A try-with-resources latch that unbinds a shader
-	 * after it escapes the <code>try</code>. 
-	 */
-	public class ShaderLatch implements Closeable
+	/** Current shader. */
+	private OGLShader currentShader;
+
+	public OGL20Graphics()
 	{
-		@Override
-		public void close()
-		{
-			unsetShader();
-		}
+		this.currentShader = null;
 	}
 	
 	@Override
@@ -71,15 +62,9 @@ public class OGL20Graphics extends OGL15Graphics
 	protected void endFrame()
 	{
 	    // Clean up abandoned objects.
-	    OGLTexture.destroyUndeleted();
 	    OGLShader.destroyUndeleted();
 	    OGLShaderProgram.destroyUndeleted();
-		/*
-	    OGLBuffer.destroyUndeleted(this);
-	    OGLFrameBuffer.destroyUndeleted(this);
-	    OGLRenderBuffer.destroyUndeleted(this);
-	    OGLOcclusionQuery.destroyUndeleted(this);
-	    */
+	    super.endFrame();
 	}
 
 	/**
@@ -190,31 +175,23 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Binds a 1D texture object to the current active texture unit.
-	 * This returns an optional latch object for unbinding the texture 
-	 * from the 1D target if this is used in a try-with-resources block.
-	 * @param texture the texture to bind.
-	 * @return an optional latch object.
+	 * Gets the currently bound shader. 
+	 * @return the texture, or null if no bound texture.
 	 */
-	public Texture1DLatch setTexture1D(OGLTexture texture)
+	public OGLShader getShader()
 	{
-		Objects.requireNonNull(texture);
-		glBindTexture(GL_TEXTURE_1D, texture.getName());
-		return new Texture1DLatch();
+		return currentShader;
 	}
-
+	
 	/**
 	 * Binds a shader to the current context.
-	 * This returns an optional latch object for unbinding the shader 
-	 * if this is used in a try-with-resources block.
 	 * @param shader the texture to bind.
-	 * @return an optional latch object.
 	 */
-	public ShaderLatch setShader(OGLShader shader)
+	public void setShader(OGLShader shader)
 	{
 		Objects.requireNonNull(shader);
 		glUseProgram(shader.getName());
-		return new ShaderLatch();
+		currentShader = shader;
 	}
 	
 	/**
@@ -454,6 +431,39 @@ public class OGL20Graphics extends OGL15Graphics
 	public void unsetShader()
 	{
 		glUseProgram(0);
+		currentShader = null;
 	}
 
+	/**
+	 * Enables or disables the processing of bound vertex arrays and/or buffers at a specific attrib index.
+	 * The index on this can also be a uniform location for an attrib pointer.
+	 * @param index the attribute index or uniform location id.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setVertexAttribArrayEnabled(int index, boolean enable)
+	{
+		if (enable)
+			glEnableVertexAttribArray(index);
+		else
+			glDisableVertexAttribArray(index);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer are used to draw polygonal information:
+	 * This sets the vertex attribute pointers.
+	 * The index on this can also be a uniform location for an attrib pointer.
+	 * @param index the attribute index or uniform location id.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param normalize if true, the data is normalized on read ([-1, 1] for signed values, [0, 1] for unsigned). Else, read as-is.
+	 * @param width the width of a full set of attribute components (3-dimensional vertices = 3).
+	 * @param stride the distance (in elements) between each attribute.    
+	 * @param offset the offset in each stride where each attribute starts (in elements).  
+	 * @see #setVertexAttribArrayEnabled(int, boolean)   
+	 */
+	public void setPointerVertexAttrib(int index, DataType dataType, boolean normalize, int width, int stride, int offset)
+	{
+		glVertexAttribPointer(index, width, dataType.glValue, normalize, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+	
 }

@@ -8,7 +8,6 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import java.awt.Color;
-import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
@@ -23,17 +22,20 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.enums.AttribType;
 import com.blackrook.gloop.opengl.gl1.enums.BlendArg;
 import com.blackrook.gloop.opengl.gl1.enums.BlendFunc;
+import com.blackrook.gloop.opengl.gl1.enums.BufferBindingType;
 import com.blackrook.gloop.opengl.gl1.enums.ClientAttribType;
 import com.blackrook.gloop.opengl.gl1.enums.FaceSide;
 import com.blackrook.gloop.opengl.gl1.enums.FillMode;
 import com.blackrook.gloop.opengl.gl1.enums.FogFormulaType;
 import com.blackrook.gloop.opengl.gl1.enums.FrameBufferType;
+import com.blackrook.gloop.opengl.gl1.enums.GeometryType;
 import com.blackrook.gloop.opengl.gl1.enums.HintType;
 import com.blackrook.gloop.opengl.gl1.enums.HintValue;
 import com.blackrook.gloop.opengl.gl1.enums.LightShadeType;
 import com.blackrook.gloop.opengl.gl1.enums.LogicFunc;
 import com.blackrook.gloop.opengl.gl1.enums.MatrixMode;
 import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
+import com.blackrook.gloop.opengl.gl1.enums.DataType;
 import com.blackrook.gloop.opengl.gl1.enums.StencilTestFunc;
 import com.blackrook.gloop.opengl.gl1.enums.TextureCoordType;
 import com.blackrook.gloop.opengl.gl1.enums.TextureFormat;
@@ -42,10 +44,6 @@ import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.gl1.enums.TextureMode;
 import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
-import com.blackrook.gloop.opengl.gl1.objects.OGLBitmap;
-import com.blackrook.gloop.opengl.gl1.objects.OGLLight;
-import com.blackrook.gloop.opengl.gl1.objects.OGLMaterial;
-import com.blackrook.gloop.opengl.gl1.objects.OGLTexture;
 import com.blackrook.gloop.opengl.math.Matrix4F;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -57,7 +55,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class OGL11Graphics extends OGLGraphics
 {
 	private static ThreadLocal<Matrix4F> MATRIX = ThreadLocal.withInitial(()->new Matrix4F());
-
+	
 	/**
 	 * Information about this context implementation.
 	 */
@@ -119,30 +117,16 @@ public class OGL11Graphics extends OGLGraphics
 		
 	}
 
-	/**
-	 * A try-with-resources latch that unbinds a texture 1D target 
-	 * after it escapes the <code>try</code>. 
-	 */
-	public class Texture1DLatch implements Closeable
+	/** Current 1D texture binding. */
+	private OGLTexture currentTexture1D;
+	/** Current 2D texture binding. */
+	private OGLTexture currentTexture2D;
+
+	// Create OpenGL 1.1 context.
+	public OGL11Graphics()
 	{
-		@Override
-		public void close()
-		{
-			unsetTexture1D();
-		}
-	}
-	
-	/**
-	 * A try-with-resources latch that unbinds a texture 2D target 
-	 * after it escapes the <code>try</code>. 
-	 */
-	public class Texture2DLatch implements Closeable
-	{
-		@Override
-		public void close()
-		{
-			unsetTexture2D();
-		}
+		this.currentTexture1D = null;
+		this.currentTexture2D = null;
 	}
 	
 	@Override
@@ -156,22 +140,14 @@ public class OGL11Graphics extends OGLGraphics
 	{
 	    // Clean up abandoned objects.
 	    OGLTexture.destroyUndeleted();
-		/*
-	    OGLBuffer.destroyUndeleted(this);
-	    OGLFrameBuffer.destroyUndeleted(this);
-	    OGLRenderBuffer.destroyUndeleted(this);
-	    OGLOcclusionQuery.destroyUndeleted(this);
-	    OGLShader.destroyUndeleted(this);
-	    OGLShaderProgram.destroyUndeleted(this);
-	    */
 	}
 
 	/**
-	 * Clears a bunch of framebuffers.
-	 * @param clearColorBuffer clear the color buffer?
-	 * @param clearDepthBuffer clear the depth buffer?
-	 * @param clearAccumulationBuffer clear the accumulation buffer?
-	 * @param clearStencilBuffer clear the stencil buffer?
+	 * Clears a bunch of fixed framebuffers.
+	 * @param clearColorBuffer if true, clear the color buffer.
+	 * @param clearDepthBuffer if true, clear the depth buffer.
+	 * @param clearAccumulationBuffer if true, clear the accumulation buffer.
+	 * @param clearStencilBuffer if true, clear the stencil buffer.
 	 */
 	public void clearFrameBuffers(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearAccumulationBuffer, boolean clearStencilBuffer)
 	{
@@ -1554,24 +1530,6 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets if 1D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture1DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_1D, enabled);
-	}
-
-	/**
-	 * Sets if 2D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture2DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_2D, enabled);
-	}
-
-	/**
 	 * Sets the texture environment mode to use for texel fragment coloring.
 	 * This is usually REPLACE, by default.
 	 * @param mode the texture mode.
@@ -1696,17 +1654,32 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Binds a 1D texture object to the current active texture unit.
-	 * This returns an optional latch object for unbinding the texture 
-	 * from the 1D target if this is used in a try-with-resources block.
-	 * @param texture the texture to bind.
-	 * @return an optional latch object.
+	 * Sets if 1D texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
 	 */
-	public Texture1DLatch setTexture1D(OGLTexture texture)
+	public void setTexture1DEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_1D, enabled);
+	}
+
+	/**
+	 * Gets the currently bound 1D texture. 
+	 * @return the texture, or null if no bound texture.
+	 */
+	public OGLTexture getTexture1D()
+	{
+		return currentTexture1D;
+	}
+	
+	/**
+	 * Binds a 1D texture object to the current active texture unit.
+	 * @param texture the texture to bind.
+	 */
+	public void setTexture1D(OGLTexture texture)
 	{
 		Objects.requireNonNull(texture);
 		glBindTexture(GL_TEXTURE_1D, texture.getName());
-		return new Texture1DLatch();
+		currentTexture1D = texture;
 	}
 
 	/**
@@ -1893,20 +1866,36 @@ public class OGL11Graphics extends OGLGraphics
 	public void unsetTexture1D()
 	{
 		glBindTexture(GL_TEXTURE_1D, 0);
+		currentTexture1D = null;
 	}
 
 	/**
-	 * Binds a 2D texture object to the current active texture unit.
-	 * This returns an optional latch object for unbinding the texture 
-	 * from the 2D target if this is used in a try-with-resources block.
-	 * @param texture the texture to bind.
-	 * @return an optional latch object.
+	 * Sets if 2D texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
 	 */
-	public Texture2DLatch setTexture2D(OGLTexture texture)
+	public void setTexture2DEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_2D, enabled);
+	}
+
+	/**
+	 * Gets the currently bound 2D texture. 
+	 * @return the texture, or null if no bound texture.
+	 */
+	public OGLTexture getTexture2D()
+	{
+		return currentTexture2D;
+	}
+	
+	/**
+	 * Binds a 2D texture object to the current active texture unit.
+	 * @param texture the texture to bind.
+	 */
+	public void setTexture2D(OGLTexture texture)
 	{
 		Objects.requireNonNull(texture);
 		glBindTexture(GL_TEXTURE_2D, texture.getName());
-		return new Texture2DLatch();
+		currentTexture2D = texture;
 	}
 
 	/**
@@ -2111,8 +2100,146 @@ public class OGL11Graphics extends OGLGraphics
 	public void unsetTexture2D()
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
+		currentTexture2D = null;
 	}
 
-	// TODO: Finish this.
+	/**
+	 * Enables or disables the processing of bound vertex arrays and/or buffers.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setVertexArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_VERTEX_ARRAY, enable);
+	}
+
+	/**
+	 * Enables or disables the processing of bound texture coordinate arrays.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setTextureCoordArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_TEXTURE_COORD_ARRAY, enable);
+	}
+
+	/**
+	 * Enables or disables the processing of bound vertex color arrays.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setColorArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_COLOR_ARRAY, enable);
+	}
+
+	/**
+	 * Enables or disables the processing of bound surface normal arrays.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setNormalArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_NORMAL_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the vertex pointers.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of coordinates (3-dimensional vertices = 3).
+	 * @param stride the distance (in elements) between each vertex.    
+	 * @param offset the offset in each stride where each vertex starts.  
+	 * @see #setVertexArrayEnabled(boolean)   
+	 */
+	public void setPointerVertex(DataType dataType, int width, int stride, int offset)
+	{
+		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+	
+	/**
+	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the texture coordinate pointers.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of coordinates (2-dimensional coords = 2).
+	 * @param stride the distance (in elements) between each coordinate group.     
+	 * @param offset the offset in each stride where each coordinate starts.     
+	 * @see #setTextureCoordArrayEnabled(boolean)   
+	 */
+	public void setPointerTextureCoordinate(DataType dataType, int width, int stride, int offset)
+	{
+		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+	
+	/**
+	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the normal vector pointers. Always assumes 3-dimensional vectors.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param stride the distance (in elements) between each normal.     
+	 * @param offset the offset in each stride where each normal starts.     
+	 * @see #setNormalArrayEnabled(boolean)   
+	 */
+	public void setPointerNormal(DataType dataType, int stride, int offset)
+	{
+		glNormalPointer(dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+	
+	/**
+	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the color pointers.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of color components (4-component color = 4).
+	 * @param stride the distance (in elements) between each color.   
+	 * @param offset the offset in each stride where each color starts.     
+	 * @see #setColorArrayEnabled(boolean)   
+	 */
+	public void setPointerColor(DataType dataType, int width, int stride, int offset)
+	{
+		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+	
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param offset the starting offset in the bound buffers (in elements).
+	 * @param elementCount the number of elements to draw using bound buffers.
+	 * NOTE: an element is in terms of array elements, so if the bound buffers describe the coordinates of 4 vertices,
+	 * <code>elementCount</code> should be 4.
+	 * @see #setVertexArrayEnabled(boolean)
+	 * @see #setTextureCoordArrayEnabled(boolean)
+	 * @see #setNormalArrayEnabled(boolean)
+	 * @see #setColorArrayEnabled(boolean)
+	 * @see #setPointerVertex(DataType, int, int, int)
+	 * @see #setPointerTextureCoordinate(DataType, int, int, int)
+	 * @see #setPointerNormal(DataType, int, int)
+	 * @see #setPointerColor(DataType, int, int, int)
+	 */
+	public void drawGeometryArray(GeometryType geometryType, int offset, int elementCount)
+	{
+		glDrawArrays(geometryType.glValue, offset, elementCount);
+		getError();
+	}
+	
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data, plus
+	 * an element buffer to describe the ordering.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param dataType the data type of the indices in the {@link BufferBindingType#INDICES}-bound buffer (must be an unsigned type).
+	 * @param count the amount of element indices to interpret in the {@link BufferBindingType#INDICES}-bound buffer.
+	 * @param offset the starting offset in the index buffer (in elements).
+	 * @see #setVertexArrayEnabled(boolean)
+	 * @see #setTextureCoordArrayEnabled(boolean)
+	 * @see #setNormalArrayEnabled(boolean)
+	 * @see #setColorArrayEnabled(boolean)
+	 * @see #setPointerVertex(DataType, int, int, int)
+	 * @see #setPointerTextureCoordinate(DataType, int, int, int)
+	 * @see #setPointerNormal(DataType, int, int)
+	 * @see #setPointerColor(DataType, int, int, int)
+	 */
+	public void drawGeometryElements(GeometryType geometryType, DataType dataType, int count, int offset)
+	{
+		glDrawElements(geometryType.glValue, count, dataType.glValue, dataType.size * offset);
+		getError();
+	}
 	
 }

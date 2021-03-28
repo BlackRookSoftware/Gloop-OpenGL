@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl3.objects;
+package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.OGLObject;
 
@@ -31,7 +31,7 @@ public class OGLRenderbuffer extends OGLObject
 	/**
 	 * Constructs a new RenderBuffer object.
 	 */
-	public OGLRenderbuffer()
+	OGLRenderbuffer()
 	{
 		super();
 	}

@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl1.objects;
+package com.blackrook.gloop.opengl.gl1;
 
 /**
  * Bitmap object for doing bitmap stuff.
@@ -32,7 +32,7 @@ public class OGLBitmap
 	 * @param width		the width in bits of the map.
 	 * @param height	the height in bits of the map.
 	 */
-	public OGLBitmap(int width, int height)
+	OGLBitmap(int width, int height)
 	{
 		this.width = width;
 		this.height = height;
@@ -40,13 +40,13 @@ public class OGLBitmap
 		this.bits = new byte[widthBytes * height];
 	}
 	
-	public OGLBitmap(int width, int height, byte[] source)
+	OGLBitmap(int width, int height, byte[] source)
 	{
 		this(width,height);
 		System.arraycopy(source, 0, bits, 0, Math.min(source.length, bits.length));
 	}
 	
-	public OGLBitmap(OGLBitmap b)
+	OGLBitmap(OGLBitmap b)
 	{
 		this(b.width, b.height, b.bits);
 	}

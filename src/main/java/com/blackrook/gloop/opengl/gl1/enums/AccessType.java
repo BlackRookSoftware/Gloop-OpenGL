@@ -20,14 +20,16 @@ public enum AccessType
 	 * but not written back on unmap. 
 	 */
 	READ(GL_READ_ONLY),
+	
 	/** 
 	 * Buffer is filled with undefined data on map, 
-	 * writes back its contents on unmap. 
+	 * writes back its contents on unmap.
 	 */
 	WRITE(GL_WRITE_ONLY),
+	
 	/** 
 	 * Buffer is filled with current data on map, 
-	 * writes back its contents on unmap. 
+	 * writes back its contents on unmap.
 	 */
 	READ_AND_WRITE(GL_READ_WRITE);
 	

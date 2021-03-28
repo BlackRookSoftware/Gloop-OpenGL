@@ -8,7 +8,7 @@
  * Contributors:
  *     Matt Tropiano - initial API and implementation
  *******************************************************************************/
-package com.blackrook.gloop.opengl.gl2.objects;
+package com.blackrook.gloop.opengl.gl2;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -184,7 +184,7 @@ public class OGLShader extends OGLObject
 	 * Each program can be null and is just left absent in the complete program.
 	 * @param programs the programs to attach.
 	 */
-	public OGLShader(OGLShaderProgram ... programs)
+	OGLShader(OGLShaderProgram ... programs)
 	{
 		super();
 		this.vertexProgram = null;
@@ -363,6 +363,8 @@ public class OGLShader extends OGLObject
 		private int type;
 		/** Uniform type. */
 		private String typeName;
+		
+		private Uniform() {}
 		
 		/** @return the uniform location id. */
 		public int getLocationId() 

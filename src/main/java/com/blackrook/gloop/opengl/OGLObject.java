@@ -13,6 +13,7 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
  * Generic OpenGL object type.
  * Since this is managed internally by OpenGL, the handles to these
  * objects are "names" (aka integer IDs) rather than memory addresses.
+ * <p>
  * @author Matthew Tropiano
  */
 public abstract class OGLObject
@@ -29,7 +30,8 @@ public abstract class OGLObject
 	 */
 	protected OGLObject()
 	{
-		this.glId = allocate(); 
+		if ((this.glId = allocate()) == 0)
+			throw new GraphicsException("Object could not be created.");
 		this.allocated = true; 
 	}
 	

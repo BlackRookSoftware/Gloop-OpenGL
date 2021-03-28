@@ -5,18 +5,17 @@
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl3.objects;
+package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLObject;
 
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Framebuffer object for whatever you wanna do with off-screen rendering.
- * It can bind itself to Texture2Ds and RenderBuffers and stuff.
+ * Standard texture class.
  * @author Matthew Tropiano
  */
-public class OGLFramebuffer extends OGLObject
+public class OGLTexture extends OGLObject
 {
 	/** List of OpenGL object ids that were not deleted properly. */
 	protected static int[] UNDELETED_IDS;
@@ -30,34 +29,35 @@ public class OGLFramebuffer extends OGLObject
 	}
 
 	/**
-	 * Constructs a new FrameBuffer object.
+	 * Creates a new blank texture object.
 	 */
-	public OGLFramebuffer()
+	OGLTexture()
 	{
 		super();
 	}
-
+	
 	@Override
 	protected int allocate()
 	{
-		return glGenFramebuffers();
+		return glGenTextures();
 	}
-
+	
 	@Override
 	protected void free()
 	{
-		glDeleteFramebuffers(getName());
+		glDeleteTextures(getName());
 	}
-
+	
 	/**
-	 * Destroys undeleted buffers abandoned from destroyed Java objects.
+	 * Destroys undeleted texture objects abandoned from destroyed Java objects.
+	 * <p><b>This is automatically called by OGLSystem after every frame and should NEVER be called manually!</b>
 	 */
 	public static void destroyUndeleted()
 	{
 		if (UNDELETED_LENGTH > 0)
 		{
 			for (int i = 0; i < UNDELETED_LENGTH; i++)
-				glDeleteFramebuffers(UNDELETED_IDS[i]);
+				glDeleteTextures(UNDELETED_IDS[i]);
 			UNDELETED_LENGTH = 0;
 		}
 	}
@@ -69,7 +69,7 @@ public class OGLFramebuffer extends OGLObject
 			UNDELETED_IDS = expand(UNDELETED_IDS, UNDELETED_IDS.length * 2);
 		UNDELETED_IDS[UNDELETED_LENGTH++] = id;
 	}
-	
+
 	@Override
 	public void finalize() throws Throwable
 	{

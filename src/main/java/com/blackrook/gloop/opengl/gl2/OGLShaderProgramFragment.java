@@ -5,22 +5,22 @@
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl2.objects;
+package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.gl2.enums.ShaderProgramType;
 
 /**
- * Vertex shader program.
+ * Fragment shader program.
  * @author Matthew Tropiano
  */
-public class OGLShaderProgramVertex extends OGLShaderProgram
+public class OGLShaderProgramFragment extends OGLShaderProgram
 {
 	/**
-	 * Creates a new vertex shader program.
+	 * Creates a new fragment shader program.
 	 * @param streamName the name of the source stream.
 	 * @param sourceCode the input stream.
 	 */
-	public OGLShaderProgramVertex(String streamName, String sourceCode)
+	OGLShaderProgramFragment(String streamName, String sourceCode)
 	{
 		super();
 		construct(streamName, sourceCode);
@@ -29,7 +29,7 @@ public class OGLShaderProgramVertex extends OGLShaderProgram
 	@Override
 	public ShaderProgramType getType()
 	{
-		return ShaderProgramType.VERTEX;
+		return ShaderProgramType.FRAGMENT;
 	}
 	
 }

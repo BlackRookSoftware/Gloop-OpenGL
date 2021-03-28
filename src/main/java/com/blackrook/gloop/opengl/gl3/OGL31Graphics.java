@@ -5,25 +5,13 @@
  * distribution, and is available at 
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl3.enums;
-
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL33.*;
+package com.blackrook.gloop.opengl.gl3;
 
 /**
- * Shader program type.
+ * OpenGL 3.1 Graphics Implementation.
  * @author Matthew Tropiano
  */
-public enum ShaderProgramType
+public class OGL31Graphics extends OGL30Graphics
 {
-	/** Vertex shader program. */
-	VERTEX(GL_VERTEX_SHADER),
-	/** Fragment shader program. */
-	FRAGMENT(GL_FRAGMENT_SHADER),
-	/** Geometry shader program. */
-	GEOMETRY(GL_GEOMETRY_SHADER);
-	
-	public final int glValue;
-	private ShaderProgramType(int glValue) {this.glValue = glValue;}
-
+	// Nothing.
 }

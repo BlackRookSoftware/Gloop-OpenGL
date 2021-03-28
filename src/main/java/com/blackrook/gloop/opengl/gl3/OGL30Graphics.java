@@ -9,13 +9,10 @@ package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl1.objects.OGLTexture;
+import com.blackrook.gloop.opengl.gl1.OGLTexture;
 import com.blackrook.gloop.opengl.gl3.enums.AttachPoint;
 import com.blackrook.gloop.opengl.gl3.enums.RenderbufferFormat;
-import com.blackrook.gloop.opengl.gl3.objects.OGLFramebuffer;
-import com.blackrook.gloop.opengl.gl3.objects.OGLRenderbuffer;
 
-import java.io.Closeable;
 import java.nio.IntBuffer;
 import java.util.Objects;
 
@@ -39,38 +36,21 @@ public class OGL30Graphics extends OGL21Graphics
 		}
 	}
 	
-	/**
-	 * A try-with-resources latch that unbinds a renderbuffer
-	 * after it escapes the <code>try</code>. 
-	 */
-	public class RenderbufferLatch implements Closeable
-	{
-		@Override
-		public void close()
-		{
-			unsetRenderbuffer();
-		}
-	}
-	
-	/**
-	 * A try-with-resources latch that unbinds a framebuffer
-	 * after it escapes the <code>try</code>. 
-	 */
-	public class FramebufferLatch implements Closeable
-	{
-		@Override
-		public void close()
-		{
-			unsetFramebuffer();
-		}
-	}
-	
 	@Override
 	protected Info createInfo()
 	{
 		return new Info30();
 	}
 	
+	@Override
+	protected void endFrame()
+	{
+	    // Clean up abandoned objects.
+	    OGLRenderbuffer.destroyUndeleted();
+	    OGLFramebuffer.destroyUndeleted();
+	    super.endFrame();
+	}
+
 	/**
 	 * Generates mipmaps on-demand internally for the current 1D texture target.
 	 */
@@ -208,13 +188,11 @@ public class OGL30Graphics extends OGL21Graphics
 	/**
 	 * Binds a FrameRenderBuffer to the current context.
 	 * @param renderbuffer the render buffer to bind to the current render buffer.
-	 * @return an optional latch object.
 	 */
-	public RenderbufferLatch setRenderbuffer(OGLRenderbuffer renderbuffer)
+	public void setRenderbuffer(OGLRenderbuffer renderbuffer)
 	{
 		Objects.requireNonNull(renderbuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer.getName());
-		return new RenderbufferLatch();
 	}
 
 	/**
@@ -251,13 +229,11 @@ public class OGL30Graphics extends OGL21Graphics
 	/**
 	 * Binds a FrameBuffer for rendering.
 	 * @param framebuffer the framebuffer to set as the current one.
-	 * @return an optional latch object.
 	 */
-	public FramebufferLatch setFramebuffer(OGLFramebuffer framebuffer)
+	public void setFramebuffer(OGLFramebuffer framebuffer)
 	{
 		Objects.requireNonNull(framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.getName());
-		return new FramebufferLatch();
 	}
 
 	/**

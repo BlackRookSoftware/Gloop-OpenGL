@@ -8,7 +8,7 @@
  * Contributors:
  *     Matt Tropiano - initial API and implementation
  *******************************************************************************/
-package com.blackrook.gloop.opengl.gl2.objects;
+package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.OGLObject;
 import com.blackrook.gloop.opengl.exception.GraphicsException;

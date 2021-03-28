@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  ******************************************************************************/
-package com.blackrook.gloop.opengl.gl1.objects;
+package com.blackrook.gloop.opengl.gl1;
 
 import java.awt.Color;
 
