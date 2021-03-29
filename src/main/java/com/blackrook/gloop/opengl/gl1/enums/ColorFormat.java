@@ -7,30 +7,46 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl1.enums;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
+import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLVersioned;
+
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 /**
  * Color pixel storage format.
  */
-public enum ColorFormat
+public enum ColorFormat implements OGLVersioned
 {
-	COLOR_INDEX(GL_COLOR_INDEX),
-	STENCIL_INDEX(GL_STENCIL_INDEX),
-	DEPTH_COMPONENT(GL_DEPTH_COMPONENT),
-	RED(GL_RED),
-	GREEN(GL_GREEN),
-	BLUE(GL_BLUE),
-	ALPHA(GL_ALPHA),
-	RGB(GL_RGB),
-	RGBA(GL_RGBA),
-	LUMINANCE(GL_LUMINANCE),
-	LUMINANCE_ALPHA(GL_LUMINANCE_ALPHA),
-	BGR(GL_BGR),
-	BGRA(GL_BGRA);
+	COLOR_INDEX(OGLVersion.GL11, GL11.GL_COLOR_INDEX),
+	STENCIL_INDEX(OGLVersion.GL11, GL11.GL_STENCIL_INDEX),
+	DEPTH_COMPONENT(OGLVersion.GL11, GL11.GL_DEPTH_COMPONENT),
+	RED(OGLVersion.GL11, GL11.GL_RED),
+	GREEN(OGLVersion.GL11, GL11.GL_GREEN),
+	BLUE(OGLVersion.GL11, GL11.GL_BLUE),
+	ALPHA(OGLVersion.GL11, GL11.GL_ALPHA),
+	RGB(OGLVersion.GL11, GL11.GL_RGB),
+	RGBA(OGLVersion.GL11, GL11.GL_RGBA),
+	LUMINANCE(OGLVersion.GL11, GL11.GL_LUMINANCE),
+	LUMINANCE_ALPHA(OGLVersion.GL11, GL11.GL_LUMINANCE_ALPHA),
 	
-	public final int glid;
-	private ColorFormat(int id) {glid = id;}
-	public int getGLValue() {return glid;}
+	BGR(OGLVersion.GL12, GL12.GL_BGR),
+	BGRA(OGLVersion.GL12, GL12.GL_BGRA);
+	
+	private final OGLVersion version;
+	public final int glValue;
+
+	private ColorFormat(OGLVersion version, int id) 
+	{
+		this.version = version;
+		this.glValue = id;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return version;
+	}
+
 }
 

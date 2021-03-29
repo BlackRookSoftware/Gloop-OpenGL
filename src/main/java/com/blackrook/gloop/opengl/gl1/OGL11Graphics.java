@@ -18,11 +18,12 @@ import java.util.TreeSet;
 import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLGraphics;
+import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.enums.AttribType;
 import com.blackrook.gloop.opengl.gl1.enums.BlendArg;
 import com.blackrook.gloop.opengl.gl1.enums.BlendFunc;
-import com.blackrook.gloop.opengl.gl1.enums.BufferBindingType;
+import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.gl1.enums.ClientAttribType;
 import com.blackrook.gloop.opengl.gl1.enums.FaceSide;
 import com.blackrook.gloop.opengl.gl1.enums.FillMode;
@@ -127,6 +128,12 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		this.currentTexture1D = null;
 		this.currentTexture2D = null;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL11;
 	}
 	
 	@Override
@@ -1306,7 +1313,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer.");
-		glReadPixels(x, y, width, height, format.glid, GL_UNSIGNED_BYTE, imageData);
+		glReadPixels(x, y, width, height, format.glValue, GL_UNSIGNED_BYTE, imageData);
 	}
 
 	/**
@@ -1687,7 +1694,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 */
-	public void setTextureFiltering1D(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
 	{
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
@@ -1700,7 +1707,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param magFilter the magnification filter.
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 */
-	public void setTextureFiltering1D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
 	{
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
@@ -1716,9 +1723,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the current wrapping for the current 1D texture.
 	 * @param wrapS the wrapping mode, S-axis.
 	 */
-	public void setTextureWrapping1D(TextureWrapType wrapS)
+	public void setTexture1DWrapping(TextureWrapType wrapS)
 	{
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, wrapS.glid);
+		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, wrapS.glValue);
 	}
 
 	/**
@@ -1730,9 +1737,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureData1D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int border)
+	public void setTexture1DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int border)
 	{
-		setTextureData1D(imageData, colorFormat, format, 0, width, border);
+		setTexture1DData(imageData, colorFormat, format, 0, width, border);
 	}
 
 	/**
@@ -1745,7 +1752,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureData1D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
+	public void setTexture1DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
 	{
 		if (width > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum width is "+ getInfo().getMaxTextureSize() + " pixels.");
@@ -1757,10 +1764,10 @@ public class OGL11Graphics extends OGLGraphics
 		glTexImage1D(
 			GL_TEXTURE_1D,
 			texlevel,
-			format.glid, 
+			format.glValue, 
 			width,
 			border,
-			colorFormat.glid,
+			colorFormat.glValue,
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
@@ -1775,9 +1782,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param border the texel border to add, if any.
 	 */
-	public void copyBufferToTextureData1D(TextureFormat format, int srcX, int srcY, int width, int border)
+	public void setTexture1DDataFromBuffer(TextureFormat format, int srcX, int srcY, int width, int border)
 	{
-		copyBufferToTextureData1D(format, 0, srcX, srcY, width, border);
+		setTexture1DDataFromBuffer(format, 0, srcX, srcY, width, border);
 	}
 
 	/**
@@ -1789,9 +1796,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param border the texel border to add, if any.
 	 */
-	public void copyBufferToTextureData1D(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
+	public void setTexture1DDataFromBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
 	{
-		glCopyTexImage1D(GL_TEXTURE_1D, texlevel, format.glid, srcX, srcY, width, border);
+		glCopyTexImage1D(GL_TEXTURE_1D, texlevel, format.glValue, srcX, srcY, width, border);
 	}
 
 	/**
@@ -1803,9 +1810,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param xoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureSubData1D(ByteBuffer imageData, ColorFormat colorFormat, int width, int xoffs)
+	public void setTexture1DSubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int xoffs)
 	{
-		setTextureSubData1D(imageData, colorFormat, 0, width, xoffs);
+		setTexture1DSubData(imageData, colorFormat, 0, width, xoffs);
 	}
 
 	/**
@@ -1817,7 +1824,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param xoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureSubData1D(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
+	public void setTexture1DSubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
 	{
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -1828,7 +1835,7 @@ public class OGL11Graphics extends OGLGraphics
 			texlevel,
 			xoffs,
 			width,
-			colorFormat.glid,
+			colorFormat.glValue,
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
@@ -1842,9 +1849,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width		the width of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureSubData1D(int xoffset, int srcX, int srcY, int width)
+	public void setTexture1DSubDataFromBuffer(int xoffset, int srcX, int srcY, int width)
 	{
-		copyBufferToTextureSubData1D(0, xoffset, srcX, srcY, width);
+		setTexture1DSubDataFromBuffer(0, xoffset, srcX, srcY, width);
 	}
 
 	/**
@@ -1855,7 +1862,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width		the width of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureSubData1D(int texlevel, int xoffset, int srcX, int srcY, int width)
+	public void setTexture1DSubDataFromBuffer(int texlevel, int xoffset, int srcX, int srcY, int width)
 	{
 		glCopyTexSubImage1D(GL_TEXTURE_1D, texlevel, xoffset, srcX, srcY, width);
 	}
@@ -1903,7 +1910,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 */
-	public void setTextureFiltering2D(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
@@ -1915,7 +1922,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param magFilter the magnification filter.
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 */
-	public void setTextureFiltering2D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
 	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
@@ -1932,10 +1939,10 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param wrapS the wrapping mode, S-axis.
 	 * @param wrapT the wrapping mode, T-axis.
 	 */
-	public void setTextureWrapping2D(TextureWrapType wrapS, TextureWrapType wrapT)
+	public void setTexture2DWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS.glid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT.glid);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS.glValue);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT.glValue);
 	}
 
 	/**
@@ -1948,9 +1955,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureData2D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
+	public void setTexture2DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
 	{
-		setTextureData2D(imageData, colorFormat, format, 0, width, height, border);
+		setTexture2DData(imageData, colorFormat, format, 0, width, height, border);
 	}
 
 	/**
@@ -1964,7 +1971,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureData2D(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
+	public void setTexture2DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
 	{
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
@@ -1976,11 +1983,11 @@ public class OGL11Graphics extends OGLGraphics
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			texlevel,
-			format.glid, 
+			format.glValue, 
 			width,
 			height,
 			border,
-			colorFormat.glid,
+			colorFormat.glValue,
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
@@ -1996,9 +2003,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param height	the height of the screen in pixels to grab.
 	 * @param border    the texel border to add, if any.
 	 */
-	public void copyBufferToTextureData2D(TextureFormat format, int srcX, int srcY, int width, int height, int border)
+	public void setTexture2DDataFromBuffer(TextureFormat format, int srcX, int srcY, int width, int height, int border)
 	{
-		copyBufferToTextureData2D(format, 0, srcX, srcY, width, height, border);
+		setTexture2DDataFromBuffer(format, 0, srcX, srcY, width, height, border);
 	}
 
 	/**
@@ -2011,9 +2018,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param height	the height of the screen in pixels to grab.
 	 * @param border    the texel border to add, if any.
 	 */
-	public void copyBufferToTextureData2D(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
+	public void setTexture2DDataFromBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
 	{
-		glCopyTexImage2D(GL_TEXTURE_2D, format.glid, texlevel, srcX, srcY, width, height, border);
+		glCopyTexImage2D(GL_TEXTURE_2D, format.glValue, texlevel, srcX, srcY, width, height, border);
 	}
 
 	/**
@@ -2027,9 +2034,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param yoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureSubData2D(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
+	public void setTexture2DSubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
 	{
-		setTextureSubData2D(imageData, colorFormat, 0, width, height, xoffs, yoffs);
+		setTexture2DSubData(imageData, colorFormat, 0, width, height, xoffs, yoffs);
 	}
 
 	/**
@@ -2043,7 +2050,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param yoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureSubData2D(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
+	public void setTexture2DSubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
 	{
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -2056,7 +2063,7 @@ public class OGL11Graphics extends OGLGraphics
 			yoffs,
 			width,
 			height,
-			colorFormat.glid,
+			colorFormat.glValue,
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
@@ -2073,9 +2080,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureSubData2D(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTexture2DSubDataFromBuffer(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		copyBufferToTextureSubData2D(0, xoffset, yoffset, srcX, srcY, width, height);
+		setTexture2DSubDataFromBuffer(0, xoffset, yoffset, srcX, srcY, width, height);
 	}
 
 	/**
@@ -2089,7 +2096,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureSubData2D(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTexture2DSubDataFromBuffer(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
 		glCopyTexSubImage2D(GL_TEXTURE_2D, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}
@@ -2140,7 +2147,7 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
 	 * This sets the vertex pointers.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param width the width of a full set of coordinates (3-dimensional vertices = 3).
@@ -2155,7 +2162,7 @@ public class OGL11Graphics extends OGLGraphics
 	}
 	
 	/**
-	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
 	 * This sets the texture coordinate pointers.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param width the width of a full set of coordinates (2-dimensional coords = 2).
@@ -2170,7 +2177,7 @@ public class OGL11Graphics extends OGLGraphics
 	}
 	
 	/**
-	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
 	 * This sets the normal vector pointers. Always assumes 3-dimensional vectors.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param stride the distance (in elements) between each normal.     
@@ -2184,7 +2191,7 @@ public class OGL11Graphics extends OGLGraphics
 	}
 	
 	/**
-	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
 	 * This sets the color pointers.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param width the width of a full set of color components (4-component color = 4).
@@ -2224,8 +2231,8 @@ public class OGL11Graphics extends OGLGraphics
 	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data, plus
 	 * an element buffer to describe the ordering.
 	 * @param geometryType the geometry type - tells how to interpret the data.
-	 * @param dataType the data type of the indices in the {@link BufferBindingType#INDICES}-bound buffer (must be an unsigned type).
-	 * @param count the amount of element indices to interpret in the {@link BufferBindingType#INDICES}-bound buffer.
+	 * @param dataType the data type of the indices in the {@link BufferTargetType#INDICES}-bound buffer (must be an unsigned type).
+	 * @param count the amount of element indices to interpret in the {@link BufferTargetType#INDICES}-bound buffer.
 	 * @param offset the starting offset in the index buffer (in elements).
 	 * @see #setVertexArrayEnabled(boolean)
 	 * @see #setTextureCoordArrayEnabled(boolean)
@@ -2241,5 +2248,5 @@ public class OGL11Graphics extends OGLGraphics
 		glDrawElements(geometryType.glValue, count, dataType.glValue, dataType.size * offset);
 		getError();
 	}
-	
+
 }

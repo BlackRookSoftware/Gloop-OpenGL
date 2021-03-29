@@ -11,6 +11,7 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.system.MemoryStack;
 
+import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
 
@@ -22,6 +23,12 @@ import static org.lwjgl.opengl.GL14.*;
  */
 public class OGL14Graphics extends OGL13Graphics
 {
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL14;
+	}
+	
 	/**
 	 * Sets the maximum size for the diameter of Point geometry when
 	 * it is attenuated by point distance from the "camera".

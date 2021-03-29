@@ -7,31 +7,50 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl1.enums;
 
-import static org.lwjgl.opengl.GL13.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
+import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLVersioned;
 
 /**
  * Texture wrapping types.
  * @author Matthew Tropiano
  */
-public enum TextureWrapType
+public enum TextureWrapType implements OGLVersioned
 {
 	/** 
 	 * Texture coordinates wrap to the other side. 
 	 * Edge colors interpolate accordingly. 
 	 */
-	TILE(GL_REPEAT),
+	TILE(OGLVersion.GL11, GL11.GL_REPEAT),
+	
 	/** 
 	 * Texture coordinates clamp to [0,1]. 
 	 * Edge colors are interpolated with the border color. 
 	 */
-	CLAMP(GL_CLAMP),
+	CLAMP(OGLVersion.GL11, GL11.GL_CLAMP),
+	
 	/** 
 	 * Texture coordinates clamp to [0,1]. 
 	 * Edge colors are interpolated with the edge texel's color. 
 	 */
-	CLAMP_TO_EDGE(GL_CLAMP_TO_EDGE);
+	CLAMP_TO_EDGE(OGLVersion.GL12, GL12.GL_CLAMP_TO_EDGE);
 
-	public final int glid;
-	private TextureWrapType(int id) {glid = id;}
+	private final OGLVersion version;
+	public final int glValue;
+
+	private TextureWrapType(OGLVersion version, int glValue) 
+	{
+		this.version = version;
+		this.glValue = glValue;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return version;
+	}
+	
 }
 

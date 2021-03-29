@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
+import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
 import com.blackrook.gloop.opengl.gl1.enums.TextureCubeFace;
@@ -20,6 +21,8 @@ import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
 
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL12.GL_TEXTURE_3D;
 import static org.lwjgl.opengl.GL13.*;
 
 /**
@@ -42,11 +45,17 @@ public class OGL13Graphics extends OGL12Graphics
 	/** Current bound textures per unit. */
 	private Map<Integer, Map<Integer, OGLTexture>> currentTextures;
 	
-	// Create OpenGL 1.1 context.
+	// Create OpenGL 1.3 context.
 	public OGL13Graphics()
 	{
 		this.currentActiveTexture = 0;
 		this.currentTextures = null;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL13;
 	}
 	
 	/**
@@ -72,7 +81,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param targetId the texture target id.
 	 * @param texture the texture to set.
 	 */
-	private void setCurrentActiveTextureState(int unit, int targetId, OGLTexture texture)
+	protected void setCurrentActiveTextureState(int unit, int targetId, OGLTexture texture)
 	{
 		if (currentTextures == null)
 			currentTextures = new TreeMap<>();
@@ -149,6 +158,44 @@ public class OGL13Graphics extends OGL12Graphics
 	}
 
 	/**
+	 * Gets the currently bound 3D texture. 
+	 * @return the texture, or null if no bound texture.
+	 */
+	public OGLTexture getTexture3D()
+	{
+		return getCurrentActiveTextureState(currentActiveTexture, GL_TEXTURE_3D);
+	}
+
+	/**
+	 * Binds a 3D texture object to the current active texture unit.
+	 * @param texture the texture to bind.
+	 */
+	public void setTexture3D(OGLTexture texture)
+	{
+		Objects.requireNonNull(texture);
+		glBindTexture(GL_TEXTURE_3D, texture.getName());
+		setCurrentActiveTextureState(currentActiveTexture, GL_TEXTURE_3D, texture);
+	}
+
+	/**
+	 * Unbinds a 3D texture from the current texture unit.
+	 */
+	public void unsetTexture3D()
+	{
+		glBindTexture(GL_TEXTURE_3D, 0);
+		setCurrentActiveTextureState(currentActiveTexture, GL_TEXTURE_3D, null);
+	}
+
+	/**
+	 * @return the current "active" texture unit.
+	 * @see #setTextureUnit(int)
+	 */
+	public int getTextureUnit()
+	{
+		return currentActiveTexture;
+	}
+	
+	/**
 	 * Sets the current "active" texture unit for texture bindings and texture environment settings.
 	 * @param unit the texture unit to switch to.
 	 */
@@ -169,6 +216,15 @@ public class OGL13Graphics extends OGL12Graphics
 	}
 
 	/**
+	 * Gets the currently bound cube texture. 
+	 * @return the texture, or null if no bound texture.
+	 */
+	public OGLTexture getTextureCube()
+	{
+		return getCurrentActiveTextureState(currentActiveTexture, GL_TEXTURE_CUBE_MAP);
+	}
+
+	/**
 	 * Binds a texture cube object to the current active texture unit.
 	 * @param texture the texture to bind.
 	 */
@@ -184,7 +240,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 */
-	public void setTextureFilteringCube(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	public void setTextureCubeFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
 	{
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter.glid);
@@ -196,7 +252,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param magFilter the magnification filter.
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 */
-	public void setTextureFilteringCube(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	public void setTextureCubeFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
 	{
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter.glid);
@@ -214,11 +270,11 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param wrapT the wrapping mode, T-axis.
 	 * @param wrapR the wrapping mode, R-axis.
 	 */
-	public void setTextureWrappingCube(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
+	public void setTextureCubeWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 	{
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS.glid);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT.glid);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR.glid);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS.glValue);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT.glValue);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR.glValue);
 	}
 
 	/**
@@ -232,9 +288,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureDataCube(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
+	public void setTextureCubeData(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
 	{
-		setTextureDataCube(face, imageData, colorFormat, format, 0, width, height, border);
+		setTextureCubeData(face, imageData, colorFormat, format, 0, width, height, border);
 	}
 
 	/**
@@ -249,7 +305,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureDataCube(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
+	public void setTextureCubeData(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
 	{
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
@@ -261,11 +317,11 @@ public class OGL13Graphics extends OGL12Graphics
 		glTexImage2D(
 			face.glValue,
 			texlevel,
-			format.glid, 
+			format.glValue, 
 			width,
 			height,
 			border,
-			colorFormat.glid,
+			colorFormat.glValue,
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
@@ -283,9 +339,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureDataCube(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeDataFromBuffer(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		copyBufferToTextureDataCube(face, 0, xoffset, yoffset, srcX, srcY, width, height);
+		setTextureCubeDataFromBuffer(face, 0, xoffset, yoffset, srcX, srcY, width, height);
 	}
 
 	/**
@@ -300,7 +356,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureDataCube(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeDataFromBuffer(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
 		glCopyTexImage2D(face.glValue, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}
@@ -317,9 +373,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param yoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureSubDataCube(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
+	public void setTextureCubeSubData(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
 	{
-		setTextureSubDataCube(face, imageData, colorFormat, 0, width, height, xoffs, yoffs);
+		setTextureCubeSubData(face, imageData, colorFormat, 0, width, height, xoffs, yoffs);
 	}
 
 	/**
@@ -334,7 +390,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param yoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTextureSubDataCube(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
+	public void setTextureCubeSubData(TextureCubeFace face, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
 	{
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -365,9 +421,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureSubDataCube(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeSubDataFromBuffer(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		copyBufferToTextureDataCube(face, 0, xoffset, yoffset, srcX, srcY, width, height);
+		setTextureCubeDataFromBuffer(face, 0, xoffset, yoffset, srcX, srcY, width, height);
 	}
 
 	/**
@@ -382,7 +438,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void copyBufferToTextureSubDataCube(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeSubDataFromBuffer(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
 		glCopyTexSubImage2D(face.glValue, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}

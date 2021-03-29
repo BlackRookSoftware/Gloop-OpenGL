@@ -30,7 +30,7 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
  * thread that is triggered by {@link OGLSystem#display()}) should call any function in this.
  * @author Matthew Tropiano
  */
-public abstract class OGLGraphics
+public abstract class OGLGraphics implements OGLVersioned
 {
 	/**
 	 * Information about this context implementation.
@@ -462,6 +462,18 @@ public abstract class OGLGraphics
 	 */
 	protected abstract void endFrame(); 
 
+	/**
+	 * Checks the version of this graphics implementation against a versioned object,
+	 * and if the object is from a later version, throw an exception.
+	 * @param versioned the versioned element to check against.
+	 * @throws GraphicsException if the versioned object is a later version than this one.
+	 */
+	protected void checkFeatureVersion(OGLVersioned versioned)
+	{
+		if (getVersion().compareTo(versioned.getVersion()) < 0)
+			throw new GraphicsException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
+	}
+	
 	/**
 	 * @return the system milliseconds time, synced to the beginning of the current frame.
 	 */

@@ -7,9 +7,10 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl1;
 
+import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.enums.AccessType;
-import com.blackrook.gloop.opengl.gl1.enums.BufferBindingType;
+import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.gl1.enums.CachingHint;
 import com.blackrook.gloop.opengl.gl1.enums.DataType;
 import com.blackrook.gloop.opengl.gl1.enums.FogCoordinateType;
@@ -20,7 +21,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import static org.lwjgl.opengl.GL15.*;
 
@@ -30,6 +33,46 @@ import static org.lwjgl.opengl.GL15.*;
  */
 public class OGL15Graphics extends OGL14Graphics
 {
+	/** Current buffer binding map. */
+	private Map<BufferTargetType, OGLBuffer> currentBuffer;
+
+	// Create OpenGL 1.5 context.
+	public OGL15Graphics()
+	{
+		this.currentBuffer = null;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL15;
+	}
+	
+	/**
+	 * Gets the current buffer for a binding target.
+	 * @param type the binding type.
+	 * @return the current buffer, or null if no current.
+	 */
+	protected OGLBuffer getCurrentBufferState(BufferTargetType type)
+	{
+		if (currentBuffer == null)
+			return null;
+		else
+			return currentBuffer.get(type);
+	}
+	
+	/**
+	 * Sets the current texture for a binding target.
+	 * @param type the binding type.
+	 * @param buffer the buffer to set.
+	 */
+	protected void setCurrentBufferState(BufferTargetType type, OGLBuffer buffer)
+	{
+		if (currentBuffer == null)
+			currentBuffer = new TreeMap<>();
+		currentBuffer.put(type, buffer);
+	}
+	
 	@Override
 	protected void endFrame()
 	{
@@ -69,15 +112,26 @@ public class OGL15Graphics extends OGL14Graphics
 	}
 
 	/**
+	 * Gets the currently bound buffer for a binding target. 
+	 * @param type the buffer binding target.
+	 * @return the currently bound buffer, or null if no bound buffer to that target.
+	 */
+	public OGLBuffer getBuffer(BufferTargetType type)
+	{
+		return getCurrentBufferState(type);
+	}
+	
+	/**
 	 * Binds a buffer to the current context.
 	 * @param type the buffer type to bind.
 	 * @param buffer the buffer to bind. Null unbinds the currently bound buffer type.
 	 */
-	public void setBuffer(BufferBindingType type, OGLBuffer buffer)
+	public void setBuffer(BufferTargetType type, OGLBuffer buffer)
 	{
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(buffer);
 		glBindBuffer(type.glValue, buffer.getName());
+		setCurrentBufferState(type, buffer);
 	}
 
 	/**
@@ -87,7 +141,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param elements the amount of elements of the data type.
 	 */
-	public void setBufferCapacity(BufferBindingType type, DataType dataType, CachingHint cachingHint, int elements)
+	public void setBufferCapacity(BufferTargetType type, DataType dataType, CachingHint cachingHint, int elements)
 	{
 		clearError();
 		glBufferData(type.glValue, elements * dataType.size, cachingHint.glValue);
@@ -100,7 +154,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
 	 */
-	public void setBufferData(BufferBindingType type, CachingHint cachingHint, ByteBuffer data)
+	public void setBufferData(BufferTargetType type, CachingHint cachingHint, ByteBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -115,7 +169,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
 	 */
-	public void setBufferData(BufferBindingType type, CachingHint cachingHint, ShortBuffer data)
+	public void setBufferData(BufferTargetType type, CachingHint cachingHint, ShortBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -130,7 +184,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
 	 */
-	public void setBufferData(BufferBindingType type, CachingHint cachingHint, IntBuffer data)
+	public void setBufferData(BufferTargetType type, CachingHint cachingHint, IntBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -145,7 +199,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
 	 */
-	public void setBufferData(BufferBindingType type, CachingHint cachingHint, FloatBuffer data)
+	public void setBufferData(BufferTargetType type, CachingHint cachingHint, FloatBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -160,7 +214,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
 	 */
-	public void setBufferData(BufferBindingType type, CachingHint cachingHint, LongBuffer data)
+	public void setBufferData(BufferTargetType type, CachingHint cachingHint, LongBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -175,7 +229,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
 	 */
-	public void setBufferData(BufferBindingType type, CachingHint cachingHint, DoubleBuffer data)
+	public void setBufferData(BufferTargetType type, CachingHint cachingHint, DoubleBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -190,7 +244,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
 	 */
-	public void setBufferSubData(BufferBindingType type, int offset, ByteBuffer data)
+	public void setBufferSubData(BufferTargetType type, int offset, ByteBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -205,7 +259,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
 	 */
-	public void setBufferSubData(BufferBindingType type, int offset, ShortBuffer data)
+	public void setBufferSubData(BufferTargetType type, int offset, ShortBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -220,7 +274,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
 	 */
-	public void setBufferSubData(BufferBindingType type, int offset, IntBuffer data)
+	public void setBufferSubData(BufferTargetType type, int offset, IntBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -235,7 +289,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
 	 */
-	public void setBufferSubData(BufferBindingType type, int offset, FloatBuffer data)
+	public void setBufferSubData(BufferTargetType type, int offset, FloatBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -250,7 +304,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
 	 */
-	public void setBufferSubData(BufferBindingType type, int offset, LongBuffer data)
+	public void setBufferSubData(BufferTargetType type, int offset, LongBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -265,7 +319,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
 	 */
-	public void setBufferSubData(BufferBindingType type, int offset, DoubleBuffer data)
+	public void setBufferSubData(BufferTargetType type, int offset, DoubleBuffer data)
 	{
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
@@ -285,7 +339,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
 	 */
-	public ByteBuffer mapByteBuffer(BufferBindingType type, AccessType accessType)
+	public ByteBuffer mapByteBuffer(BufferTargetType type, AccessType accessType)
 	{
 		return glMapBuffer(type.glValue, accessType.glValue);
 	}
@@ -301,7 +355,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
 	 */
-	public ShortBuffer mapShortBuffer(BufferBindingType type, AccessType accessType)
+	public ShortBuffer mapShortBuffer(BufferTargetType type, AccessType accessType)
 	{
 		return mapByteBuffer(type, accessType).asShortBuffer();
 	}
@@ -317,7 +371,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
 	 */
-	public IntBuffer mapIntBuffer(BufferBindingType type, AccessType accessType)
+	public IntBuffer mapIntBuffer(BufferTargetType type, AccessType accessType)
 	{
 		return mapByteBuffer(type, accessType).asIntBuffer();
 	}
@@ -333,7 +387,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
 	 */
-	public LongBuffer mapLongBuffer(BufferBindingType type, AccessType accessType)
+	public LongBuffer mapLongBuffer(BufferTargetType type, AccessType accessType)
 	{
 		return mapByteBuffer(type, accessType).asLongBuffer();
 	}
@@ -349,7 +403,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
 	 */
-	public FloatBuffer mapFloatBuffer(BufferBindingType type, AccessType accessType)
+	public FloatBuffer mapFloatBuffer(BufferTargetType type, AccessType accessType)
 	{
 		return mapByteBuffer(type, accessType).asFloatBuffer();
 	}
@@ -365,7 +419,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
 	 */
-	public DoubleBuffer mapDoubleBuffer(BufferBindingType type, AccessType accessType)
+	public DoubleBuffer mapDoubleBuffer(BufferTargetType type, AccessType accessType)
 	{
 		return mapByteBuffer(type, accessType).asDoubleBuffer();
 	}
@@ -377,7 +431,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @return true if unmap successful, false if data corruption occurred on unmap.
 	 */
-	public boolean unmapBuffer(BufferBindingType type)
+	public boolean unmapBuffer(BufferTargetType type)
 	{
 		return glUnmapBuffer(type.glValue);
 	}
@@ -386,9 +440,10 @@ public class OGL15Graphics extends OGL14Graphics
 	 * Unbinds the current buffer from a target.
 	 * @param type the binding target type.
 	 */
-	public void unsetBuffer(BufferBindingType type)
+	public void unsetBuffer(BufferTargetType type)
 	{
 		glBindBuffer(type.glValue, 0);
+		setCurrentBufferState(type, null);
 	}
 
 }

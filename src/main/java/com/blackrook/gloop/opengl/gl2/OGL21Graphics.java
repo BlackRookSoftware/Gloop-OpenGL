@@ -11,6 +11,8 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.system.MemoryStack;
 
+import com.blackrook.gloop.opengl.OGLVersion;
+
 import static org.lwjgl.opengl.GL21.*;
 
 /**
@@ -19,6 +21,12 @@ import static org.lwjgl.opengl.GL21.*;
  */
 public class OGL21Graphics extends OGL20Graphics
 {
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL21;
+	}
+	
 	/**
 	 * Sets a uniform matrix (mat2x3) value on the currently-bound shader.
 	 * @param locationId the uniform location.

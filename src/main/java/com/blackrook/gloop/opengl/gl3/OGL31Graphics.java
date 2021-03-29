@@ -7,11 +7,18 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl3;
 
+import com.blackrook.gloop.opengl.OGLVersion;
+
 /**
  * OpenGL 3.1 Graphics Implementation.
  * @author Matthew Tropiano
  */
 public class OGL31Graphics extends OGL30Graphics
 {
-	// Nothing.
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL31;
+	}
+
 }

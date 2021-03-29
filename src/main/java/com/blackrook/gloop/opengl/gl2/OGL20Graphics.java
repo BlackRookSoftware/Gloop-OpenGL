@@ -7,9 +7,10 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl2;
 
+import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
-import com.blackrook.gloop.opengl.gl1.enums.BufferBindingType;
+import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.gl1.enums.DataType;
 import com.blackrook.gloop.opengl.gl2.enums.ShaderProgramType;
 
@@ -50,6 +51,12 @@ public class OGL20Graphics extends OGL15Graphics
 	public OGL20Graphics()
 	{
 		this.currentShader = null;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL20;
 	}
 	
 	@Override
@@ -449,7 +456,7 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Sets what positions in the current {@link BufferBindingType#GEOMETRY}-bound buffer are used to draw polygonal information:
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer are used to draw polygonal information:
 	 * This sets the vertex attribute pointers.
 	 * The index on this can also be a uniform location for an attrib pointer.
 	 * @param index the attribute index or uniform location id.

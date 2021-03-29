@@ -12,25 +12,42 @@ import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL40;
 import org.lwjgl.opengl.GL43;
 
+import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLVersioned;
+
 /**
  * Shader program type.
  * @author Matthew Tropiano
  */
-public enum ShaderProgramType
+public enum ShaderProgramType implements OGLVersioned
 {
 	/** Vertex shader program. */
-	VERTEX(GL20.GL_VERTEX_SHADER),
+	VERTEX(OGLVersion.GL20, GL20.GL_VERTEX_SHADER),
 	/** Tesselation evaluation program. */
-	TESSELATION_EVALUATION(GL40.GL_TESS_EVALUATION_SHADER),
+	TESSELATION_EVALUATION(OGLVersion.GL40, GL40.GL_TESS_EVALUATION_SHADER),
 	/** Tesselation control program. */
-	TESSELATION_CONTROL(GL40.GL_TESS_CONTROL_SHADER),
+	TESSELATION_CONTROL(OGLVersion.GL40, GL40.GL_TESS_CONTROL_SHADER),
 	/** Geometry shader program. */
-	GEOMETRY(GL32.GL_GEOMETRY_SHADER),
+	GEOMETRY(OGLVersion.GL32, GL32.GL_GEOMETRY_SHADER),
 	/** Fragment shader program. */
-	FRAGMENT(GL20.GL_FRAGMENT_SHADER),
+	FRAGMENT(OGLVersion.GL20, GL20.GL_FRAGMENT_SHADER),
 	/** Compute shader program. */
-	COMPUTE(GL43.GL_COMPUTE_SHADER);
+	COMPUTE(OGLVersion.GL43, GL43.GL_COMPUTE_SHADER);
 	
+	private final OGLVersion version;
 	public final int glValue;
-	private ShaderProgramType(int glValue) {this.glValue = glValue;}
+	
+	private ShaderProgramType(OGLVersion version, int glValue) 
+	{
+		this.version = version;
+		this.glValue = glValue;
+	}
+	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return version;
+	}
+	
 }
+

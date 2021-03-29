@@ -7,49 +7,59 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.gl1.enums;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+
+import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLVersioned;
 
 /**
  * Texture internal storage format.
  */
-public enum TextureFormat
+public enum TextureFormat implements OGLVersioned
 {
 	/** Grayscale, No alpha, default bit depth. */
-	LUMINANCE(GL_LUMINANCE, false, 1f),
+	LUMINANCE(OGLVersion.GL11, GL11.GL_LUMINANCE, false, 1f),
 	/** Grayscale with alpha, default bit depth. */
-	LUMINANCE_ALPHA(GL_LUMINANCE_ALPHA, false, 2f),
+	LUMINANCE_ALPHA(OGLVersion.GL11, GL11.GL_LUMINANCE_ALPHA, false, 2f),
 	/** White, Alpha only, default bit depth. */
-	INTENSITY(GL_INTENSITY, false, 1f),
+	INTENSITY(OGLVersion.GL11, GL11.GL_INTENSITY, false, 1f),
 	/** RGB, No alpha, default bit depth. */
-	RGB(GL_RGB, false, 3f),
+	RGB(OGLVersion.GL11, GL11.GL_RGB, false, 3f),
 	/** RGBA, default bit depth. */
-	RGBA(GL_RGBA, false, 4f),
+	RGBA(OGLVersion.GL11, GL11.GL_RGBA, false, 4f),
 	/** RGBA, forced 16-bit. */
-	RGBA4(GL_RGB4, false, 2f),
+	RGBA4(OGLVersion.GL11, GL11.GL_RGB4, false, 2f),
 	/** RGBA, forced 16-bit. */
-	RGB5A1(GL_RGB5_A1, false, 2f),
+	RGB5A1(OGLVersion.GL11, GL11.GL_RGB5_A1, false, 2f),
 	/** RGBA, forced 32-bit. */
-	RGBA8(GL_RGB8, false, 4f),
+	RGBA8(OGLVersion.GL11, GL11.GL_RGB8, false, 4f),
 
 	/** Compressed Alpha Only. */
-	COMPRESSED_ALPHA(GL_COMPRESSED_ALPHA, true, 1f),
+	COMPRESSED_ALPHA(OGLVersion.GL13, GL13.GL_COMPRESSED_ALPHA, true, 1f),
 	/** Compressed Alpha Only. */
-    COMPRESSED_LUMINANCE(GL_COMPRESSED_LUMINANCE, true, 1f),
+    COMPRESSED_LUMINANCE(OGLVersion.GL13, GL13.GL_COMPRESSED_LUMINANCE, true, 1f),
 	/** Compressed Alpha Only. */
-    COMPRESSED_LUMINANCE_ALPHA(GL_COMPRESSED_LUMINANCE_ALPHA, true, 2f),
+    COMPRESSED_LUMINANCE_ALPHA(OGLVersion.GL13, GL13.GL_COMPRESSED_LUMINANCE_ALPHA, true, 2f),
 	/** Compressed Alpha Only. */
-    COMPRESSED_INTENSITY(GL_COMPRESSED_INTENSITY, true, 1f),
+    COMPRESSED_INTENSITY(OGLVersion.GL13, GL13.GL_COMPRESSED_INTENSITY, true, 1f),
 	/** Compressed Alpha Only. */
-    COMPRESSED_RGB(GL_COMPRESSED_RGB, true, 3f),
+    COMPRESSED_RGB(OGLVersion.GL13, GL13.GL_COMPRESSED_RGB, true, 3f),
 	/** Compressed Alpha Only. */
-    COMPRESSED_RGBA(GL_COMPRESSED_RGBA, true, 4f);
-	
-	public final int glid;
+    COMPRESSED_RGBA(OGLVersion.GL13, GL13.GL_COMPRESSED_RGBA, true, 4f);
+
+	private OGLVersion version;
+	public final int glValue;
 	public final boolean compressed;
 	public final float sizeFactor;
-	private TextureFormat(int id, boolean c, float factor) {glid = id; compressed = c; sizeFactor = factor;}
+	private TextureFormat(OGLVersion version, int id, boolean c, float factor) {glValue = id; compressed = c; sizeFactor = factor;}
 	public boolean isCompressed() {return compressed;}
-	public int getGLValue() {return glid;}
+	public int getGLValue() {return glValue;}
+
+	@Override
+	public OGLVersion getVersion()
+	{
+		return version;
+	}
 }
 
