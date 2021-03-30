@@ -18,6 +18,8 @@ import com.blackrook.gloop.opengl.gl2.OGL20Graphics;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL30Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL31Graphics;
+import com.blackrook.gloop.opengl.gl3.OGL32Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL40Graphics;
 import com.blackrook.gloop.opengl.node.OGLNode;
 
 /**
@@ -158,6 +160,28 @@ public class OGLSystem<G extends OGLGraphics>
 	public static OGLSystem<OGL31Graphics> getOpenGL31(GLFWWindow window)
 	{
 		return new OGLSystem<OGL31Graphics>(new OGL31Graphics(), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 3.2 implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL32Graphics> getOpenGL32(GLFWWindow window)
+	{
+		return new OGLSystem<OGL32Graphics>(new OGL32Graphics(), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 4.0 implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL40Graphics> getOpenGL40(GLFWWindow window)
+	{
+		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(), window);
 	}
 	
 	// Creates the system.

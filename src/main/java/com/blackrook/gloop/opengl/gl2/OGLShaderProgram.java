@@ -11,8 +11,8 @@
 package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.OGLObject;
+import com.blackrook.gloop.opengl.enums.ShaderProgramType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl2.enums.ShaderProgramType;
 
 import static org.lwjgl.opengl.GL20.*;
 
@@ -20,7 +20,7 @@ import static org.lwjgl.opengl.GL20.*;
  * GLSL Shader program.
  * @author Matthew Tropiano
  */
-public abstract class OGLShaderProgram extends OGLObject
+public class OGLShaderProgram extends OGLObject
 {
 	/** List of OpenGL object ids that were not deleted properly. */
 	protected static int[] UNDELETED_IDS;
@@ -33,31 +33,28 @@ public abstract class OGLShaderProgram extends OGLObject
 		UNDELETED_LENGTH = 0;
 	}
 
+	/** Shader program type. */
+	protected ShaderProgramType type;
+
 	/** Compile log. */
 	protected String log;
 
 	/**
 	 * Protected constructor for the program class.
+	 * @param type the shader program type.
+	 * @param streamName the source stream name.
+	 * @param sourceCode the source code itself.
 	 */
-	protected OGLShaderProgram()
+	OGLShaderProgram(ShaderProgramType type, String streamName, String sourceCode)
 	{
-		super();
-	}
-
-	/**
-	 * Protected shared constructor for the program class.
-	 * @param streamName the name of this stream.
-	 * @param sourceCode the shader source code.
-	 */
-	protected void construct(String streamName, String sourceCode)
-	{
+		this.type = type;
 		glShaderSource(getName(), sourceCode);
         glCompileShader(getName());
         this.log = glGetShaderInfoLog(getName());
         if (glGetShaderi(getName(), GL_COMPILE_STATUS) == 0)
         	throw new GraphicsException("Failed to compile \"" + streamName + "\"\n" + log);
 	}
-	
+
 	@Override
 	protected int allocate()
 	{
@@ -73,7 +70,10 @@ public abstract class OGLShaderProgram extends OGLObject
 	/**
 	 * @return the shader program type.
 	 */
-	public abstract ShaderProgramType getType();
+	public ShaderProgramType getType()
+	{
+		return type;
+	}
 	
 	/**
 	 * @return the log from this program's compiling.

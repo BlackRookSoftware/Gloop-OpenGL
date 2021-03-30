@@ -8,11 +8,11 @@
 package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.BufferTargetType;
+import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.ShaderProgramType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
-import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
-import com.blackrook.gloop.opengl.gl1.enums.DataType;
-import com.blackrook.gloop.opengl.gl2.enums.ShaderProgramType;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.charset.Charset;
 import java.util.Objects;
 
 import org.lwjgl.system.MemoryStack;
@@ -131,6 +132,22 @@ public class OGL20Graphics extends OGL15Graphics
 	 * Creates a new shader program object (vertex, fragment, etc.).
 	 * @param type the program type. if not a valid program type, this throws an exception.
 	 * @param streamName the name of the stream (can appear in exceptions).
+	 * @param in the stream to read the source from, assuming platform encoding.
+	 * @param charset the encoding charset for the input stream.
+	 * @return the instantiated program.
+	 * @throws NullPointerException if type, streamName, or in is null.
+	 * @throws IOException if the source of the source code can't be read.
+	 * @throws FileNotFoundException if the source file does not exist.
+	 */
+	public OGLShaderProgram createShaderProgram(ShaderProgramType type, String streamName, InputStream in, Charset charset) throws IOException
+	{
+		return createShaderProgram(type, streamName, new InputStreamReader(in, charset));
+	}
+	
+	/**
+	 * Creates a new shader program object (vertex, fragment, etc.).
+	 * @param type the program type. if not a valid program type, this throws an exception.
+	 * @param streamName the name of the stream (can appear in exceptions).
 	 * @param reader the reader to read the source from.
 	 * @return the instantiated program.
 	 * @throws NullPointerException if type, streamName, or reader is null.
@@ -159,15 +176,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public OGLShaderProgram createShaderProgram(ShaderProgramType type, String streamName, String sourceCode) throws IOException
 	{
-		switch (type)
-		{
-			case VERTEX:
-				return new OGLShaderProgramVertex(streamName, sourceCode);
-			case FRAGMENT:
-				return new OGLShaderProgramFragment(streamName, sourceCode);
-			default:
-				throw new GraphicsException("Bad shader program type.");
-		}
+		checkFeatureVersion(type);
+		return new OGLShaderProgram(type, streamName, sourceCode);
 	}
 
 	/**

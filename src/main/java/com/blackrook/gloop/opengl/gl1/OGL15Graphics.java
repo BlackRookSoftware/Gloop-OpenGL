@@ -8,12 +8,12 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.AccessType;
+import com.blackrook.gloop.opengl.enums.BufferTargetType;
+import com.blackrook.gloop.opengl.enums.CachingHint;
+import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.FogCoordinateType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl1.enums.AccessType;
-import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
-import com.blackrook.gloop.opengl.gl1.enums.CachingHint;
-import com.blackrook.gloop.opengl.gl1.enums.DataType;
-import com.blackrook.gloop.opengl.gl1.enums.FogCoordinateType;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -78,6 +78,7 @@ public class OGL15Graphics extends OGL14Graphics
 	{
 	    // Clean up abandoned objects.
 	    OGLQuery.destroyUndeleted();
+	    OGLBuffer.destroyUndeleted();
 	    super.endFrame();
 	}
 
@@ -130,6 +131,7 @@ public class OGL15Graphics extends OGL14Graphics
 	{
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(buffer);
+		checkFeatureVersion(type);
 		glBindBuffer(type.glValue, buffer.getName());
 		setCurrentBufferState(type, buffer);
 	}
@@ -144,6 +146,7 @@ public class OGL15Graphics extends OGL14Graphics
 	public void setBufferCapacity(BufferTargetType type, DataType dataType, CachingHint cachingHint, int elements)
 	{
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, elements * dataType.size, cachingHint.glValue);
 		getError();
 	}
@@ -159,6 +162,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
 		getError();
 	}
@@ -174,6 +178,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
 		getError();
 	}
@@ -189,6 +194,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
 		getError();
 	}
@@ -204,6 +210,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
 		getError();
 	}
@@ -219,6 +226,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
 		getError();
 	}
@@ -234,6 +242,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
 		getError();
 	}
@@ -249,6 +258,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
 		getError();
 	}
@@ -264,6 +274,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
 		getError();
 	}
@@ -279,6 +290,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
 		getError();
 	}
@@ -294,6 +306,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
 		getError();
 	}
@@ -309,6 +322,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
 		getError();
 	}
@@ -324,6 +338,7 @@ public class OGL15Graphics extends OGL14Graphics
 		if (!data.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		clearError();
+		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
 		getError();
 	}
@@ -341,6 +356,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public ByteBuffer mapByteBuffer(BufferTargetType type, AccessType accessType)
 	{
+		checkFeatureVersion(type);
 		return glMapBuffer(type.glValue, accessType.glValue);
 	}
 
@@ -357,6 +373,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public ShortBuffer mapShortBuffer(BufferTargetType type, AccessType accessType)
 	{
+		checkFeatureVersion(type);
 		return mapByteBuffer(type, accessType).asShortBuffer();
 	}
 
@@ -373,6 +390,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public IntBuffer mapIntBuffer(BufferTargetType type, AccessType accessType)
 	{
+		checkFeatureVersion(type);
 		return mapByteBuffer(type, accessType).asIntBuffer();
 	}
 
@@ -389,6 +407,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public LongBuffer mapLongBuffer(BufferTargetType type, AccessType accessType)
 	{
+		checkFeatureVersion(type);
 		return mapByteBuffer(type, accessType).asLongBuffer();
 	}
 
@@ -405,6 +424,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public FloatBuffer mapFloatBuffer(BufferTargetType type, AccessType accessType)
 	{
+		checkFeatureVersion(type);
 		return mapByteBuffer(type, accessType).asFloatBuffer();
 	}
 
@@ -421,6 +441,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public DoubleBuffer mapDoubleBuffer(BufferTargetType type, AccessType accessType)
 	{
+		checkFeatureVersion(type);
 		return mapByteBuffer(type, accessType).asDoubleBuffer();
 	}
 
@@ -433,6 +454,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public boolean unmapBuffer(BufferTargetType type)
 	{
+		checkFeatureVersion(type);
 		return glUnmapBuffer(type.glValue);
 	}
 
@@ -442,6 +464,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public void unsetBuffer(BufferTargetType type)
 	{
+		checkFeatureVersion(type);
 		glBindBuffer(type.glValue, 0);
 		setCurrentBufferState(type, null);
 	}

@@ -12,8 +12,8 @@ import java.nio.FloatBuffer;
 import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
 
 import static org.lwjgl.opengl.GL14.*;
 

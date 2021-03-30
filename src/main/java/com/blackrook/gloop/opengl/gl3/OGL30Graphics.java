@@ -9,15 +9,15 @@ package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.AttachPoint;
+import com.blackrook.gloop.opengl.enums.ColorFormat;
+import com.blackrook.gloop.opengl.enums.RenderbufferFormat;
+import com.blackrook.gloop.opengl.enums.TextureFormat;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGLTexture;
-import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
-import com.blackrook.gloop.opengl.gl1.enums.TextureFormat;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
-import com.blackrook.gloop.opengl.gl3.enums.AttachPoint;
-import com.blackrook.gloop.opengl.gl3.enums.RenderbufferFormat;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -408,6 +408,9 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public void setTexture2DArrayWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 	{
+		checkFeatureVersion(wrapS);
+		checkFeatureVersion(wrapT);
+		checkFeatureVersion(wrapR);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, wrapT.glValue);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, wrapR.glValue);
@@ -449,6 +452,9 @@ public class OGL30Graphics extends OGL21Graphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+
 		clearError();
 		glTexImage3D(
 			GL_TEXTURE_2D_ARRAY,
@@ -500,6 +506,8 @@ public class OGL30Graphics extends OGL21Graphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
+		checkFeatureVersion(colorFormat);
+
 		clearError();
 		glTexSubImage3D(
 			GL_TEXTURE_2D_ARRAY,

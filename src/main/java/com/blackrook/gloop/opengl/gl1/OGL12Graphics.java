@@ -8,15 +8,15 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.BufferTargetType;
+import com.blackrook.gloop.opengl.enums.ColorFormat;
+import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.GeometryType;
+import com.blackrook.gloop.opengl.enums.TextureFormat;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
-import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
-import com.blackrook.gloop.opengl.gl1.enums.DataType;
-import com.blackrook.gloop.opengl.gl1.enums.GeometryType;
-import com.blackrook.gloop.opengl.gl1.enums.TextureFormat;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
 
 import static org.lwjgl.opengl.GL12.*;
 
@@ -110,6 +110,9 @@ public class OGL12Graphics extends OGL11Graphics
 	 */
 	public void setTexture3DWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 	{
+		checkFeatureVersion(wrapS);
+		checkFeatureVersion(wrapT);
+		checkFeatureVersion(wrapR);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, wrapT.glValue);
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, wrapR.glValue);
@@ -151,6 +154,8 @@ public class OGL12Graphics extends OGL11Graphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		
+		checkFeatureVersion(colorFormat);
+
 		clearError();
 		glTexImage3D(
 			GL_TEXTURE_3D,
@@ -202,6 +207,8 @@ public class OGL12Graphics extends OGL11Graphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
+		checkFeatureVersion(colorFormat);
+
 		clearError();
 		glTexSubImage3D(
 			GL_TEXTURE_3D,

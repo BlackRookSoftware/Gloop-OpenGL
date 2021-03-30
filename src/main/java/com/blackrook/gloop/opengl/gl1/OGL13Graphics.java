@@ -13,13 +13,13 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.ColorFormat;
+import com.blackrook.gloop.opengl.enums.TextureCubeFace;
+import com.blackrook.gloop.opengl.enums.TextureFormat;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
-import com.blackrook.gloop.opengl.gl1.enums.TextureCubeFace;
-import com.blackrook.gloop.opengl.gl1.enums.TextureFormat;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
 
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL12.GL_TEXTURE_3D;
@@ -272,6 +272,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 */
 	public void setTextureCubeWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 	{
+		checkFeatureVersion(wrapS);
+		checkFeatureVersion(wrapT);
+		checkFeatureVersion(wrapR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT.glValue);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR.glValue);
@@ -313,6 +316,9 @@ public class OGL13Graphics extends OGL12Graphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+
 		clearError();
 		glTexImage2D(
 			face.glValue,
@@ -395,6 +401,8 @@ public class OGL13Graphics extends OGL12Graphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
+		checkFeatureVersion(colorFormat);
+
 		clearError();
 		glTexSubImage2D(
 			face.glValue,

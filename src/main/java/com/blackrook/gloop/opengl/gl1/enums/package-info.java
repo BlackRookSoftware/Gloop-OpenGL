@@ -1,1 +1,0 @@
-package com.blackrook.gloop.opengl.gl1.enums;

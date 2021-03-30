@@ -7,10 +7,10 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.node;
 
+import com.blackrook.gloop.opengl.enums.FillMode;
+import com.blackrook.gloop.opengl.enums.HintType;
+import com.blackrook.gloop.opengl.enums.HintValue;
 import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
-import com.blackrook.gloop.opengl.gl1.enums.FillMode;
-import com.blackrook.gloop.opengl.gl1.enums.HintType;
-import com.blackrook.gloop.opengl.gl1.enums.HintValue;
 
 /**
  * A one-time triggered node that performs usually one-time

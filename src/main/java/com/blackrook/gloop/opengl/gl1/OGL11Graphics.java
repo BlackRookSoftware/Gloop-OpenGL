@@ -19,32 +19,32 @@ import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLGraphics;
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.AttribType;
+import com.blackrook.gloop.opengl.enums.BlendArg;
+import com.blackrook.gloop.opengl.enums.BlendFunc;
+import com.blackrook.gloop.opengl.enums.BufferTargetType;
+import com.blackrook.gloop.opengl.enums.ClientAttribType;
+import com.blackrook.gloop.opengl.enums.ColorFormat;
+import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.FaceSide;
+import com.blackrook.gloop.opengl.enums.FillMode;
+import com.blackrook.gloop.opengl.enums.FogFormulaType;
+import com.blackrook.gloop.opengl.enums.FrameBufferType;
+import com.blackrook.gloop.opengl.enums.GeometryType;
+import com.blackrook.gloop.opengl.enums.HintType;
+import com.blackrook.gloop.opengl.enums.HintValue;
+import com.blackrook.gloop.opengl.enums.LightShadeType;
+import com.blackrook.gloop.opengl.enums.LogicFunc;
+import com.blackrook.gloop.opengl.enums.MatrixMode;
+import com.blackrook.gloop.opengl.enums.StencilTestFunc;
+import com.blackrook.gloop.opengl.enums.TextureCoordType;
+import com.blackrook.gloop.opengl.enums.TextureFormat;
+import com.blackrook.gloop.opengl.enums.TextureGenMode;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureMode;
+import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl1.enums.AttribType;
-import com.blackrook.gloop.opengl.gl1.enums.BlendArg;
-import com.blackrook.gloop.opengl.gl1.enums.BlendFunc;
-import com.blackrook.gloop.opengl.gl1.enums.BufferTargetType;
-import com.blackrook.gloop.opengl.gl1.enums.ClientAttribType;
-import com.blackrook.gloop.opengl.gl1.enums.FaceSide;
-import com.blackrook.gloop.opengl.gl1.enums.FillMode;
-import com.blackrook.gloop.opengl.gl1.enums.FogFormulaType;
-import com.blackrook.gloop.opengl.gl1.enums.FrameBufferType;
-import com.blackrook.gloop.opengl.gl1.enums.GeometryType;
-import com.blackrook.gloop.opengl.gl1.enums.HintType;
-import com.blackrook.gloop.opengl.gl1.enums.HintValue;
-import com.blackrook.gloop.opengl.gl1.enums.LightShadeType;
-import com.blackrook.gloop.opengl.gl1.enums.LogicFunc;
-import com.blackrook.gloop.opengl.gl1.enums.MatrixMode;
-import com.blackrook.gloop.opengl.gl1.enums.ColorFormat;
-import com.blackrook.gloop.opengl.gl1.enums.DataType;
-import com.blackrook.gloop.opengl.gl1.enums.StencilTestFunc;
-import com.blackrook.gloop.opengl.gl1.enums.TextureCoordType;
-import com.blackrook.gloop.opengl.gl1.enums.TextureFormat;
-import com.blackrook.gloop.opengl.gl1.enums.TextureGenMode;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMagFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMinFilter;
-import com.blackrook.gloop.opengl.gl1.enums.TextureMode;
-import com.blackrook.gloop.opengl.gl1.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.math.Matrix4F;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -1301,19 +1301,20 @@ public class OGL11Graphics extends OGLGraphics
 
 	/**
 	 * Reads from the current-bound frame buffer into a target buffer.
-	 * @param imageData	the buffer to write the RGBA pixel data to (must be direct).
-	 * @param format the color format to write to the buffer.
+	 * @param imageData	the buffer to write the pixel data to (must be direct).
+	 * @param colorFormat the color format to write to the buffer.
 	 * @param x the starting screen offset, x-coordinate (0 is left).
 	 * @param y the starting screen offset, y-coordinate (0 is bottom).
 	 * @param width the capture width in pixels.
 	 * @param height the capture height in pixels.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void readFrameBuffer(ByteBuffer imageData, ColorFormat format, int x, int y, int width, int height)
+	public void readFrameBuffer(ByteBuffer imageData, ColorFormat colorFormat, int x, int y, int width, int height)
 	{
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer.");
-		glReadPixels(x, y, width, height, format.glValue, GL_UNSIGNED_BYTE, imageData);
+		checkFeatureVersion(colorFormat);
+		glReadPixels(x, y, width, height, colorFormat.glValue, GL_UNSIGNED_BYTE, imageData);
 	}
 
 	/**
@@ -1725,6 +1726,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexture1DWrapping(TextureWrapType wrapS)
 	{
+		checkFeatureVersion(wrapS);
 		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, wrapS.glValue);
 	}
 
@@ -1759,7 +1761,10 @@ public class OGL11Graphics extends OGLGraphics
 		
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
-		
+
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+
 		clearError();
 		glTexImage1D(
 			GL_TEXTURE_1D,
@@ -1798,6 +1803,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexture1DDataFromBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
 	{
+		checkFeatureVersion(format);
 		glCopyTexImage1D(GL_TEXTURE_1D, texlevel, format.glValue, srcX, srcY, width, border);
 	}
 
@@ -1829,6 +1835,8 @@ public class OGL11Graphics extends OGLGraphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
+		checkFeatureVersion(colorFormat);
+
 		clearError();
 		glTexSubImage1D(
 			GL_TEXTURE_1D,
@@ -1941,6 +1949,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexture2DWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
 	{
+		checkFeatureVersion(wrapS);
+		checkFeatureVersion(wrapT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT.glValue);
 	}
@@ -1979,6 +1989,9 @@ public class OGL11Graphics extends OGLGraphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+
 		clearError();
 		glTexImage2D(
 			GL_TEXTURE_2D,
@@ -2020,6 +2033,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexture2DDataFromBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
 	{
+		checkFeatureVersion(format);
 		glCopyTexImage2D(GL_TEXTURE_2D, format.glValue, texlevel, srcX, srcY, width, height, border);
 	}
 
@@ -2055,6 +2069,8 @@ public class OGL11Graphics extends OGLGraphics
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
+		checkFeatureVersion(colorFormat);
+
 		clearError();
 		glTexSubImage2D(
 			GL_TEXTURE_2D,
