@@ -340,6 +340,22 @@ public class OGLSystem<G extends OGLGraphics>
 		double n = (frameRenderTimeNanos / 1000000d);
 		return n > 0.0 ? (float)(1000 / n) : 0f;
 	}
+
+	/**
+	 * Sets the maximum amount of times per second that the rendering thread will 
+	 * attempt to automatically redraw the contents of the window.
+	 * Depending on the heft of what is being drawn, this maximum may not be reached.
+	 * <p> If set to null, no redraws occur. If set to a number that is 0 or less, 
+	 * this will keep redrawing continuously. If greater than 0, it will trigger
+	 * redraws that many times per second and ignore events that want to redraw the
+	 * window passively. 
+	 * <p> By default, this is set to null. 
+	 * @param fps the new FPS value. Can be null. 
+	 */
+	public void setFPS(Integer fps)
+	{
+		setFPS(fps != null ? Long.valueOf(fps) : null);
+	}
 	
 	/**
 	 * Sets the maximum amount of times per second that the rendering thread will 

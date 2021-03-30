@@ -51,12 +51,6 @@ public final class OGLTest
 				gl.setClearColor(1, 0, 0, 1);
 				gl.clearFrameBuffers(true, true, false, false);
 			}
-
-			@Override
-			public void onFramebufferResize(int newWidth, int newHeight)
-			{
-				// Nothing.
-			}
 		});
 		GLFWContext.mainLoop(window, inputSystem);
 	}
