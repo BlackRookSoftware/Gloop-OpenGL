@@ -11,6 +11,7 @@
 package com.blackrook.gloop.opengl.gl2;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -180,11 +181,17 @@ public class OGLShader extends OGLObject
 	
 	/** The shader log. */
 	private String log;
-	/** Uniform location hash. */
+	
+	/** Uniform location array. */
 	private Uniform[] uniformLocationList;
 	/** Uniform hash. */
 	private Map<String, Uniform> uniformMap;
-	
+
+	/** Attribute location array. */
+	private Attribute[] attributeLocationList;
+	/** Attribute hash. */
+	private Map<String, Attribute> attributeMap;
+
 	/**
 	 * Creates a new Shader. 
 	 * Each program can be null and is just left absent in the complete program.
@@ -267,13 +274,14 @@ public class OGLShader extends OGLObject
 	    if (glGetProgrami(getName(), GL_LINK_STATUS) == 0)
 	    	throw new GraphicsException("Failed to link together program " + getName() + ".\n"+log);
 		
-	    refreshUniforms();
+	    refreshUniformsAndAttribs();
 	}
 
 	// Gets the uniform data.
-	private void refreshUniforms()
+	private void refreshUniformsAndAttribs()
 	{
 		int uniformCount = glGetProgrami(getName(), GL_ACTIVE_UNIFORMS);
+		int attribCount = glGetProgrami(getName(), GL_ACTIVE_ATTRIBUTES);
 		
 		this.uniformLocationList = new Uniform[uniformCount];
 		this.uniformMap = new HashMap<String, Uniform>(uniformCount, 1.0f);
@@ -281,30 +289,55 @@ public class OGLShader extends OGLObject
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			final int MAXBUFFER = 512;
-			int[] length = new int[1];
-			int[] size = new int[1];
-			int[] type = new int[1];
-			byte[] namebytes = new byte[MAXBUFFER];
+			IntBuffer length = stack.mallocInt(1);
+			IntBuffer size = stack.mallocInt(1);
+			IntBuffer type = stack.mallocInt(1);
 			ByteBuffer name = stack.malloc(MAXBUFFER);
+			
+			byte[] namebytes = new byte[MAXBUFFER];
 			
 			for (int i = 0; i < uniformCount; i++)
 			{
 				glGetActiveUniform(getName(), i, length, size, type, name);
 
+				int len = length.get(0);
+				int typeId = type.get(0);
+				
 				name.rewind();
-				name.get(namebytes, 0, length[0]);
+				name.get(namebytes, 0, len);
 				name.rewind();
 				
 				uniformLocationList[i] = new Uniform();
 				uniformLocationList[i].locationId = i;
-				uniformLocationList[i].length = length[0];
-				uniformLocationList[i].name = new String(namebytes, 0, length[0]);
-				uniformLocationList[i].size = size[0];
-				uniformLocationList[i].type = type[0];
-				uniformLocationList[i].typeName = TYPENAMES.get(type[0]);
+				uniformLocationList[i].name = new String(namebytes, 0, len);
+				uniformLocationList[i].size = size.get(0);
+				uniformLocationList[i].type = typeId;
+				uniformLocationList[i].typeName = TYPENAMES.get(typeId);
 				
 				uniformMap.put(uniformLocationList[i].name, uniformLocationList[i]);
 			}
+			
+			for (int i = 0; i < attribCount; i++)
+			{
+				glGetActiveAttrib(getName(), i, length, size, type, name);
+
+				int len = length.get(0);
+				int typeId = type.get(0);
+				
+				name.rewind();
+				name.get(namebytes, 0, len);
+				name.rewind();
+				
+				attributeLocationList[i] = new Attribute();
+				attributeLocationList[i].locationId = i;
+				attributeLocationList[i].name = new String(namebytes, 0, len);
+				attributeLocationList[i].size = size.get(0);
+				attributeLocationList[i].type = typeId;
+				attributeLocationList[i].typeName = TYPENAMES.get(typeId);
+				
+				attributeMap.put(attributeLocationList[i].name, attributeLocationList[i]);
+			}
+			
 		}
 	}
 
@@ -317,6 +350,16 @@ public class OGLShader extends OGLObject
 	@Override
 	protected void free()
 	{
+		if (vertexProgram != null)
+			glDetachShader(getName(), vertexProgram.getName());
+		if (tessellationControlProgram != null)
+			glDetachShader(getName(), tessellationControlProgram.getName());
+		if (tessellationEvaluationProgram != null)
+			glDetachShader(getName(), tessellationEvaluationProgram.getName());
+		if (geometryProgram != null)
+			glDetachShader(getName(), geometryProgram.getName());
+		if (fragmentProgram != null)
+			glDetachShader(getName(), fragmentProgram.getName());
 		glDeleteProgram(getName());
 	}
 	
@@ -359,6 +402,36 @@ public class OGLShader extends OGLObject
 	}
 	
 	/**
+	 * @return the number of attribute on this shader.
+	 */
+	public int getAttributeCount()
+	{
+		return attributeLocationList.length;
+	}
+
+	/**
+	 * Gets an {@link Attribute} by its location id.
+	 * @param locationId the location id.
+	 * @return the corresponding attribute or null if not found.
+	 */
+	public Attribute getAttribute(int locationId)
+	{
+		if (locationId < 0 || locationId >= attributeLocationList.length)
+			return null;
+		return attributeLocationList[locationId];
+	}
+	
+	/**
+	 * Gets a {@link Attribute} by attribute name.
+	 * @param name the attribute name.
+	 * @return the corresponding uniform or null if not found.
+	 */
+	public Attribute getAttribute(String name)
+	{
+		return attributeMap.get(name);
+	}
+	
+	/**
 	 * Destroys undeleted shader programs abandoned from destroyed Java objects.
 	 */
 	public static void destroyUndeleted()
@@ -396,8 +469,6 @@ public class OGLShader extends OGLObject
 		private int locationId;
 		/** Uniform name. */
 		private String name;
-		/** Uniform character length. */
-		private int length;
 		/** Uniform size (in positions). */
 		private int size;
 		/** Uniform type (GL value). */
@@ -417,12 +488,6 @@ public class OGLShader extends OGLObject
 		public String getName() 
 		{
 			return name;
-		}
-		
-		/** @return the length of the uniform. */
-		public int getLength()
-		{
-			return length;
 		}
 		
 		/** @return the size of the uniform. */
@@ -451,5 +516,61 @@ public class OGLShader extends OGLObject
 		
 	}
 
+	/**
+	 * Attribute for a shader. 
+	 */
+	public static class Attribute
+	{
+		/** Location id. */
+		private int locationId;
+		/** Attribute name. */
+		private String name;
+		/** Attribute size (in positions). */
+		private int size;
+		/** Attribute type (GL value). */
+		private int type;
+		/** Attribute type. */
+		private String typeName;
+		
+		private Attribute() {}
+		
+		/** @return the uniform location id. */
+		public int getLocationId() 
+		{
+			return locationId;
+		}
+		
+		/** @return the uniform name. */
+		public String getName() 
+		{
+			return name;
+		}
+		
+		/** @return the size of the uniform. */
+		public int getSize() 
+		{
+			return size;
+		}
+		
+		/** @return the GL type id. */
+		public int getType() 
+		{
+			return type;
+		}
+		
+		/** @return the type name. */
+		public String getTypeName() 
+		{
+			return typeName;
+		}
+		
+		@Override
+		public String toString() 
+		{
+			return "attrib "+typeName+" "+name+" (location "+locationId+")";
+		}
+		
+	}
+	
 }
 

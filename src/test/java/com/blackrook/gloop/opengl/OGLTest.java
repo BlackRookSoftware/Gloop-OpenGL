@@ -22,6 +22,7 @@ public final class OGLTest
 {
 	private GLFWWindow window;
 	private OGLSystem<OGL21Graphics> oglSystem;
+	private GLFWContext.MainLoop mainLoop;
 	
 	public void run() 
 	{
@@ -52,7 +53,10 @@ public final class OGLTest
 				gl.clearFrameBuffers(true, true, false, false);
 			}
 		});
-		GLFWContext.mainLoop(window, inputSystem);
+		
+		mainLoop = GLFWContext.createLoop(window, inputSystem);
+		mainLoop.setShutDownOnExit(true);
+		mainLoop.run();
 	}
 	
 	public class Keyboard

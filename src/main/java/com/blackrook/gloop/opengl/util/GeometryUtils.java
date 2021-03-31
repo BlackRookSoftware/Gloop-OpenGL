@@ -8,6 +8,4 @@ public final class GeometryUtils
 {
 	private GeometryUtils() {}
 
-	// TODO: Finish this.
-	
 }

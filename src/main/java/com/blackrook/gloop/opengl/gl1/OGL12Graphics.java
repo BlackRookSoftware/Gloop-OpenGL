@@ -244,13 +244,13 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param endIndex the ending index in the range.
 	 * @param count the amount of element indices to read.
 	 * @see #setVertexArrayEnabled(boolean)
-	 * @see #setTextureCoordArrayEnabled(boolean)
+	 * @see #setTextureCoordinateArrayEnabled(boolean)
 	 * @see #setNormalArrayEnabled(boolean)
 	 * @see #setColorArrayEnabled(boolean)
-	 * @see #setPointerVertex(DataType, int, int, int)
-	 * @see #setPointerTextureCoordinate(DataType, int, int, int)
-	 * @see #setPointerNormal(DataType, int, int)
-	 * @see #setPointerColor(DataType, int, int, int)
+	 * @see #setVertexArrayPointer(DataType, int, int, int)
+	 * @see #setTextureCoordinateArrayPointer(DataType, int, int, int)
+	 * @see #setNormalArrayPointer(DataType, int, int)
+	 * @see #setColorArrayPointer(DataType, int, int, int)
 	 */
 	public void drawGeometryElementRange(GeometryType geometryType, DataType dataType, int startIndex, int endIndex, int count)
 	{

@@ -1539,7 +1539,7 @@ public class OGL11Graphics extends OGLGraphics
 
 	/**
 	 * Sets the texture environment mode to use for texel fragment coloring.
-	 * This is usually REPLACE, by default.
+	 * This is usually REPLACE, by default. Only viable in the fixed pipeline.
 	 * @param mode the texture mode.
 	 */
 	public void setTextureEnvironment(TextureMode mode)
@@ -2136,12 +2136,42 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for vertices.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of coordinates (3-dimensional vertices = 3).
+	 * @param stride the distance (in elements) between each vertex.    
+	 * @param offset the offset in each stride where each vertex starts.  
+	 * @see #setVertexArrayEnabled(boolean)   
+	 */
+	public void setVertexArrayPointer(DataType dataType, int width, int stride, int offset)
+	{
+		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+
+	/**
 	 * Enables or disables the processing of bound texture coordinate arrays.
 	 * @param enable true to enable, false to disable.
 	 */
-	public void setTextureCoordArrayEnabled(boolean enable)
+	public void setTextureCoordinateArrayEnabled(boolean enable)
 	{
 		setClientFlag(GL_TEXTURE_COORD_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for texture coordinates.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of coordinates (2-dimensional coords = 2).
+	 * @param stride the distance (in elements) between each coordinate group.     
+	 * @param offset the offset in each stride where each coordinate starts.     
+	 * @see #setTextureCoordinateArrayEnabled(boolean)   
+	 */
+	public void setTextureCoordinateArrayPointer(DataType dataType, int width, int stride, int offset)
+	{
+		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
 	}
 
 	/**
@@ -2151,6 +2181,21 @@ public class OGL11Graphics extends OGLGraphics
 	public void setColorArrayEnabled(boolean enable)
 	{
 		setClientFlag(GL_COLOR_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for colors.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of color components (4-component color = 4).
+	 * @param stride the distance (in elements) between each color.   
+	 * @param offset the offset in each stride where each color starts.     
+	 * @see #setColorArrayEnabled(boolean)   
+	 */
+	public void setColorArrayPointer(DataType dataType, int width, int stride, int offset)
+	{
+		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
 	}
 
 	/**
@@ -2164,60 +2209,15 @@ public class OGL11Graphics extends OGLGraphics
 
 	/**
 	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the vertex pointers.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param width the width of a full set of coordinates (3-dimensional vertices = 3).
-	 * @param stride the distance (in elements) between each vertex.    
-	 * @param offset the offset in each stride where each vertex starts.  
-	 * @see #setVertexArrayEnabled(boolean)   
-	 */
-	public void setPointerVertex(DataType dataType, int width, int stride, int offset)
-	{
-		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-	
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the texture coordinate pointers.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param width the width of a full set of coordinates (2-dimensional coords = 2).
-	 * @param stride the distance (in elements) between each coordinate group.     
-	 * @param offset the offset in each stride where each coordinate starts.     
-	 * @see #setTextureCoordArrayEnabled(boolean)   
-	 */
-	public void setPointerTextureCoordinate(DataType dataType, int width, int stride, int offset)
-	{
-		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-	
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the normal vector pointers. Always assumes 3-dimensional vectors.
+	 * This sets the attribute pointer for normal vectors. Always assumes 3-dimensional vectors.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param stride the distance (in elements) between each normal.     
 	 * @param offset the offset in each stride where each normal starts.     
 	 * @see #setNormalArrayEnabled(boolean)   
 	 */
-	public void setPointerNormal(DataType dataType, int stride, int offset)
+	public void setNormalArrayPointer(DataType dataType, int stride, int offset)
 	{
 		glNormalPointer(dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-	
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the color pointers.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param width the width of a full set of color components (4-component color = 4).
-	 * @param stride the distance (in elements) between each color.   
-	 * @param offset the offset in each stride where each color starts.     
-	 * @see #setColorArrayEnabled(boolean)   
-	 */
-	public void setPointerColor(DataType dataType, int width, int stride, int offset)
-	{
-		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
 		getError();
 	}
 	
@@ -2229,13 +2229,13 @@ public class OGL11Graphics extends OGLGraphics
 	 * NOTE: an element is in terms of array elements, so if the bound buffers describe the coordinates of 4 vertices,
 	 * <code>elementCount</code> should be 4.
 	 * @see #setVertexArrayEnabled(boolean)
-	 * @see #setTextureCoordArrayEnabled(boolean)
+	 * @see #setTextureCoordinateArrayEnabled(boolean)
 	 * @see #setNormalArrayEnabled(boolean)
 	 * @see #setColorArrayEnabled(boolean)
-	 * @see #setPointerVertex(DataType, int, int, int)
-	 * @see #setPointerTextureCoordinate(DataType, int, int, int)
-	 * @see #setPointerNormal(DataType, int, int)
-	 * @see #setPointerColor(DataType, int, int, int)
+	 * @see #setVertexArrayPointer(DataType, int, int, int)
+	 * @see #setTextureCoordinateArrayPointer(DataType, int, int, int)
+	 * @see #setNormalArrayPointer(DataType, int, int)
+	 * @see #setColorArrayPointer(DataType, int, int, int)
 	 */
 	public void drawGeometryArray(GeometryType geometryType, int offset, int elementCount)
 	{
@@ -2251,13 +2251,13 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param count the amount of element indices to interpret in the {@link BufferTargetType#INDICES}-bound buffer.
 	 * @param offset the starting offset in the index buffer (in elements).
 	 * @see #setVertexArrayEnabled(boolean)
-	 * @see #setTextureCoordArrayEnabled(boolean)
+	 * @see #setTextureCoordinateArrayEnabled(boolean)
 	 * @see #setNormalArrayEnabled(boolean)
 	 * @see #setColorArrayEnabled(boolean)
-	 * @see #setPointerVertex(DataType, int, int, int)
-	 * @see #setPointerTextureCoordinate(DataType, int, int, int)
-	 * @see #setPointerNormal(DataType, int, int)
-	 * @see #setPointerColor(DataType, int, int, int)
+	 * @see #setVertexArrayPointer(DataType, int, int, int)
+	 * @see #setTextureCoordinateArrayPointer(DataType, int, int, int)
+	 * @see #setNormalArrayPointer(DataType, int, int)
+	 * @see #setColorArrayPointer(DataType, int, int, int)
 	 */
 	public void drawGeometryElements(GeometryType geometryType, DataType dataType, int count, int offset)
 	{

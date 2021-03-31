@@ -103,6 +103,10 @@ public abstract class OGLGraphics implements OGLVersioned
 		protected Float maxTextureAnisotropy;
 		/** Maximum renderbuffer size. */
 		protected Integer maxRenderBufferSize;
+		/** Maximum draw buffers. */
+		protected Integer maxDrawBuffers;
+		/** Maximum vertex attributes. */
+		protected Integer maxVertexAttribs;
 		/** Maximum renderbuffer color attachments. */
 		protected Integer maxRenderBufferColorAttachments;
 
@@ -153,6 +157,22 @@ public abstract class OGLGraphics implements OGLVersioned
 			return maxTextureSize;
 		}
 
+		/**
+		 * @return max draw buffers. Null if not available.
+		 */
+		public Integer getMaxDrawBuffers()
+		{
+			return maxDrawBuffers;
+		}
+		
+		/**
+		 * @return the maximum amount of bindable vertex attributes. Null if not available.
+		 */
+		public Integer getMaxVertexAttribs()
+		{
+			return maxVertexAttribs;
+		}
+		
 		/**
 		 * @return the maximum size of a render buffer object in pixels. Null if not available.
 		 */
@@ -373,6 +393,10 @@ public abstract class OGLGraphics implements OGLVersioned
 	
 	/** The current frame rendered. */
 	private long currentFrame;
+	/** The current width. */
+	private int currentWidth;
+	/** The current height. */
+	private int currentHeight;
 	/** The starting millisecond at creation. */
 	private long startMilliseconds;
 	/** The current millisecond at the beginning of the frame. */
@@ -401,6 +425,8 @@ public abstract class OGLGraphics implements OGLVersioned
 	protected OGLGraphics()
 	{
 		this.currentFrame = 0L;
+		this.currentWidth = 0;
+		this.currentHeight = 0;
 		this.startMilliseconds = System.currentTimeMillis();
 		this.currentMilliseconds = -1L;
 		this.currentNanos = -1L;
@@ -435,8 +461,10 @@ public abstract class OGLGraphics implements OGLVersioned
 	/**
 	 * Called at the beginning of each {@link OGLSystem#display()} call for each frame.
 	 */
-	final void startFrame()
+	final void startFrame(int width, int height)
 	{
+		currentWidth = width;
+		currentHeight = height;
 		currentMilliseconds = System.currentTimeMillis();
 		currentNanos = System.nanoTime();
 		
@@ -538,6 +566,30 @@ public abstract class OGLGraphics implements OGLVersioned
 		return currentFrame;
 	}
 	
+	/**
+	 * @return the width of the framebuffer in pixels.
+	 */
+	public int getWidth()
+	{
+		return currentWidth;
+	}
+
+	/**
+	 * @return the height of the framebuffer in pixels.
+	 */
+	public int getHeight()
+	{
+		return currentHeight;
+	}
+
+	/**
+	 * @return the aspect ratio of the framebuffer.
+	 */
+	public float getAspect()
+	{
+		return (float)getWidth() / (float)getHeight();
+	}
+
 	/**
 	 * Grabs an OpenGL context integer value using a GL value enum. 
 	 * @param glEnum the GL enum.

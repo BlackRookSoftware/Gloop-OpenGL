@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL;
 
 import com.blackrook.gloop.glfw.GLFWContext;
 import com.blackrook.gloop.glfw.GLFWWindow;
+import com.blackrook.gloop.glfw.GLFWWindow.Dimension;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowAdapter;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
@@ -19,6 +20,7 @@ import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL30Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL31Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL32Graphics;
+import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl4.OGL40Graphics;
 import com.blackrook.gloop.opengl.node.OGLNode;
 
@@ -174,6 +176,17 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 	
 	/**
+	 * Creates an OpenGL 3.3 implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL33Graphics> getOpenGL33(GLFWWindow window)
+	{
+		return new OGLSystem<OGL33Graphics>(new OGL33Graphics(), window);
+	}
+	
+	/**
 	 * Creates an OpenGL 4.0 implementation system.
 	 * @param window the window to render to.
 	 * @return an OpenGL context entry.
@@ -256,7 +269,8 @@ public class OGLSystem<G extends OGLGraphics>
 		long rendertime = 0L;
 		int polys = 0;
 	
-		graphics.startFrame();
+		Dimension frame = window.getFramebufferSize();
+		graphics.startFrame(frame.width, frame.height);
 		
 	    for (int i = 0; i < nodes.size(); i++)
 	    {

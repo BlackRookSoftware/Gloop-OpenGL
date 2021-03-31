@@ -43,6 +43,7 @@ public class OGL20Graphics extends OGL15Graphics
 			super();
 			this.shaderVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 			this.maxTextureUnits = getInt(GL_MAX_TEXTURE_IMAGE_UNITS);
+			this.maxDrawBuffers = getInt(GL_MAX_DRAW_BUFFERS);
 		}
 	}
 	
@@ -453,7 +454,6 @@ public class OGL20Graphics extends OGL15Graphics
 
 	/**
 	 * Enables or disables the processing of bound vertex arrays and/or buffers at a specific attrib index.
-	 * The index on this can also be a uniform location for an attrib pointer.
 	 * @param index the attribute index or uniform location id.
 	 * @param enable true to enable, false to disable.
 	 */
@@ -469,15 +469,15 @@ public class OGL20Graphics extends OGL15Graphics
 	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer are used to draw polygonal information:
 	 * This sets the vertex attribute pointers.
 	 * The index on this can also be a uniform location for an attrib pointer.
-	 * @param index the attribute index or uniform location id.
+	 * @param index the attribute index.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param normalize if true, the data is normalized on read ([-1, 1] for signed values, [0, 1] for unsigned). Else, read as-is.
-	 * @param width the width of a full set of attribute components (3-dimensional vertices = 3).
+	 * @param width the width of a full set of attribute components (in elements; 3-dimensional vertices = 3).
 	 * @param stride the distance (in elements) between each attribute.    
 	 * @param offset the offset in each stride where each attribute starts (in elements).  
 	 * @see #setVertexAttribArrayEnabled(int, boolean)   
 	 */
-	public void setPointerVertexAttrib(int index, DataType dataType, boolean normalize, int width, int stride, int offset)
+	public void setVertexAttribArrayPointer(int index, DataType dataType, boolean normalize, int width, int stride, int offset)
 	{
 		glVertexAttribPointer(index, width, dataType.glValue, normalize, stride * dataType.size, offset * dataType.size);
 		getError();
