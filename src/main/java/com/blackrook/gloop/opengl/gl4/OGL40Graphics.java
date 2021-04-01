@@ -8,7 +8,7 @@
 package com.blackrook.gloop.opengl.gl4;
 
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.gl3.OGL32Graphics;
+import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 
 import static org.lwjgl.opengl.GL40.*;
 
@@ -20,8 +20,13 @@ import org.lwjgl.system.MemoryStack;
  * OpenGL 4.0 Graphics Implementation.
  * @author Matthew Tropiano
  */
-public class OGL40Graphics extends OGL32Graphics
+public class OGL40Graphics extends OGL33Graphics
 {
+	public OGL40Graphics(boolean core)
+	{
+		super(core);
+	}
+
 	@Override
 	public OGLVersion getVersion()
 	{

@@ -15,6 +15,11 @@ import com.blackrook.gloop.opengl.OGLVersion;
  */
 public class OGL32Graphics extends OGL31Graphics
 {
+	public OGL32Graphics(boolean core)
+	{
+		super(core);
+	}
+
 	@Override
 	public OGLVersion getVersion()
 	{

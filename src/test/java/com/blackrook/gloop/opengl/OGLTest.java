@@ -16,12 +16,13 @@ import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
+import com.blackrook.gloop.opengl.gl3.OGL32Graphics;
 import com.blackrook.gloop.opengl.node.OGLNodeAdapter;
 
 public final class OGLTest 
 {
 	private GLFWWindow window;
-	private OGLSystem<OGL21Graphics> oglSystem;
+	private OGLSystem<OGL32Graphics> oglSystem;
 	private GLFWContext.MainLoop mainLoop;
 	
 	public void run() 
@@ -34,8 +35,8 @@ public final class OGLTest
 		WindowHints hints = (new WindowHints())
 			.setVisible(false)
 			.setResizable(true)
-			.setContextVersion(2, 1)
-			.setOpenGLProfile(OpenGLProfile.ANY_PROFILE);
+			.setContextVersion(3, 2)
+			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
 		GLFWInputSystem inputSystem = new GLFWInputSystem();
 		window = new GLFWWindow(hints, "Hello World!", 640, 480);
@@ -43,14 +44,14 @@ public final class OGLTest
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = OGLSystem.getOpenGL21(window);
+		oglSystem = OGLSystem.getOpenGL32Core(window);
 		oglSystem.addNode(new OGLNodeAdapter<OGL21Graphics>()
 		{
 			@Override
 			public void onDisplay(OGL21Graphics gl)
 			{
 				gl.setClearColor(1, 0, 0, 1);
-				gl.clearFrameBuffers(true, true, false, false);
+				gl.clear(true, true, false, false);
 			}
 		});
 		

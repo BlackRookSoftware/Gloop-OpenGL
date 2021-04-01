@@ -23,6 +23,11 @@ import static org.lwjgl.opengl.GL14.*;
  */
 public class OGL14Graphics extends OGL13Graphics
 {
+	public OGL14Graphics(boolean core)
+	{
+		super(core);
+	}
+
 	@Override
 	public OGLVersion getVersion()
 	{
@@ -74,6 +79,7 @@ public class OGL14Graphics extends OGL13Graphics
 	 */
 	public void setTextureLODBias(float bias)
 	{
+		checkNonCore();
 		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, bias);
 	}
 
@@ -83,10 +89,9 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param magFilter the magnification filter.
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFiltering1D(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
+	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture1DFiltering(minFilter, magFilter);
 		glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
 	}
 
@@ -97,17 +102,10 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 or less is "off").
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFiltering1D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
+	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture1DFiltering(minFilter, magFilter, anisotropy);
 		glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-		
-		if (getInfo().supportsTextureAnisotropy())
-		{
-			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_1D, 0x084FE, anisotropy);
-		}
 	}
 
 	/**
@@ -116,10 +114,9 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param magFilter the magnification filter.
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFiltering2D(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
+	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture2DFiltering(minFilter, magFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
 	}
 
@@ -130,17 +127,10 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFiltering2D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
+	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture2DFiltering(minFilter, magFilter, anisotropy);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-		
-		if (getInfo().supportsTextureAnisotropy())
-		{
-			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_2D, 0x084FE, anisotropy);
-		}
 	}
 
 	/**
@@ -149,10 +139,9 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param magFilter the magnification filter.
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFiltering3D(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
+	public void setTexture3DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture3DFiltering(minFilter, magFilter);
 		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
 	}
 
@@ -163,17 +152,10 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFiltering3D(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
+	public void setTexture3DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture3DFiltering(minFilter, magFilter, anisotropy);
 		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-		
-		if (getInfo().supportsTextureAnisotropy())
-		{
-			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_3D, 0x084FE, anisotropy);
-		}
 	}
 
 	/**
@@ -182,10 +164,9 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param magFilter the magnification filter.
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFilteringCube(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
+	public void setTextureCubeFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTextureCubeFiltering(minFilter, magFilter);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
 	}
 
@@ -196,17 +177,10 @@ public class OGL14Graphics extends OGL13Graphics
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTextureFilteringCube(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
+	public void setTextureCubeFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
 	{
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTexture1DFiltering(minFilter, magFilter, anisotropy);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-		
-		if (getInfo().supportsTextureAnisotropy())
-		{
-			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_CUBE_MAP, 0x084FE, anisotropy);
-		}
 	}
 
 }

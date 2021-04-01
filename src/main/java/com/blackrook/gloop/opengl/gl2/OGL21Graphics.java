@@ -21,6 +21,11 @@ import static org.lwjgl.opengl.GL21.*;
  */
 public class OGL21Graphics extends OGL20Graphics
 {
+	public OGL21Graphics(boolean core)
+	{
+		super(core);
+	}
+
 	@Override
 	public OGLVersion getVersion()
 	{

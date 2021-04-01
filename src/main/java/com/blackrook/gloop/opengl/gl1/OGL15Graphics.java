@@ -37,8 +37,9 @@ public class OGL15Graphics extends OGL14Graphics
 	private Map<BufferTargetType, OGLBuffer> currentBuffer;
 
 	// Create OpenGL 1.5 context.
-	public OGL15Graphics()
+	public OGL15Graphics(boolean core)
 	{
+		super(core);
 		this.currentBuffer = null;
 	}
 	
@@ -89,6 +90,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 */
 	public void setFogCoordinateSource(FogCoordinateType coord)
 	{
+		checkNonCore();
 		glFogi(GL_FOG_COORD_SRC, coord.glValue);
 	}
 

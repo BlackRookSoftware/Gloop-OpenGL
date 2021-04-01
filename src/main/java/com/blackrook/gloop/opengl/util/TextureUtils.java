@@ -78,8 +78,7 @@ public final class TextureUtils
 	{
 		ByteBuffer out = BufferUtils.allocDirectByteBuffer(getRawSize(image));
 		out.order(ByteOrder.LITTLE_ENDIAN);
-		IntBuffer intout = out.asIntBuffer();
-		putImageData(image, intout);
+		convertImageData(image, out.asIntBuffer());
 	    return out;
 	}
 
@@ -92,8 +91,7 @@ public final class TextureUtils
 	{
 		ByteBuffer out = BufferUtils.allocDirectByteBuffer(getRawSize(image));
 		out.order(ByteOrder.BIG_ENDIAN);
-		IntBuffer intout = out.asIntBuffer();
-		putImageData(image, intout);
+		convertImageData(image, out.asIntBuffer());
 	    return out;
 	}
 
@@ -113,7 +111,7 @@ public final class TextureUtils
 	}
 
 	// Puts image data into an IntBuffer.
-	private static void putImageData(BufferedImage image, IntBuffer intout)
+	private static void convertImageData(BufferedImage image, IntBuffer intout)
 	{
 		int imageWidth = image.getWidth();
 		int imageHeight = image.getHeight();

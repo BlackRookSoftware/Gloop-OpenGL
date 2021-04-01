@@ -49,5 +49,11 @@ public enum ShaderProgramType implements OGLVersioned
 		return version;
 	}
 	
+	@Override
+	public boolean isCore()
+	{
+		return true;
+	}
+	
 }
 

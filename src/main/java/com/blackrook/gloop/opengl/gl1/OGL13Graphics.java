@@ -34,7 +34,7 @@ public class OGL13Graphics extends OGL12Graphics
 		protected Info13()
 		{
 			super();
-			this.maxMultitexture = getInt(GL_MAX_TEXTURE_UNITS);
+			this.maxTextureUnits = getInt(GL_MAX_TEXTURE_UNITS);
 		}
 	}
 	
@@ -44,8 +44,9 @@ public class OGL13Graphics extends OGL12Graphics
 	private Map<Integer, Map<Integer, OGLTexture>> currentTextures;
 	
 	// Create OpenGL 1.3 context.
-	public OGL13Graphics()
+	public OGL13Graphics(boolean core)
 	{
+		super(core);
 		this.currentActiveTexture = 0;
 		this.currentTextures = null;
 	}
@@ -199,18 +200,12 @@ public class OGL13Graphics extends OGL12Graphics
 	 */
 	public void setTextureUnit(int unit)
 	{
+		if (unit < 0 || unit >= getInfo().getMaxTextureUnits())
+			throw new GraphicsException("Unit cannot be greater than " + getInfo().getMaxTextureUnits());
+		
 		glActiveTexture(GL_TEXTURE0 + unit);
 		getError();
 		currentActiveTexture = unit;
-	}
-
-	/**
-	 * Sets if cube map texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTextureCubeEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_CUBE_MAP, enabled);
 	}
 
 	/**
@@ -220,6 +215,15 @@ public class OGL13Graphics extends OGL12Graphics
 	public OGLTexture getTextureCube()
 	{
 		return getCurrentActiveTextureState(currentActiveTexture, GL_TEXTURE_CUBE_MAP);
+	}
+
+	/**
+	 * Sets if cube map texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTextureCubeEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_CUBE_MAP, enabled);
 	}
 
 	/**
@@ -343,9 +347,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void setTextureCubeDataFromBuffer(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeDataFromReadBuffer(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		setTextureCubeDataFromBuffer(face, 0, xoffset, yoffset, srcX, srcY, width, height);
+		setTextureCubeDataFromReadBuffer(face, 0, xoffset, yoffset, srcX, srcY, width, height);
 	}
 
 	/**
@@ -360,7 +364,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void setTextureCubeDataFromBuffer(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeDataFromReadBuffer(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
 		glCopyTexImage2D(face.glValue, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}
@@ -427,9 +431,9 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void setTextureCubeSubDataFromBuffer(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeSubDataFromReadBuffer(TextureCubeFace face, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		setTextureCubeDataFromBuffer(face, 0, xoffset, yoffset, srcX, srcY, width, height);
+		setTextureCubeDataFromReadBuffer(face, 0, xoffset, yoffset, srcX, srcY, width, height);
 	}
 
 	/**
@@ -444,7 +448,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void setTextureCubeSubDataFromBuffer(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureCubeSubDataFromReadBuffer(TextureCubeFace face, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
 		glCopyTexSubImage2D(face.glValue, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}

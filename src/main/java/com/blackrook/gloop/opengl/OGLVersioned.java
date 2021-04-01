@@ -7,7 +7,13 @@ package com.blackrook.gloop.opengl;
 public interface OGLVersioned
 {
 	/**
-	 * @return the version that this object or value is available for.
+	 * @return the version that this object or value is available for (and higher).
 	 */
 	OGLVersion getVersion();
+	
+	/**
+	 * @return true if this object is considered part of core spec, false otherwise.
+	 */
+	boolean isCore();
+	
 }

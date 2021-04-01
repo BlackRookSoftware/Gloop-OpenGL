@@ -68,5 +68,11 @@ public enum BufferTargetType implements OGLVersioned
 	{
 		return version;
 	}
+
+	@Override
+	public boolean isCore()
+	{
+		return true;
+	}
 	
 }

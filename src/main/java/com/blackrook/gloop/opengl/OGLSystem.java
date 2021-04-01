@@ -73,7 +73,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL11Graphics> getOpenGL11(GLFWWindow window)
 	{
-		return new OGLSystem<OGL11Graphics>(new OGL11Graphics(), window);
+		return new OGLSystem<OGL11Graphics>(new OGL11Graphics(false), window);
 	}
 	
 	/**
@@ -84,7 +84,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL12Graphics> getOpenGL12(GLFWWindow window)
 	{
-		return new OGLSystem<OGL12Graphics>(new OGL12Graphics(), window);
+		return new OGLSystem<OGL12Graphics>(new OGL12Graphics(false), window);
 	}
 	
 	/**
@@ -95,7 +95,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL13Graphics> getOpenGL13(GLFWWindow window)
 	{
-		return new OGLSystem<OGL13Graphics>(new OGL13Graphics(), window);
+		return new OGLSystem<OGL13Graphics>(new OGL13Graphics(false), window);
 	}
 	
 	/**
@@ -106,7 +106,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL14Graphics> getOpenGL14(GLFWWindow window)
 	{
-		return new OGLSystem<OGL14Graphics>(new OGL14Graphics(), window);
+		return new OGLSystem<OGL14Graphics>(new OGL14Graphics(false), window);
 	}
 	
 	/**
@@ -117,7 +117,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL15Graphics> getOpenGL15(GLFWWindow window)
 	{
-		return new OGLSystem<OGL15Graphics>(new OGL15Graphics(), window);
+		return new OGLSystem<OGL15Graphics>(new OGL15Graphics(false), window);
 	}
 	
 	/**
@@ -128,7 +128,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL20Graphics> getOpenGL20(GLFWWindow window)
 	{
-		return new OGLSystem<OGL20Graphics>(new OGL20Graphics(), window);
+		return new OGLSystem<OGL20Graphics>(new OGL20Graphics(false), window);
 	}
 	
 	/**
@@ -139,7 +139,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL21Graphics> getOpenGL21(GLFWWindow window)
 	{
-		return new OGLSystem<OGL21Graphics>(new OGL21Graphics(), window);
+		return new OGLSystem<OGL21Graphics>(new OGL21Graphics(false), window);
 	}
 	
 	/**
@@ -150,7 +150,18 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL30Graphics> getOpenGL30(GLFWWindow window)
 	{
-		return new OGLSystem<OGL30Graphics>(new OGL30Graphics(), window);
+		return new OGLSystem<OGL30Graphics>(new OGL30Graphics(false), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 3.0 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL30Graphics> getOpenGL30Core(GLFWWindow window)
+	{
+		return new OGLSystem<OGL30Graphics>(new OGL30Graphics(true), window);
 	}
 	
 	/**
@@ -161,7 +172,18 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL31Graphics> getOpenGL31(GLFWWindow window)
 	{
-		return new OGLSystem<OGL31Graphics>(new OGL31Graphics(), window);
+		return new OGLSystem<OGL31Graphics>(new OGL31Graphics(false), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 3.1 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL31Graphics> getOpenGL31Core(GLFWWindow window)
+	{
+		return new OGLSystem<OGL31Graphics>(new OGL31Graphics(true), window);
 	}
 	
 	/**
@@ -172,7 +194,18 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL32Graphics> getOpenGL32(GLFWWindow window)
 	{
-		return new OGLSystem<OGL32Graphics>(new OGL32Graphics(), window);
+		return new OGLSystem<OGL32Graphics>(new OGL32Graphics(false), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 3.2 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL32Graphics> getOpenGL32Core(GLFWWindow window)
+	{
+		return new OGLSystem<OGL32Graphics>(new OGL32Graphics(true), window);
 	}
 	
 	/**
@@ -183,7 +216,18 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL33Graphics> getOpenGL33(GLFWWindow window)
 	{
-		return new OGLSystem<OGL33Graphics>(new OGL33Graphics(), window);
+		return new OGLSystem<OGL33Graphics>(new OGL33Graphics(false), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 3.3 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL33Graphics> getOpenGL33Core(GLFWWindow window)
+	{
+		return new OGLSystem<OGL33Graphics>(new OGL33Graphics(true), window);
 	}
 	
 	/**
@@ -194,7 +238,18 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	public static OGLSystem<OGL40Graphics> getOpenGL40(GLFWWindow window)
 	{
-		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(), window);
+		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(false), window);
+	}
+	
+	/**
+	 * Creates an OpenGL 4.0 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL40Graphics> getOpenGL40Core(GLFWWindow window)
+	{
+		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(true), window);
 	}
 	
 	// Creates the system.

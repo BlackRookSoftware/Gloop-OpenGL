@@ -124,8 +124,9 @@ public class OGL11Graphics extends OGLGraphics
 	private OGLTexture currentTexture2D;
 
 	// Create OpenGL 1.1 context.
-	public OGL11Graphics()
+	public OGL11Graphics(boolean core)
 	{
+		super(core);
 		this.currentTexture1D = null;
 		this.currentTexture2D = null;
 	}
@@ -150,139 +151,13 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Clears a bunch of fixed framebuffers.
-	 * @param clearColorBuffer if true, clear the color buffer.
-	 * @param clearDepthBuffer if true, clear the depth buffer.
-	 * @param clearAccumulationBuffer if true, clear the accumulation buffer.
-	 * @param clearStencilBuffer if true, clear the stencil buffer.
-	 */
-	public void clearFrameBuffers(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearAccumulationBuffer, boolean clearStencilBuffer)
-	{
-		glClear(
-			(clearColorBuffer ? GL_COLOR_BUFFER_BIT : 0)
-			| (clearDepthBuffer ? GL_DEPTH_BUFFER_BIT : 0)
-			| (clearAccumulationBuffer ? GL_ACCUM_BUFFER_BIT : 0)
-			| (clearStencilBuffer ? GL_STENCIL_BUFFER_BIT : 0)
-		);
-	}
-
-	/**
-	 * Sets an OpenGL hint.
-	 * @param type the hint type to set.
-	 * @param value the value to set for the provided hint.
-	 */
-	public void setHint(HintType type, HintValue value)
-	{
-		glHint(type.glValue, value.glValue);
-	}
-
-	/**
-	 * Set polygon fill mode.
-	 * @param mode the fill mode.
-	 */
-	public void setFillMode(FillMode mode)
-	{
-		glPolygonMode(FaceSide.FRONT_AND_BACK.glValue, mode.glValue);
-	}
-
-	/**
-	 * Set front polygon fill mode.
-	 * @param mode the fill mode.
-	 */
-	public void setFrontFillMode(FillMode mode)
-	{
-	   	glPolygonMode(FaceSide.FRONT.glValue, mode.glValue);
-	}
-
-	/**
-	 * Set back polygon fill mode.
-	 * @param mode the fill mode.
-	 */
-	public void setBackFillMode(FillMode mode)
-	{
-	   	glPolygonMode(FaceSide.BACK.glValue, mode.glValue);
-	}
-
-	/**
-	 * Sets the OpenGL viewport (Note: (0,0) is the lower-left corner).
-	 * If any value is below zero, it is clamped to zero.
-	 * @param x x-coordinate origin of the screen.
-	 * @param y y-coordinate origin of the screen.
-	 * @param width	the width of the viewport in pixels.
-	 * @param height the height of the viewport in pixels.
-	 */
-	public void setViewport(int x, int y, int width, int height)
-	{
-		glViewport(Math.max(0,x), Math.max(0,y), Math.max(0,width), Math.max(0,height));
-	}
-
-	/**
-	 * Sets the light shading type.
-	 * @param shade the shading type. 
-	 */
-	public void setShadeType(LightShadeType shade)
-	{
-		glShadeModel(shade.glValue);
-	}
-
-	/**
-	 * Sets face winding to determine the front face.
-	 * @param faceFront the front side.
-	 */
-	public void setFaceFront(FaceSide.Direction faceFront)
-	{
-		glFrontFace(faceFront.glValue);
-	}
-
-	/**
-	 * Sets the reference unit size for the diameter of Point geometry.
-	 * @param size the minimum size.
-	 */
-	public void setPointSize(float size)
-	{
-		glPointSize(size);
-	}
-
-	/**
-	 * Sets the width of line geometry.
-	 * @param width the width of the line in pixels.
-	 */
-	public void setLineWidth(float width)
-	{
-		glLineWidth(width);
-	}
-
-	/**
-	 * Tells the OpenGL implementation to finish all pending commands in finite time.
-	 * This ensures that the next commands are executed immediately.
-	 * Has little to no effect on a double-buffered setup.
-	 * Not to be confused with {@link #finish()}.
-	 * @see #finish()
-	 */
-	public void flush()
-	{
-		glFlush();
-	}
-
-	/**
-	 * Tells the OpenGL implementation to finish all pending commands.
-	 * OpenGL commands are usually pipelined for performance reasons. This ensures
-	 * that OpenGL finishes all pending commands so that what you expect in the framebuffer
-	 * is the last command executed, then resumes this thread.
-	 * <p> NOTE: This best called right before a screenshot is taken.
-	 */
-	public void finish()
-	{
-		glFinish();
-	}
-
-	/**
 	 * Sets the current matrix for matrix operations.
 	 * Note that other commands may change this mode automatically.
 	 * @param mode the matrix mode to set.
 	 */
 	public void matrixMode(MatrixMode mode)
 	{
+		checkNonCore();
 		glMatrixMode(mode.glValue);
 	}
 
@@ -291,6 +166,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixReset()
 	{
+		checkNonCore();
 		glLoadIdentity();
 	}
 
@@ -299,6 +175,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixPush()
 	{
+		checkNonCore();
 		glPushMatrix();
 	}
 
@@ -307,6 +184,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixPop()
 	{
+		checkNonCore();
 		glPopMatrix();
 	}
 
@@ -317,6 +195,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixGet(MatrixMode matrixType, float[] outArray)
 	{
+		checkNonCore();
 		glGetFloatv(matrixType.glReadValue, outArray);
 	}
 
@@ -327,6 +206,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
 	{
+		checkNonCore();
 		glGetFloatv(matrixType.glReadValue, matrix.getArray());
 	}
 
@@ -336,6 +216,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixSet(float[] matrixArray)
 	{
+		checkNonCore();
 		if (matrixArray.length < 16)
 			throw new GraphicsException("The array is less than 16 components.");
 		glLoadMatrixf(matrixArray);
@@ -356,6 +237,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixMultiply(float[] matrixArray)
 	{
+		checkNonCore();
 		if (matrixArray.length < 16)
 			throw new GraphicsException("The array is less than 16 components.");
 		glMultMatrixf(matrixArray);
@@ -379,6 +261,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixTranslate(float x, float y, float z)
 	{
+		checkNonCore();
 		glTranslatef(x, y, z);
 	}
 
@@ -389,6 +272,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixRotateX(float degrees)
 	{
+		checkNonCore();
 		glRotatef(degrees, 1, 0, 0);
 	}
 
@@ -399,6 +283,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixRotateY(float degrees)
 	{
+		checkNonCore();
 		glRotatef(degrees, 0, 1, 0);
 	}
 
@@ -409,6 +294,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixRotateZ(float degrees)
 	{
+		checkNonCore();
 		glRotatef(degrees, 0, 0, 1);
 	}
 
@@ -422,6 +308,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixScale(float x, float y, float z)
 	{
+		checkNonCore();
 		glScalef(x, y, z);
 	}
 
@@ -453,6 +340,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
 	{
+		checkNonCore();
 		glFrustum(left, right, bottom, top, near, far);
 		getError();
 	}
@@ -469,6 +357,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
 	{
+		checkNonCore();
 		glOrtho(left, right, bottom, top, near, far);
 		getError();
 	}
@@ -530,46 +419,6 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Pushes an array of attributes onto the attribute stack.
-	 * @param attribs the list of attributes to preserve.
-	 */
-	public void attribPush(AttribType ... attribs)
-	{
-		int bits = 0;
-		for (AttribType at : attribs)
-			bits |= at.glValue;
-		glPushAttrib(bits);
-	}
-
-	/**
-	 * Restores attributes from the attribute stack.
-	 */
-	public void attribPop()
-	{
-		glPopAttrib();
-	}
-
-	/**
-	 * Pushes a series of attributes onto the client attribute stack.
-	 * @param attribs the list of attributes to preserve.
-	 */
-	public void clientAttribPush(ClientAttribType ... attribs)
-	{
-		int bits = 0;
-		for (ClientAttribType cat : attribs)
-			bits |= cat.glValue;
-		glPushClientAttrib(bits);
-	}
-
-	/**
-	 * Restores attributes from the client attribute stack.
-	 */
-	public void clientAttribPop()
-	{
-		glPopClientAttrib();
-	}
-
-	/**
 	 * Sets the current color used for drawing polygons and other geometry.
 	 * @param c the color to use.
 	 */
@@ -587,6 +436,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setColor(float red, float green, float blue, float alpha)
 	{
+		checkNonCore();
 		glColor4f(red, green, blue, alpha);
 	}
 
@@ -596,6 +446,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setColorARGB(int argb)
 	{
+		checkNonCore();
 		glColor4ub(
 			(byte)((argb >>> 16) & 0x0ff),
 			(byte)((argb >>> 8) & 0x0ff),
@@ -605,25 +456,23 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets the clear color.
-	 * The color buffer is filled with this color upon clear.
-	 * @param clearRed the red component of the color to use (0 to 1).
-	 * @param clearGreen the green component of the color to use (0 to 1).
-	 * @param clearBlue the blue component of the color to use (0 to 1).
-	 * @param clearAlpha the alpha component of the color to use (0 to 1).
-	 */
-	public void setClearColor(float clearRed, float clearGreen, float clearBlue, float clearAlpha)
-	{
-		glClearColor(clearRed, clearGreen, clearBlue, clearAlpha);
-	}
-
-	/**
 	 * Sets if lighting is enabled.
 	 * @param enable true to enable, false to disable.
 	 */
 	public void setLightingEnabled(boolean enable)
 	{
+		checkNonCore();
 		setFlag(GL_LIGHTING, enable);
+	}
+
+	/**
+	 * Sets the light shading type.
+	 * @param shade the shading type. 
+	 */
+	public void setLightShadeType(LightShadeType shade)
+	{
+		checkNonCore();
+		glShadeModel(shade.glValue);
 	}
 
 	/**
@@ -633,10 +482,11 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	protected void checkLightId(int sourceId)
 	{
+		checkNonCore();
 		if (sourceId < 0 || getInfo().getMaxLights() >= sourceId)
 			throw new IllegalArgumentException("Light id is invalid: Must be " + 0 + " to " + getInfo().getMaxLights());
 	}
-	
+
 	/**
 	 * Sets if certain lights are enabled.
 	 * @param sourceId the light source id.
@@ -930,6 +780,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialAmbientColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
+		checkNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -977,6 +828,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialDiffuseColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
+		checkNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1024,6 +876,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialSpecularColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
+		checkNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1071,6 +924,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialEmissionColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
+		checkNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1091,6 +945,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialShininessFactor(FaceSide faceside, float f)
 	{
+		checkNonCore();
 		glMaterialf(faceside.glValue, GL_SHININESS, f);		
 	}
 
@@ -1100,6 +955,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogEnabled(boolean enabled)
 	{
+		checkNonCore();
 		setFlag(GL_FOG, enabled);
 	}
 
@@ -1182,6 +1038,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogColor(float red, float green, float blue, float alpha)
 	{
+		checkNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1200,6 +1057,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogFormula(FogFormulaType formula)
 	{
+		checkNonCore();
 		glFogi(GL_FOG_MODE, formula.glValue);
 	}
 
@@ -1210,6 +1068,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogDensity(float density)
 	{
+		checkNonCore();
 		glFogf(GL_FOG_DENSITY, density);
 	}
 
@@ -1220,6 +1079,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogStart(float start)
 	{
+		checkNonCore();
 		glFogf(GL_FOG_START, start);
 	}
 
@@ -1230,7 +1090,458 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogEnd(float end)
 	{
+		checkNonCore();
 		glFogf(GL_FOG_END, end);
+	}
+
+	/**
+	 * Sets the texture environment mode to use for texel fragment coloring.
+	 * This is usually REPLACE, by default. Only viable in the fixed pipeline.
+	 * @param mode the texture mode.
+	 */
+	public void setTextureEnvironment(TextureMode mode)
+	{
+		checkNonCore();
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode.glValue);
+	}
+
+	/**
+	 * Sets if texture coordinates are to be automatically generated
+	 * for the S coordinate axis (usually width).
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexGenSEnabled(boolean enabled)
+	{
+		checkNonCore();
+		setFlag(GL_TEXTURE_GEN_S, enabled);
+	}
+
+	/**
+	 * Sets if texture coordinates are to be automatically generated
+	 * for the T coordinate axis (usually height).
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexGenTEnabled(boolean enabled)
+	{
+		checkNonCore();
+		setFlag(GL_TEXTURE_GEN_T, enabled);
+	}
+
+	/**
+	 * Sets if texture coordinates are to be automatically generated
+	 * for the R coordinate axis (usually depth).
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexGenREnabled(boolean enabled)
+	{
+		checkNonCore();
+		setFlag(GL_TEXTURE_GEN_R, enabled);
+	}
+
+	/**
+	 * Sets if texture coordinates are to be automatically generated
+	 * for the Q coordinate axis (I have no idea what the hell this could be).
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexGenQEnabled(boolean enabled)
+	{
+		checkNonCore();
+		setFlag(GL_TEXTURE_GEN_Q, enabled);
+	}
+
+	/**
+	 * Sets how texture coordinates are to be automatically generated.
+	 * @param coord the texture coordinate to set the mode for.
+	 * @param mode the generation function.
+	 */
+	public void setTexGenMode(TextureCoordType coord, TextureGenMode mode)
+	{
+		checkNonCore();
+		glTexGeni(coord.glValue, GL_TEXTURE_GEN_MODE, mode.glValue);
+	}
+
+	/**
+	 * Sets the eye plane equation for generating coordinates using the eye method.
+	 * @param coord	the texture coordinate to set the mode for.
+	 * @param a	the plane A coordinate coefficient.
+	 * @param b the plane B coordinate coefficient.
+	 * @param c the plane C coordinate coefficient.
+	 * @param d the plane D coordinate coefficient.
+	 */
+	public void setTexGenEyePlane(TextureCoordType coord, float a, float b, float c, float d)
+	{
+		checkNonCore();
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(4);
+			fbuf.put(0, a);
+			fbuf.put(1, b);
+			fbuf.put(2, c);
+			fbuf.put(3, d);
+			glTexGenfv(coord.glValue, GL_EYE_PLANE, fbuf);
+		}
+		getError();
+	}
+
+	/**
+	 * Sets the object plane equation for generating coordinates using the object method.
+	 * @param coord	the texture coordinate to set the mode for.
+	 * @param a		the plane A coordinate coefficient.
+	 * @param b		the plane B coordinate coefficient.
+	 * @param c		the plane C coordinate coefficient.
+	 * @param d		the plane D coordinate coefficient.
+	 */
+	public void setTexGenObjectPlane(TextureCoordType coord, float a, float b, float c, float d)
+	{
+		checkNonCore();
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(4);
+			fbuf.put(0, a);
+			fbuf.put(1, b);
+			fbuf.put(2, c);
+			fbuf.put(3, d);
+			glTexGenfv(coord.glValue, GL_OBJECT_PLANE, fbuf);
+		}
+		getError();
+	}
+
+	/**
+	 * Sets if normal vectors are generated automatically when geometry is submitted to
+	 * the OpenGL geometry pipeline.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setAutoNormalGen(boolean enabled)
+	{
+		checkNonCore();
+		setFlag(GL_AUTO_NORMAL, enabled);
+	}
+
+	/**
+	 * Pushes an array of attributes onto the attribute stack.
+	 * @param attribs the list of attributes to preserve.
+	 */
+	public void attribPush(AttribType ... attribs)
+	{
+		checkNonCore();
+		int bits = 0;
+		for (AttribType at : attribs)
+			bits |= at.glValue;
+		glPushAttrib(bits);
+	}
+
+	/**
+	 * Restores attributes from the attribute stack.
+	 */
+	public void attribPop()
+	{
+		checkNonCore();
+		glPopAttrib();
+	}
+
+	/**
+	 * Pushes a series of attributes onto the client attribute stack.
+	 * @param attribs the list of attributes to preserve.
+	 */
+	public void clientAttribPush(ClientAttribType ... attribs)
+	{
+		checkNonCore();
+		int bits = 0;
+		for (ClientAttribType cat : attribs)
+			bits |= cat.glValue;
+		glPushClientAttrib(bits);
+	}
+
+	/**
+	 * Restores attributes from the client attribute stack.
+	 */
+	public void clientAttribPop()
+	{
+		checkNonCore();
+		glPopClientAttrib();
+	}
+
+	/**
+	 * Sets the clear color for the accumulation buffer.
+	 * The accumulation buffer is filled with this color upon clear.
+	 * @param clearRed the red component of the color to use (0 to 1).
+	 * @param clearGreen the green component of the color to use (0 to 1).
+	 * @param clearBlue the blue component of the color to use (0 to 1).
+	 * @param clearAlpha the alpha component of the color to use (0 to 1).
+	 */
+	public void setClearAccum(float clearRed, float clearGreen, float clearBlue, float clearAlpha)
+	{
+		checkNonCore();
+		glClearAccum(clearRed, clearGreen, clearBlue, clearAlpha);
+	}
+
+	/**
+	 * Sets the next raster position for drawing bitmaps.
+	 * Remember, (0,0) is the lower left edge of the window.
+	 * @param x	the screen x-coordinate.
+	 * @param y	the screen y-coordinate.
+	 * @param z	the screen z-coordinate.
+	 */
+	public void setRasterPosition(int x, int y, float z)
+	{
+		checkNonCore();
+		glRasterPos3f(x, y, z);
+	}
+
+	/**
+	 * Draws a Bitmap at the current raster position and increments the raster position.
+	 * @param b	the Bitmap to draw ((0,0) is the lower-left).
+	 * @param offsetX the offset from the current raster position, x-coordinate.
+	 * @param offsetY the offset from the current raster position, y-coordinate.
+	 * @param incX what to increment the raster position x-coordinate by after the draw.
+	 * @param incY what to increment the raster position y-coordinate by after the draw.
+	 */
+	public void drawBitmap(OGLBitmap b, float offsetX, float offsetY, float incX, float incY)
+	{
+		checkNonCore();
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			byte[] bytes = b.getBytes();
+			ByteBuffer buffer = stack.malloc(bytes.length);
+			buffer.put(bytes);
+			buffer.rewind();
+			glBitmap(b.getWidth(), b.getHeight(), offsetX, offsetY, incX, incY, buffer);
+		}
+	}
+
+	/**
+	 * Enables or disables the processing of bound vertex arrays and/or buffers.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setVertexArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_VERTEX_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for vertices.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of coordinates (3-dimensional vertices = 3).
+	 * @param stride the distance (in elements) between each vertex.    
+	 * @param offset the offset in each stride where each vertex starts.  
+	 * @see #setVertexArrayEnabled(boolean)   
+	 */
+	public void setVertexArrayPointer(DataType dataType, int width, int stride, int offset)
+	{
+		checkNonCore();
+		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+
+	/**
+	 * Enables or disables the processing of bound texture coordinate arrays.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setTextureCoordinateArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_TEXTURE_COORD_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for texture coordinates.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of coordinates (2-dimensional coords = 2).
+	 * @param stride the distance (in elements) between each coordinate group.     
+	 * @param offset the offset in each stride where each coordinate starts.     
+	 * @see #setTextureCoordinateArrayEnabled(boolean)   
+	 */
+	public void setTextureCoordinateArrayPointer(DataType dataType, int width, int stride, int offset)
+	{
+		checkNonCore();
+		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+
+	/**
+	 * Enables or disables the processing of bound vertex color arrays.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setColorArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_COLOR_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for colors.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param width the width of a full set of color components (4-component color = 4).
+	 * @param stride the distance (in elements) between each color.   
+	 * @param offset the offset in each stride where each color starts.     
+	 * @see #setColorArrayEnabled(boolean)   
+	 */
+	public void setColorArrayPointer(DataType dataType, int width, int stride, int offset)
+	{
+		checkNonCore();
+		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+
+	/**
+	 * Enables or disables the processing of bound surface normal arrays.
+	 * @param enable true to enable, false to disable.
+	 */
+	public void setNormalArrayEnabled(boolean enable)
+	{
+		setClientFlag(GL_NORMAL_ARRAY, enable);
+	}
+
+	/**
+	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
+	 * This sets the attribute pointer for normal vectors. Always assumes 3-dimensional vectors.
+	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
+	 * @param stride the distance (in elements) between each normal.     
+	 * @param offset the offset in each stride where each normal starts.     
+	 * @see #setNormalArrayEnabled(boolean)   
+	 */
+	public void setNormalArrayPointer(DataType dataType, int stride, int offset)
+	{
+		checkNonCore();
+		glNormalPointer(dataType.glValue, stride * dataType.size, offset * dataType.size);
+		getError();
+	}
+	
+	/* ==================================================================== */
+	/*                 VVVVVVVVVVVV Core Below VVVVVVVVVVVV                 */
+	/* ==================================================================== */
+	
+	/**
+	 * Tells the OpenGL implementation to finish all pending commands in finite time.
+	 * This ensures that the next commands are executed immediately.
+	 * Has little to no effect on a double-buffered setup.
+	 * Not to be confused with {@link #finish()}.
+	 * @see #finish()
+	 */
+	public void flush()
+	{
+		glFlush();
+	}
+
+	/**
+	 * Tells the OpenGL implementation to finish all pending commands.
+	 * OpenGL commands are usually pipelined for performance reasons. This ensures
+	 * that OpenGL finishes all pending commands so that what you expect in the framebuffer
+	 * is the last command executed, then resumes this thread.
+	 * <p> NOTE: This best called right before a screenshot is taken.
+	 */
+	public void finish()
+	{
+		glFinish();
+	}
+
+	/**
+	 * Sets an OpenGL hint.
+	 * @param type the hint type to set.
+	 * @param value the value to set for the provided hint.
+	 */
+	public void setHint(HintType type, HintValue value)
+	{
+		glHint(type.glValue, value.glValue);
+	}
+
+	/**
+	 * Set polygon fill mode.
+	 * @param mode the fill mode.
+	 */
+	public void setFillMode(FillMode mode)
+	{
+		glPolygonMode(FaceSide.FRONT_AND_BACK.glValue, mode.glValue);
+	}
+
+	/**
+	 * Set front polygon fill mode.
+	 * @param mode the fill mode.
+	 */
+	public void setFrontFillMode(FillMode mode)
+	{
+	   	glPolygonMode(FaceSide.FRONT.glValue, mode.glValue);
+	}
+
+	/**
+	 * Set back polygon fill mode.
+	 * @param mode the fill mode.
+	 */
+	public void setBackFillMode(FillMode mode)
+	{
+	   	glPolygonMode(FaceSide.BACK.glValue, mode.glValue);
+	}
+
+	/**
+	 * Sets the OpenGL viewport (Note: (0,0) is the lower-left corner).
+	 * If any value is below zero, it is clamped to zero.
+	 * @param x x-coordinate origin of the screen.
+	 * @param y y-coordinate origin of the screen.
+	 * @param width	the width of the viewport in pixels.
+	 * @param height the height of the viewport in pixels.
+	 */
+	public void setViewport(int x, int y, int width, int height)
+	{
+		glViewport(Math.max(0,x), Math.max(0,y), Math.max(0,width), Math.max(0,height));
+	}
+
+	/**
+	 * Sets face winding to determine the front face.
+	 * @param faceFront the front side.
+	 */
+	public void setFaceFront(FaceSide.Direction faceFront)
+	{
+		glFrontFace(faceFront.glValue);
+	}
+
+	/**
+	 * Sets the clear color.
+	 * The color buffer is filled with this color upon clear.
+	 * @param clearRed the red component of the color to use (0 to 1).
+	 * @param clearGreen the green component of the color to use (0 to 1).
+	 * @param clearBlue the blue component of the color to use (0 to 1).
+	 * @param clearAlpha the alpha component of the color to use (0 to 1).
+	 */
+	public void setClearColor(float clearRed, float clearGreen, float clearBlue, float clearAlpha)
+	{
+		glClearColor(clearRed, clearGreen, clearBlue, clearAlpha);
+	}
+
+	/**
+	 * Sets depth clear value.
+	 * If the depth buffer gets cleared, this is the value that is written to all of the pixels in the buffer.
+	 * @param depthValue the depth value to set on clear.
+	 */
+	public void setClearDepth(double depthValue)
+	{
+		glClearDepth(depthValue);
+	}
+
+	/** 
+	 * Sets the stencil mask clear value. 
+	 * @param mask the mask bits.
+	 */
+	public void setClearStencil(int mask)
+	{
+		glClearStencil(mask);
+	}
+
+	/**
+	 * Clears a bunch of fixed framebuffers.
+	 * @param clearColorBuffer if true, clear the color buffer.
+	 * @param clearDepthBuffer if true, clear the depth buffer.
+	 * @param clearAccumulationBuffer if true, clear the accumulation buffer.
+	 * @param clearStencilBuffer if true, clear the stencil buffer.
+	 */
+	public void clear(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearAccumulationBuffer, boolean clearStencilBuffer)
+	{
+		glClear(
+			(clearColorBuffer ? GL_COLOR_BUFFER_BIT : 0)
+			| (clearDepthBuffer ? GL_DEPTH_BUFFER_BIT : 0)
+			| (clearAccumulationBuffer ? GL_ACCUM_BUFFER_BIT : 0)
+			| (clearStencilBuffer ? GL_STENCIL_BUFFER_BIT : 0)
+		);
 	}
 
 	/**
@@ -1249,9 +1560,18 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets if all of the components of the color buffer get written to.
 	 * @param enabled true to enable all components, false to disable.
 	 */
-	public void setColorBufferWriteEnabled(boolean enabled)
+	public void setColorMask(boolean enabled)
 	{
 		setColorMask(enabled, enabled, enabled, enabled);
+	}
+
+	/**
+	 * Sets the reference unit size for the diameter of Point geometry.
+	 * @param size the minimum size.
+	 */
+	public void setPointSize(float size)
+	{
+		glPointSize(size);
 	}
 
 	/**
@@ -1261,6 +1581,15 @@ public class OGL11Graphics extends OGLGraphics
 	public void setPointSmoothingEnabled(boolean enabled)
 	{
 		setFlag(GL_POINT_SMOOTH, enabled);
+	}
+
+	/**
+	 * Sets the width of line geometry.
+	 * @param width the width of the line in pixels.
+	 */
+	public void setLineWidth(float width)
+	{
+		glLineWidth(width);
 	}
 
 	/**
@@ -1371,16 +1700,6 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets depth clear value.
-	 * If the depth buffer gets cleared, this is the value that is written to all of the pixels in the buffer.
-	 * @param depthValue the depth value to set on clear.
-	 */
-	public void setDepthClear(double depthValue)
-	{
-		glClearDepth(depthValue);
-	}
-
-	/**
 	 * Set depth comparison function.
 	 * @param func the function to set.
 	 */
@@ -1401,7 +1720,7 @@ public class OGL11Graphics extends OGLGraphics
 	/** 
 	 * Sets the stencil mask. 
 	 * @param mask the mask bits.
-	 s*/
+	 */
 	public void setStencilMask(int mask)
 	{
 		glStencilMask(mask);
@@ -1506,152 +1825,6 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets the next raster position for drawing bitmaps.
-	 * Remember, (0,0) is the lower left edge of the window.
-	 * @param x	the screen x-coordinate.
-	 * @param y	the screen y-coordinate.
-	 * @param z	the screen z-coordinate.
-	 */
-	public void setRasterPosition(int x, int y, float z)
-	{
-		glRasterPos3f(x, y, z);
-	}
-
-	/**
-	 * Draws a Bitmap at the current raster position and increments the raster position.
-	 * @param b	the Bitmap to draw ((0,0) is the lower-left).
-	 * @param offsetX the offset from the current raster position, x-coordinate.
-	 * @param offsetY the offset from the current raster position, y-coordinate.
-	 * @param incX what to increment the raster position x-coordinate by after the draw.
-	 * @param incY what to increment the raster position y-coordinate by after the draw.
-	 */
-	public void drawBitmap(OGLBitmap b, float offsetX, float offsetY, float incX, float incY)
-	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			byte[] bytes = b.getBytes();
-			ByteBuffer buffer = stack.malloc(bytes.length);
-			buffer.put(bytes);
-			buffer.rewind();
-			glBitmap(b.getWidth(), b.getHeight(), offsetX, offsetY, incX, incY, buffer);
-		}
-	}
-
-	/**
-	 * Sets the texture environment mode to use for texel fragment coloring.
-	 * This is usually REPLACE, by default. Only viable in the fixed pipeline.
-	 * @param mode the texture mode.
-	 */
-	public void setTextureEnvironment(TextureMode mode)
-	{
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode.glValue);
-	}
-
-	/**
-	 * Sets if texture coordinates are to be automatically generated
-	 * for the S coordinate axis (usually width).
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexGenSEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_GEN_S, enabled);
-	}
-
-	/**
-	 * Sets if texture coordinates are to be automatically generated
-	 * for the T coordinate axis (usually height).
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexGenTEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_GEN_T, enabled);
-	}
-
-	/**
-	 * Sets if texture coordinates are to be automatically generated
-	 * for the R coordinate axis (usually depth).
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexGenREnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_GEN_R, enabled);
-	}
-
-	/**
-	 * Sets if texture coordinates are to be automatically generated
-	 * for the Q coordinate axis (I have no idea what the hell this could be).
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexGenQEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_GEN_Q, enabled);
-	}
-
-	/**
-	 * Sets how texture coordinates are to be automatically generated.
-	 * @param coord the texture coordinate to set the mode for.
-	 * @param mode the generation function.
-	 */
-	public void setTexGenMode(TextureCoordType coord, TextureGenMode mode)
-	{
-		glTexGeni(coord.glValue, GL_TEXTURE_GEN_MODE, mode.glValue);
-	}
-
-	/**
-	 * Sets the eye plane equation for generating coordinates using the eye method.
-	 * @param coord	the texture coordinate to set the mode for.
-	 * @param a	the plane A coordinate coefficient.
-	 * @param b the plane B coordinate coefficient.
-	 * @param c the plane C coordinate coefficient.
-	 * @param d the plane D coordinate coefficient.
-	 */
-	public void setTexGenEyePlane(TextureCoordType coord, float a, float b, float c, float d)
-	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			FloatBuffer fbuf = stack.mallocFloat(4);
-			fbuf.put(0, a);
-			fbuf.put(1, b);
-			fbuf.put(2, c);
-			fbuf.put(3, d);
-			glTexGenfv(coord.glValue, GL_EYE_PLANE, fbuf);
-		}
-		getError();
-	}
-
-	/**
-	 * Sets the object plane equation for generating coordinates using the object method.
-	 * @param coord	the texture coordinate to set the mode for.
-	 * @param a		the plane A coordinate coefficient.
-	 * @param b		the plane B coordinate coefficient.
-	 * @param c		the plane C coordinate coefficient.
-	 * @param d		the plane D coordinate coefficient.
-	 */
-	public void setTexGenObjectPlane(TextureCoordType coord, float a, float b, float c, float d)
-	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			FloatBuffer fbuf = stack.mallocFloat(4);
-			fbuf.put(0, a);
-			fbuf.put(1, b);
-			fbuf.put(2, c);
-			fbuf.put(3, d);
-			glTexGenfv(coord.glValue, GL_OBJECT_PLANE, fbuf);
-		}
-		getError();
-	}
-
-	/**
-	 * Sets if normal vectors are generated automatically when geometry is submitted to
-	 * the OpenGL geometry pipeline.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setAutoNormalGen(boolean enabled)
-	{
-		setFlag(GL_AUTO_NORMAL, enabled);
-	}
-
-	/**
 	 * Creates a new texture object.
 	 * @return a new, uninitialized texture object.
 	 * @throws GraphicsException if the object could not be created.
@@ -1659,15 +1832,6 @@ public class OGL11Graphics extends OGLGraphics
 	public OGLTexture createTexture()
 	{
 		return new OGLTexture();
-	}
-
-	/**
-	 * Sets if 1D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture1DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_1D, enabled);
 	}
 
 	/**
@@ -1679,6 +1843,15 @@ public class OGL11Graphics extends OGLGraphics
 		return currentTexture1D;
 	}
 	
+	/**
+	 * Sets if 1D texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexture1DEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_1D, enabled);
+	}
+
 	/**
 	 * Binds a 1D texture object to the current active texture unit.
 	 * @param texture the texture to bind.
@@ -1787,9 +1960,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param border the texel border to add, if any.
 	 */
-	public void setTexture1DDataFromBuffer(TextureFormat format, int srcX, int srcY, int width, int border)
+	public void setTexture1DDataFromReadBuffer(TextureFormat format, int srcX, int srcY, int width, int border)
 	{
-		setTexture1DDataFromBuffer(format, 0, srcX, srcY, width, border);
+		setTexture1DDataFromReadBuffer(format, 0, srcX, srcY, width, border);
 	}
 
 	/**
@@ -1801,7 +1974,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param border the texel border to add, if any.
 	 */
-	public void setTexture1DDataFromBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
+	public void setTexture1DDataFromReadBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
 	{
 		checkFeatureVersion(format);
 		glCopyTexImage1D(GL_TEXTURE_1D, texlevel, format.glValue, srcX, srcY, width, border);
@@ -1857,9 +2030,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width		the width of the screen in pixels to grab.
 	 */
-	public void setTexture1DSubDataFromBuffer(int xoffset, int srcX, int srcY, int width)
+	public void setTexture1DSubDataFromReadBuffer(int xoffset, int srcX, int srcY, int width)
 	{
-		setTexture1DSubDataFromBuffer(0, xoffset, srcX, srcY, width);
+		setTexture1DSubDataFromReadBuffer(0, xoffset, srcX, srcY, width);
 	}
 
 	/**
@@ -1870,7 +2043,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width		the width of the screen in pixels to grab.
 	 */
-	public void setTexture1DSubDataFromBuffer(int texlevel, int xoffset, int srcX, int srcY, int width)
+	public void setTexture1DSubDataFromReadBuffer(int texlevel, int xoffset, int srcX, int srcY, int width)
 	{
 		glCopyTexSubImage1D(GL_TEXTURE_1D, texlevel, xoffset, srcX, srcY, width);
 	}
@@ -1885,15 +2058,6 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets if 2D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture2DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_2D, enabled);
-	}
-
-	/**
 	 * Gets the currently bound 2D texture. 
 	 * @return the texture, or null if no bound texture.
 	 */
@@ -1902,6 +2066,15 @@ public class OGL11Graphics extends OGLGraphics
 		return currentTexture2D;
 	}
 	
+	/**
+	 * Sets if 2D texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexture2DEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_2D, enabled);
+	}
+
 	/**
 	 * Binds a 2D texture object to the current active texture unit.
 	 * @param texture the texture to bind.
@@ -2016,9 +2189,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param height	the height of the screen in pixels to grab.
 	 * @param border    the texel border to add, if any.
 	 */
-	public void setTexture2DDataFromBuffer(TextureFormat format, int srcX, int srcY, int width, int height, int border)
+	public void setTexture2DDataFromReadBuffer(TextureFormat format, int srcX, int srcY, int width, int height, int border)
 	{
-		setTexture2DDataFromBuffer(format, 0, srcX, srcY, width, height, border);
+		setTexture2DDataFromReadBuffer(format, 0, srcX, srcY, width, height, border);
 	}
 
 	/**
@@ -2031,7 +2204,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param height	the height of the screen in pixels to grab.
 	 * @param border    the texel border to add, if any.
 	 */
-	public void setTexture2DDataFromBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
+	public void setTexture2DDataFromReadBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
 	{
 		checkFeatureVersion(format);
 		glCopyTexImage2D(GL_TEXTURE_2D, format.glValue, texlevel, srcX, srcY, width, height, border);
@@ -2096,9 +2269,9 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void setTexture2DSubDataFromBuffer(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTexture2DSubDataFromReadBuffer(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		setTexture2DSubDataFromBuffer(0, xoffset, yoffset, srcX, srcY, width, height);
+		setTexture2DSubDataFromReadBuffer(0, xoffset, yoffset, srcX, srcY, width, height);
 	}
 
 	/**
@@ -2112,7 +2285,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width		the width of the screen in pixels to grab.
 	 * @param height	the height of the screen in pixels to grab.
 	 */
-	public void setTexture2DSubDataFromBuffer(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTexture2DSubDataFromReadBuffer(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
 		glCopyTexSubImage2D(GL_TEXTURE_2D, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}
@@ -2126,101 +2299,6 @@ public class OGL11Graphics extends OGLGraphics
 		currentTexture2D = null;
 	}
 
-	/**
-	 * Enables or disables the processing of bound vertex arrays and/or buffers.
-	 * @param enable true to enable, false to disable.
-	 */
-	public void setVertexArrayEnabled(boolean enable)
-	{
-		setClientFlag(GL_VERTEX_ARRAY, enable);
-	}
-
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the attribute pointer for vertices.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param width the width of a full set of coordinates (3-dimensional vertices = 3).
-	 * @param stride the distance (in elements) between each vertex.    
-	 * @param offset the offset in each stride where each vertex starts.  
-	 * @see #setVertexArrayEnabled(boolean)   
-	 */
-	public void setVertexArrayPointer(DataType dataType, int width, int stride, int offset)
-	{
-		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-
-	/**
-	 * Enables or disables the processing of bound texture coordinate arrays.
-	 * @param enable true to enable, false to disable.
-	 */
-	public void setTextureCoordinateArrayEnabled(boolean enable)
-	{
-		setClientFlag(GL_TEXTURE_COORD_ARRAY, enable);
-	}
-
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the attribute pointer for texture coordinates.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param width the width of a full set of coordinates (2-dimensional coords = 2).
-	 * @param stride the distance (in elements) between each coordinate group.     
-	 * @param offset the offset in each stride where each coordinate starts.     
-	 * @see #setTextureCoordinateArrayEnabled(boolean)   
-	 */
-	public void setTextureCoordinateArrayPointer(DataType dataType, int width, int stride, int offset)
-	{
-		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-
-	/**
-	 * Enables or disables the processing of bound vertex color arrays.
-	 * @param enable true to enable, false to disable.
-	 */
-	public void setColorArrayEnabled(boolean enable)
-	{
-		setClientFlag(GL_COLOR_ARRAY, enable);
-	}
-
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the attribute pointer for colors.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param width the width of a full set of color components (4-component color = 4).
-	 * @param stride the distance (in elements) between each color.   
-	 * @param offset the offset in each stride where each color starts.     
-	 * @see #setColorArrayEnabled(boolean)   
-	 */
-	public void setColorArrayPointer(DataType dataType, int width, int stride, int offset)
-	{
-		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-
-	/**
-	 * Enables or disables the processing of bound surface normal arrays.
-	 * @param enable true to enable, false to disable.
-	 */
-	public void setNormalArrayEnabled(boolean enable)
-	{
-		setClientFlag(GL_NORMAL_ARRAY, enable);
-	}
-
-	/**
-	 * Sets what positions in the current {@link BufferTargetType#GEOMETRY}-bound buffer or array are used to draw polygonal information:
-	 * This sets the attribute pointer for normal vectors. Always assumes 3-dimensional vectors.
-	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
-	 * @param stride the distance (in elements) between each normal.     
-	 * @param offset the offset in each stride where each normal starts.     
-	 * @see #setNormalArrayEnabled(boolean)   
-	 */
-	public void setNormalArrayPointer(DataType dataType, int stride, int offset)
-	{
-		glNormalPointer(dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
-	}
-	
 	/**
 	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data.
 	 * @param geometryType the geometry type - tells how to interpret the data.

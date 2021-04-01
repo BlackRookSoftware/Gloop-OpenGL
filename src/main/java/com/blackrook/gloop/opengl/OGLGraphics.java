@@ -95,8 +95,6 @@ public abstract class OGLGraphics implements OGLVersioned
 		/** Maximum line width range. */
 		protected Float maxLineWidth;
 		
-		/** Maximum multitexture texture units. */
-		protected Integer maxMultitexture;
 		/** Maximum texture units. */
 		protected Integer maxTextureUnits;
 		/** Maximum texture anisotropy. */
@@ -131,14 +129,6 @@ public abstract class OGLGraphics implements OGLVersioned
 		public Integer getMaxLights()
 		{
 			return maxLights;
-		}
-
-		/**
-		 * @return the maximum amount of multitexture units. Null if not available.
-		 */
-		public Integer getMaxMultitexture()
-		{
-			return maxMultitexture;
 		}
 
 		/**
@@ -416,14 +406,18 @@ public abstract class OGLGraphics implements OGLVersioned
 	/** Check errors? */
 	private boolean errorChecking;
 	
+	/** Core profile. */
+	private boolean core;
 	/** Graphics info. */
 	private Info info;
 
 	/**
 	 * Initializes this graphics.
+	 * @param core true if this is a core implementation, false if not.
 	 */
-	protected OGLGraphics()
+	protected OGLGraphics(boolean core)
 	{
+		this.core = core;
 		this.currentFrame = 0L;
 		this.currentWidth = 0;
 		this.currentHeight = 0;
@@ -449,6 +443,7 @@ public abstract class OGLGraphics implements OGLVersioned
 	/**
 	 * Gets an info object that returns a lot of OpenGL 
 	 * limits and such for this context implementation.
+	 * <p> After this is called once in the OpenGL thread, this can be fetched by any thread.
 	 * @return the graphics context info.
 	 */
 	public Info getInfo()
@@ -493,13 +488,33 @@ public abstract class OGLGraphics implements OGLVersioned
 	/**
 	 * Checks the version of this graphics implementation against a versioned object,
 	 * and if the object is from a later version, throw an exception.
+	 * This will also throw an exception if this version is core and the provided object is not.
 	 * @param versioned the versioned element to check against.
-	 * @throws GraphicsException if the versioned object is a later version than this one.
+	 * @throws GraphicsException if the versioned object is a later version than this one, or is not core if this graphics instance is.
 	 */
 	protected void checkFeatureVersion(OGLVersioned versioned)
 	{
 		if (getVersion().compareTo(versioned.getVersion()) < 0)
 			throw new GraphicsException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
+		if (isCore() && !versioned.isCore())
+			throw new GraphicsException("Using " + versioned.getClass().getSimpleName() + " requires it being part of the core spec, and it isn't.");
+	}
+	
+	/**
+	 * Checks if the version of this graphics implementation 
+	 * is non-core, and if it is, it throws an exception.
+	 * @throws UnsupportedOperationException if this graphics instance is a core implementation.
+	 */
+	protected void checkNonCore()
+	{
+		if (isCore())
+			throw new UnsupportedOperationException("This is unavailable in a core implementation.");
+	}
+	
+	@Override
+	public boolean isCore()
+	{
+		return core;
 	}
 	
 	/**
@@ -650,6 +665,7 @@ public abstract class OGLGraphics implements OGLVersioned
 	 */
 	public void setClientFlag(int glEnum, boolean flag)
 	{
+		checkNonCore();
 		if (flag)
 			glEnableClientState(glEnum);
 		else

@@ -72,8 +72,8 @@ public class OGLClearNode extends OGLNodeAdapter<OGL11Graphics>
 		if (clearColorBuffer)
 			gl.setClearColor(clearRed, clearGreen, clearBlue, clearAlpha);
 		if (clearDepthBuffer)
-			gl.setDepthClear(depthValue);
-		gl.clearFrameBuffers(clearColorBuffer, clearDepthBuffer, clearAccumulationBuffer, clearStencilBuffer);
+			gl.setClearDepth(depthValue);
+		gl.clear(clearColorBuffer, clearDepthBuffer, clearAccumulationBuffer, clearStencilBuffer);
 		renderTimeNanos = System.nanoTime() - nanos;
 	}
 	

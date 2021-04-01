@@ -50,8 +50,9 @@ public class OGL20Graphics extends OGL15Graphics
 	/** Current shader. */
 	private OGLShader currentShader;
 
-	public OGL20Graphics()
+	public OGL20Graphics(boolean core)
 	{
+		super(core);
 		this.currentShader = null;
 	}
 	
@@ -84,6 +85,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setPointSpritesEnabled(boolean enabled)
 	{
+		checkNonCore();
 		setFlag(GL_POINT_SPRITE, enabled);
 	}
 
@@ -94,6 +96,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setPointSpriteTexCoordGeneration(boolean enabled)
 	{
+		checkNonCore();
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, toGLBool(enabled));
 	}
 

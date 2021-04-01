@@ -26,6 +26,19 @@ import java.util.Objects;
 
 import org.lwjgl.system.MemoryStack;
 
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glCopyTexImage2D;
+import static org.lwjgl.opengl.GL11.glCopyTexSubImage2D;
+import static org.lwjgl.opengl.GL11.glTexImage2D;
+import static org.lwjgl.opengl.GL11.glTexParameterf;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.glTexSubImage2D;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
@@ -34,6 +47,11 @@ import static org.lwjgl.opengl.GL30.*;
  */
 public class OGL30Graphics extends OGL21Graphics
 {
+	public OGL30Graphics(boolean core)
+	{
+		super(core);
+	}
+
 	protected class Info30 extends Info20
 	{
 		protected Info30()
@@ -67,12 +85,242 @@ public class OGL30Graphics extends OGL21Graphics
 	}
 
 	/**
-	 * Sets if 2D array texturing is enabled or not.
+	 * Gets the currently bound 1D texture array. 
+	 * @return the texture, or null if no bound texture.
+	 */
+	public OGLTexture getTexture1DArray()
+	{
+		return getCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_1D_ARRAY);
+	}
+
+	/**
+	 * Sets if 1D array texturing is enabled or not.
 	 * @param enabled true to enable, false to disable.
 	 */
-	public void setTexture2DArrayEnabled(boolean enabled)
+	public void setTexture1DArrayEnabled(boolean enabled)
 	{
-		setFlag(GL_TEXTURE_2D_ARRAY, enabled);
+		setFlag(GL_TEXTURE_1D_ARRAY, enabled);
+	}
+
+	/**
+	 * Binds a 1D texture array object to the current active texture unit.
+	 * @param texture the texture to bind.
+	 */
+	public void setTexture1DArray(OGLTexture texture)
+	{
+		Objects.requireNonNull(texture);
+		glBindTexture(GL_TEXTURE_1D_ARRAY, texture.getName());
+		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_1D_ARRAY, texture);
+	}
+
+	/**
+	 * Sets the current filtering for the current 1D texture array.
+	 * @param minFilter the minification filter.
+	 * @param magFilter the magnification filter.
+	 */
+	public void setTexture1DArrayFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	{
+		glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+	}
+
+	/**
+	 * Sets the current filtering for the current 1D texture array.
+	 * @param minFilter the minification filter.
+	 * @param magFilter the magnification filter.
+	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
+	 */
+	public void setTexture1DArrayFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	{
+		glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		
+		if (getInfo().supportsTextureAnisotropy())
+		{
+			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
+			glTexParameterf(GL_TEXTURE_1D_ARRAY, 0x084FE, anisotropy);
+		}
+	}
+
+	/**
+	 * Sets the current wrapping for the current 1D texture array.
+	 * @param wrapS the wrapping mode, S-axis.
+	 */
+	public void setTexture1DArrayWrapping(TextureWrapType wrapS)
+	{
+		checkFeatureVersion(wrapS);
+		glTexParameteri(GL_TEXTURE_1D_ARRAY, GL_TEXTURE_WRAP_S, wrapS.glValue);
+	}
+
+	/**
+	 * Sends a texture into OpenGL's memory for the current 1D texture array at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param format the internal format.
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels (amount of textures).
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTexture1DArrayData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
+	{
+		setTexture1DArrayData(imageData, colorFormat, format, 0, width, height, border);
+	}
+
+	/**
+	 * Sends a texture into OpenGL's memory for the current 1D texture array.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param format the internal format.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels (amount of textures).
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTexture1DArrayData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
+	{
+		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
+			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
+	
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+		
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+	
+		clearError();
+		glTexImage2D(
+			GL_TEXTURE_1D_ARRAY,
+			texlevel,
+			format.glValue, 
+			width,
+			height,
+			border,
+			colorFormat.glValue,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 1D texture array target at the topmost mipmap level.
+	 * @param format    the internal format.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab (amount of textures).
+	 * @param border    the texel border to add, if any.
+	 */
+	public void setTexture1DArrayDataFromReadBuffer(TextureFormat format, int srcX, int srcY, int width, int height, int border)
+	{
+		setTexture1DArrayDataFromReadBuffer(format, 0, srcX, srcY, width, height, border);
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the current 1D texture array target.
+	 * @param format    the internal format.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab (amount of textures).
+	 * @param border    the texel border to add, if any.
+	 */
+	public void setTexture1DArrayDataFromReadBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
+	{
+		checkFeatureVersion(format);
+		glCopyTexImage2D(GL_TEXTURE_1D_ARRAY, format.glValue, texlevel, srcX, srcY, width, height, border);
+	}
+
+	/**
+	 * Sends a subset of data to the currently-bound 1D texture array 
+	 * already in OpenGL's memory at the topmost mipmap level.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels.
+	 * @param xoffs the texel offset.
+	 * @param yoffs the texel offset (starting texture index).
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTexture1DArraySubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
+	{
+		setTexture1DArraySubData(imageData, colorFormat, 0, width, height, xoffs, yoffs);
+	}
+
+	/**
+	 * Sends a subset of data to the currently-bound 1D texture array already in OpenGL's memory.
+	 * @param imageData the image to send.
+	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
+	 * @param width the texture width in texels.
+	 * @param height the texture height in texels (amount of textures).
+	 * @param xoffs the texel offset.
+	 * @param yoffs the texel offset (starting texture index).
+	 * @throws GraphicsException if the buffer provided is not direct.
+	 */
+	public void setTexture1DArraySubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
+	{
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+	
+		checkFeatureVersion(colorFormat);
+	
+		clearError();
+		glTexSubImage2D(
+			GL_TEXTURE_1D_ARRAY,
+			texlevel,
+			xoffs,
+			yoffs,
+			width,
+			height,
+			colorFormat.glValue,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the 
+	 * current 1D texture array target already in OpenGL's memory at the topmost mipmap level.
+	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param yoffset	the offset in pixels on this texture (y-coordinate) to put this texture data (starting texture index).
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab (amount of textures).
+	 */
+	public void setTexture1DArraySubDataFromReadBuffer(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	{
+		setTexture1DArraySubDataFromReadBuffer(0, xoffset, yoffset, srcX, srcY, width, height);
+	}
+
+	/**
+	 * Copies the contents of the current read frame buffer into the 
+	 * current 1D texture array target already in OpenGL's memory.
+	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
+	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param yoffset	the offset in pixels on this texture (y-coordinate) to put this texture data.
+	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width		the width of the screen in pixels to grab.
+	 * @param height	the height of the screen in pixels to grab (amount of textures).
+	 */
+	public void setTexture1DArraySubDataFromReadBuffer(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	{
+		glCopyTexSubImage2D(GL_TEXTURE_1D_ARRAY, texlevel, xoffset, yoffset, srcX, srcY, width, height);
+	}
+
+	/**
+	 * Unbinds a texture from the current 1D array target.
+	 */
+	public void unsetTexture1DArray()
+	{
+		glBindTexture(GL_TEXTURE_1D_ARRAY, 0);
+		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_1D_ARRAY, null);
 	}
 
 	/**
@@ -82,6 +330,15 @@ public class OGL30Graphics extends OGL21Graphics
 	public OGLTexture getTexture2DArray()
 	{
 		return getCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_2D_ARRAY);
+	}
+
+	/**
+	 * Sets if 2D array texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexture2DArrayEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_2D_ARRAY, enabled);
 	}
 
 	/**
@@ -128,16 +385,13 @@ public class OGL30Graphics extends OGL21Graphics
 	 * Sets the current wrapping for the current 2D texture array.
 	 * @param wrapS the wrapping mode, S-axis.
 	 * @param wrapT the wrapping mode, T-axis.
-	 * @param wrapR the wrapping mode, R-axis.
 	 */
-	public void setTexture2DArrayWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
+	public void setTexture2DArrayWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
 	{
 		checkFeatureVersion(wrapS);
 		checkFeatureVersion(wrapT);
-		checkFeatureVersion(wrapR);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, wrapT.glValue);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, wrapR.glValue);
 	}
 
 	/**
@@ -147,7 +401,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 * @param format the internal format.
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
-	 * @param depth the texture depth in texels.
+	 * @param depth the texture depth in texels (amount of textures).
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
@@ -164,7 +418,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
-	 * @param depth the texture depth in texels.
+	 * @param depth the texture depth in texels (amount of textures).
 	 * @param border the texel border to add, if any.
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
@@ -202,14 +456,15 @@ public class OGL30Graphics extends OGL21Graphics
 	 * @param colorFormat the pixel storage format of the buffer data.
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
-	 * @param depth the texture depth in texels.
+	 * @param depth the texture depth in texels (amount of textures).
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
+	 * @param zoffs the texel offset (starting texture index).
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
-	public void setTexture2DArraySubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int depth, int xoffs, int yoffs)
+	public void setTexture2DArraySubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int depth, int xoffs, int yoffs, int zoffs)
 	{
-		setTexture2DArraySubData(imageData, colorFormat, 0, width, height, xoffs, yoffs);
+		setTexture2DArraySubData(imageData, colorFormat, 0, width, height, depth, xoffs, yoffs, zoffs);
 	}
 
 	/**
@@ -219,10 +474,10 @@ public class OGL30Graphics extends OGL21Graphics
 	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
-	 * @param depth the texture depth in texels.
+	 * @param depth the texture depth in texels (amount of textures).
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
-	 * @param zoffs the texel offset.
+	 * @param zoffs the texel offset (starting texture index).
 	 * @throws GraphicsException if the buffer provided is not direct.
 	 */
 	public void setTexture2DArraySubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int depth, int height, int xoffs, int yoffs, int zoffs)
@@ -254,8 +509,8 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public void unsetTexture2DArray()
 	{
-		glBindTexture(GL_TEXTURE_3D, 0);
-		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_3D, null);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_2D_ARRAY, null);
 	}
 
 	/**

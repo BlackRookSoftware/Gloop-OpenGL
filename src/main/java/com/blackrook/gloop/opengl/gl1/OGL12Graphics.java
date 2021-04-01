@@ -33,8 +33,9 @@ public class OGL12Graphics extends OGL11Graphics
 	private OGLTexture currentTexture3D;
 
 	// Create OpenGL 1.2 context.
-	public OGL12Graphics()
+	public OGL12Graphics(boolean core)
 	{
+		super(core);
 		this.currentTexture3D = null;
 	}
 
@@ -45,21 +46,21 @@ public class OGL12Graphics extends OGL11Graphics
 	}
 	
 	/**
-	 * Sets if 3D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture3DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_3D, enabled);
-	}
-
-	/**
 	 * Gets the currently bound 3D texture. 
 	 * @return the texture, or null if no bound texture.
 	 */
 	public OGLTexture getTexture3D()
 	{
 		return currentTexture3D;
+	}
+
+	/**
+	 * Sets if 3D texturing is enabled or not.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTexture3DEnabled(boolean enabled)
+	{
+		setFlag(GL_TEXTURE_3D, enabled);
 	}
 
 	/**
