@@ -13,15 +13,13 @@ import com.blackrook.gloop.opengl.enums.ColorFormat;
 import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.GeometryType;
 import com.blackrook.gloop.opengl.enums.TextureFormat;
-import com.blackrook.gloop.opengl.enums.TextureMagFilter;
-import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 
 import static org.lwjgl.opengl.GL12.*;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 
 /**
  * OpenGL 1.2 Graphics Implementation.
@@ -29,14 +27,10 @@ import java.util.Objects;
  */
 public class OGL12Graphics extends OGL11Graphics
 {
-	/** Current 3D texture binding. */
-	private OGLTexture currentTexture3D;
-
 	// Create OpenGL 1.2 context.
 	public OGL12Graphics(boolean core)
 	{
 		super(core);
-		this.currentTexture3D = null;
 	}
 
 	@Override
@@ -46,97 +40,28 @@ public class OGL12Graphics extends OGL11Graphics
 	}
 	
 	/**
-	 * Gets the currently bound 3D texture. 
-	 * @return the texture, or null if no bound texture.
-	 */
-	public OGLTexture getTexture3D()
-	{
-		return currentTexture3D;
-	}
-
-	/**
-	 * Sets if 3D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture3DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_3D, enabled);
-	}
-
-	/**
-	 * Binds a 3D texture object to the current active texture unit.
-	 * @param texture the texture to bind.
-	 */
-	public void setTexture3D(OGLTexture texture)
-	{
-		Objects.requireNonNull(texture);
-		glBindTexture(GL_TEXTURE_3D, texture.getName());
-		currentTexture3D = texture;
-	}
-
-	/**
-	 * Sets the current filtering for the current 3D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 */
-	public void setTexture3DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
-	{
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
-	}
-	
-	/**
-	 * Sets the current filtering for the current 3D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
-	 */
-	public void setTexture3DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
-	{
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
-		
-		if (getInfo().supportsTextureAnisotropy())
-		{
-			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_3D, 0x084FE, anisotropy);
-		}
-	}
-
-	/**
-	 * Sets the current wrapping for the current 3D texture.
+	 * Sets the current wrapping for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param wrapS the wrapping mode, S-axis.
 	 * @param wrapT the wrapping mode, T-axis.
 	 * @param wrapR the wrapping mode, R-axis.
+	 * @throws GraphicsException if the target is not a three-dimensionally-sampled target.
 	 */
-	public void setTexture3DWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
+	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 	{
+		checkFeatureVersion(target);
 		checkFeatureVersion(wrapS);
 		checkFeatureVersion(wrapT);
 		checkFeatureVersion(wrapR);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, wrapS.glValue);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, wrapT.glValue);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, wrapR.glValue);
+		target.checkSampleDimensions(3);
+		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_S, wrapS.glValue);
+		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_T, wrapT.glValue);
+		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_R, wrapR.glValue);
 	}
-
+	
 	/**
-	 * Sends a texture into OpenGL's memory for the current 3D texture at the topmost mipmap level.
-	 * @param imageData the image to send.
-	 * @param colorFormat the pixel storage format of the buffer data.
-	 * @param format the internal format.
-	 * @param width the texture width in texels.
-	 * @param height the texture height in texels.
-	 * @param depth the texture depth in texels.
-	 * @param border the texel border to add, if any.
-	 * @throws GraphicsException if the buffer provided is not direct.
-	 */
-	public void setTexture3DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int depth, int border)
-	{
-		setTexture3DData(imageData, colorFormat, format, 0, width, height, depth, border);
-	}
-
-	/**
-	 * Sends a texture into OpenGL's memory for the current 3D texture.
+	 * Sends a texture into OpenGL's memory for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param imageData the image to send.
 	 * @param colorFormat the pixel storage format of the buffer data.
 	 * @param format the internal format.
@@ -145,21 +70,24 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param height the texture height in texels.
 	 * @param depth the texture depth in texels.
 	 * @param border the texel border to add, if any.
-	 * @throws GraphicsException if the buffer provided is not direct.
+	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored three-dimensionally.
 	 */
-	public void setTexture3DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int depth, int border)
+	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int depth, int border)
 	{
+		checkFeatureVersion(target);
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+		target.checkStorageDimensions(3);
+
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize() || depth > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
 	
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		
-		checkFeatureVersion(colorFormat);
-
 		clearError();
 		glTexImage3D(
-			GL_TEXTURE_3D,
+			target.glValue,
 			texlevel,
 			format.glValue, 
 			width,
@@ -174,24 +102,8 @@ public class OGL12Graphics extends OGL11Graphics
 	}
 
 	/**
-	 * Sends a subset of data to the currently-bound 2D texture 
-	 * already in OpenGL's memory at the topmost mipmap level.
-	 * @param imageData the image to send.
-	 * @param colorFormat the pixel storage format of the buffer data.
-	 * @param width the texture width in texels.
-	 * @param height the texture height in texels.
-	 * @param depth the texture depth in texels.
-	 * @param xoffs the texel offset.
-	 * @param yoffs the texel offset.
-	 * @throws GraphicsException if the buffer provided is not direct.
-	 */
-	public void setTexture3DSubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int depth, int xoffs, int yoffs)
-	{
-		setTexture3DSubData(imageData, colorFormat, 0, width, height, xoffs, yoffs);
-	}
-
-	/**
 	 * Sends a subset of data to the currently-bound 2D texture already in OpenGL's memory.
+	 * @param target the texture target.
 	 * @param imageData the image to send.
 	 * @param colorFormat the pixel storage format of the buffer data.
 	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
@@ -201,10 +113,14 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
 	 * @param zoffs the texel offset.
-	 * @throws GraphicsException if the buffer provided is not direct.
+	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored three-dimensionally.
 	 */
-	public void setTexture3DSubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int depth, int height, int xoffs, int yoffs, int zoffs)
+	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int depth, int height, int xoffs, int yoffs, int zoffs)
 	{
+		checkFeatureVersion(target);
+		checkFeatureVersion(colorFormat);
+		target.checkStorageDimensions(3);
+
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
@@ -212,7 +128,7 @@ public class OGL12Graphics extends OGL11Graphics
 
 		clearError();
 		glTexSubImage3D(
-			GL_TEXTURE_3D,
+			target.glValue,
 			texlevel,
 			xoffs,
 			yoffs,
@@ -225,15 +141,6 @@ public class OGL12Graphics extends OGL11Graphics
 			imageData
 		);
 		getError();
-	}
-
-	/**
-	 * Unbinds a 3D texture from the current texture unit.
-	 */
-	public void unsetTexture3D()
-	{
-		glBindTexture(GL_TEXTURE_3D, 0);
-		currentTexture3D = null;
 	}
 
 	/**

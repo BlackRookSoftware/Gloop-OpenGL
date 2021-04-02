@@ -213,6 +213,15 @@ public class Matrix4F
 	}
 	
 	/**
+	 * Sets all positions in this matrix to a set of values from another.
+	 * @param matrix the matrix to copy from.
+	 */
+	public void set(Matrix4F matrix)
+	{
+		set(matrix.getArray());
+	}
+	
+	/**
 	 * Sets all positions in this matrix to a set of values.
 	 * Please note that the values must be in column-major order.
 	 * The amount of values copied is values.length or 16, whichever's smaller.

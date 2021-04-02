@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage;
 
 /**
  * Image utility class. 
+ * <p> 
+ * All of these methods can be called outside of the graphics thread.
  * @author Matthew Tropiano
  */
 public final class ImageUtils

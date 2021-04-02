@@ -90,7 +90,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public OGLTexture getTexture1DArray()
 	{
-		return getCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_1D_ARRAY);
+		return getCurrentActiveTextureState(GL_TEXTURE_1D_ARRAY);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class OGL30Graphics extends OGL21Graphics
 	{
 		Objects.requireNonNull(texture);
 		glBindTexture(GL_TEXTURE_1D_ARRAY, texture.getName());
-		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_1D_ARRAY, texture);
+		setCurrentActiveTextureState(GL_TEXTURE_1D_ARRAY, texture);
 	}
 
 	/**
@@ -320,7 +320,7 @@ public class OGL30Graphics extends OGL21Graphics
 	public void unsetTexture1DArray()
 	{
 		glBindTexture(GL_TEXTURE_1D_ARRAY, 0);
-		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_1D_ARRAY, null);
+		setCurrentActiveTextureState(GL_TEXTURE_1D_ARRAY, null);
 	}
 
 	/**
@@ -329,7 +329,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public OGLTexture getTexture2DArray()
 	{
-		return getCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_2D_ARRAY);
+		return getCurrentActiveTextureState(GL_TEXTURE_2D_ARRAY);
 	}
 
 	/**
@@ -349,7 +349,7 @@ public class OGL30Graphics extends OGL21Graphics
 	{
 		Objects.requireNonNull(texture);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture.getName());
-		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_2D_ARRAY, texture);
+		setCurrentActiveTextureState(GL_TEXTURE_2D_ARRAY, texture);
 	}
 
 	/**
@@ -510,7 +510,7 @@ public class OGL30Graphics extends OGL21Graphics
 	public void unsetTexture2DArray()
 	{
 		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-		setCurrentActiveTextureState(getTextureUnit(), GL_TEXTURE_2D_ARRAY, null);
+		setCurrentActiveTextureState(GL_TEXTURE_2D_ARRAY, null);
 	}
 
 	/**

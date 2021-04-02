@@ -14,6 +14,7 @@ import org.lwjgl.system.MemoryStack;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureTargetType;
 
 import static org.lwjgl.opengl.GL14.*;
 
@@ -84,103 +85,30 @@ public class OGL14Graphics extends OGL13Graphics
 	}
 
 	/**
-	 * Sets the current filtering for the current 1D texture.
+	 * Sets the filtering for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
+	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
 	{
-		setTexture1DFiltering(minFilter, magFilter);
-		glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
+		setTextureFiltering(target, minFilter, magFilter);
+		glTexParameteri(target.glValue, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
 	}
 
 	/**
-	 * Sets the current filtering for the current 1D texture.
+	 * Sets the filtering for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 or less is "off").
 	 * @param genMipmaps if this generates mipmaps automatically.
 	 */
-	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
+	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
 	{
-		setTexture1DFiltering(minFilter, magFilter, anisotropy);
-		glTexParameteri(GL_TEXTURE_1D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-	}
-
-	/**
-	 * Sets the current filtering for the current 2D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param genMipmaps if this generates mipmaps automatically.
-	 */
-	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
-	{
-		setTexture2DFiltering(minFilter, magFilter);
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-	}
-
-	/**
-	 * Sets the current filtering for the current 2D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
-	 * @param genMipmaps if this generates mipmaps automatically.
-	 */
-	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
-	{
-		setTexture2DFiltering(minFilter, magFilter, anisotropy);
-		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-	}
-
-	/**
-	 * Sets the current filtering for the current 3D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param genMipmaps if this generates mipmaps automatically.
-	 */
-	public void setTexture3DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
-	{
-		setTexture3DFiltering(minFilter, magFilter);
-		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-	}
-
-	/**
-	 * Sets the current filtering for the current 3D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
-	 * @param genMipmaps if this generates mipmaps automatically.
-	 */
-	public void setTexture3DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
-	{
-		setTexture3DFiltering(minFilter, magFilter, anisotropy);
-		glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-	}
-
-	/**
-	 * Sets the current filtering for the current cube texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param genMipmaps if this generates mipmaps automatically.
-	 */
-	public void setTextureCubeFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
-	{
-		setTextureCubeFiltering(minFilter, magFilter);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
-	}
-
-	/**
-	 * Sets the current filtering for the current cube texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
-	 * @param genMipmaps if this generates mipmaps automatically.
-	 */
-	public void setTextureCubeFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
-	{
-		setTexture1DFiltering(minFilter, magFilter, anisotropy);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
+		setTextureFiltering(target, minFilter, magFilter, anisotropy);
+		glTexParameteri(target.glValue, GL_GENERATE_MIPMAP, toGLBool(genMipmaps));
 	}
 
 }

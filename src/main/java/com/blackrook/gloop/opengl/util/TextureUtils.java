@@ -5,15 +5,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 
-import com.blackrook.gloop.opengl.enums.BufferTargetType;
-import com.blackrook.gloop.opengl.enums.CachingHint;
-import com.blackrook.gloop.opengl.enums.DataType;
-import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
-import com.blackrook.gloop.opengl.gl1.OGLBuffer;
 import com.blackrook.gloop.opengl.struct.BufferUtils;
 
 /**
- * Texture utility class. 
+ * Texture utility class.
+ * <p> 
+ * All of these methods can be called outside of the graphics thread.
  * @author Matthew Tropiano
  */
 public final class TextureUtils
@@ -83,6 +80,26 @@ public final class TextureUtils
 	}
 
 	/**
+	 * Gets the byte data for a contiguous series of textures in BGRA color information per pixel.
+	 * Works best if all of the textures are the same size.
+	 * @param image the image list.
+	 * @return a new direct {@link ByteBuffer} of the image's byte data.
+	 */
+	public static ByteBuffer getBGRAByteData(BufferedImage ... image)
+	{
+		int size = 0;
+		for (int i = 0; i < image.length; i++)
+			size += getRawSize(image[i]);
+		
+		ByteBuffer out = BufferUtils.allocDirectByteBuffer(size);
+		out.order(ByteOrder.LITTLE_ENDIAN);
+		IntBuffer ibuf = out.asIntBuffer();
+		for (int i = 0; i < image.length; i++)
+			convertImageData(image[i], ibuf);
+	    return out;
+	}
+
+	/**
 	 * Gets the byte data for a texture in ARGB color information per pixel.
 	 * @param image the input image.
 	 * @return a new direct {@link ByteBuffer} of the image's byte data.
@@ -96,18 +113,23 @@ public final class TextureUtils
 	}
 
 	/**
-	 * Puts pixel data into an {@link OGLBuffer}. 
-	 * The buffer's contents are completely replaced.
-	 * @param g the graphics instance.
-	 * @param data the byte buffer to load into an OGLBuffer. 
-	 * @param out the OGL buffer to put the data into.
+	 * Gets the byte data for a contiguous series of textures in ARGB color information per pixel.
+	 * Works best if all of the textures are the same size.
+	 * @param image the image list.
+	 * @return a new direct {@link ByteBuffer} of the image's byte data.
 	 */
-	public static void putImageData(OGL15Graphics g, ByteBuffer data, OGLBuffer out)
+	public static ByteBuffer getARGBByteData(BufferedImage ... image)
 	{
-		g.setBuffer(BufferTargetType.PIXEL, out);
-		g.setBufferCapacity(BufferTargetType.PIXEL, DataType.UNSIGNED_BYTE, CachingHint.STREAM_DRAW, data.capacity());
-		g.setBufferSubData(BufferTargetType.PIXEL, 0, data);
-		g.unsetBuffer(BufferTargetType.PIXEL);
+		int size = 0;
+		for (int i = 0; i < image.length; i++)
+			size += getRawSize(image[i]);
+		
+		ByteBuffer out = BufferUtils.allocDirectByteBuffer(size);
+		out.order(ByteOrder.BIG_ENDIAN);
+		IntBuffer ibuf = out.asIntBuffer();
+		for (int i = 0; i < image.length; i++)
+			convertImageData(image[i], ibuf);
+	    return out;
 	}
 
 	// Puts image data into an IntBuffer.

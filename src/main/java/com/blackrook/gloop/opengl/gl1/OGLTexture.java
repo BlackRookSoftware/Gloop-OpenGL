@@ -8,6 +8,8 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLObject;
+import com.blackrook.gloop.opengl.enums.TextureTargetType;
+import com.blackrook.gloop.opengl.exception.GraphicsException;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -28,12 +30,38 @@ public class OGLTexture extends OGLObject
 		UNDELETED_LENGTH = 0;
 	}
 
+	/** The target that this texture was first bound to. */
+	private TextureTargetType usedtarget;
+	
 	/**
 	 * Creates a new blank texture object.
 	 */
 	OGLTexture()
 	{
 		super();
+		this.usedtarget = null;
+	}
+	
+	/**
+	 * Sets the used target for this texture, or throws an exception if
+	 * the used target is not null and a different target was already set.
+	 * @param target the target to set.
+	 */
+	void setUsedTarget(TextureTargetType target)
+	{
+		if (this.usedtarget != null && this.usedtarget != target)
+			throw new GraphicsException("Texture was already bound to a different target: " + this.usedtarget.name());
+		this.usedtarget = target;
+	}
+	
+	/**
+	 * Gets the texture target that this texture object was first bound to.
+	 * OpenGL disallows a texture to be bound to a different target after it was first bound to one.
+	 * @return the target it was first bound to, or null if not bound yet.
+	 */
+	public TextureTargetType getUsedtarget()
+	{
+		return usedtarget;
 	}
 	
 	@Override

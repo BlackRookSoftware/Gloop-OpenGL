@@ -11,8 +11,10 @@ import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.lwjgl.system.MemoryStack;
@@ -43,6 +45,7 @@ import com.blackrook.gloop.opengl.enums.TextureGenMode;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.enums.TextureMode;
+import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.math.Matrix4F;
@@ -55,7 +58,7 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class OGL11Graphics extends OGLGraphics
 {
-	private static ThreadLocal<Matrix4F> MATRIX = ThreadLocal.withInitial(()->new Matrix4F());
+	private static final ThreadLocal<Matrix4F> MATRIX = ThreadLocal.withInitial(()->new Matrix4F());
 	
 	/**
 	 * Information about this context implementation.
@@ -118,17 +121,73 @@ public class OGL11Graphics extends OGLGraphics
 		
 	}
 
-	/** Current 1D texture binding. */
-	private OGLTexture currentTexture1D;
-	/** Current 2D texture binding. */
-	private OGLTexture currentTexture2D;
-
+	/** Current bound textures per unit. */
+	private Map<Integer, Map<Integer, OGLTexture>> currentTextures;
+	
 	// Create OpenGL 1.1 context.
 	public OGL11Graphics(boolean core)
 	{
 		super(core);
-		this.currentTexture1D = null;
-		this.currentTexture2D = null;
+		this.currentTextures = null;
+	}
+	
+	/**
+	 * Gets the current texture state.
+	 * Uses the current texture unit.
+	 * @param targetId the texture target id.
+	 * @return the current texture, or null if no current.
+	 * @see #getCurrentActiveTextureUnitState()
+	 */
+	protected OGLTexture getCurrentActiveTextureState(int targetId)
+	{
+		int unit = getCurrentActiveTextureUnitState();
+		Map<Integer, OGLTexture> stateMap;
+		if (currentTextures == null)
+			return null;
+		else if ((stateMap = currentTextures.get(unit)) == null)
+			return null;
+		else
+			return stateMap.get(targetId);
+	}
+
+	/**
+	 * Sets the current texture state.
+	 * Uses the current texture unit.
+	 * @param targetId the texture target id.
+	 * @param texture the texture to set.
+	 * @see #getCurrentActiveTextureUnitState()
+	 */
+	protected void setCurrentActiveTextureState(int targetId, OGLTexture texture)
+	{
+		int unit = getCurrentActiveTextureUnitState();
+		if (currentTextures == null)
+			currentTextures = new TreeMap<>();
+		
+		Map<Integer, OGLTexture> stateMap;
+		if ((stateMap = currentTextures.get(unit)) == null)
+			currentTextures.put(unit, stateMap = new TreeMap<>());
+		
+		if (texture != null)
+			stateMap.put(targetId, texture);
+		else
+			stateMap.remove(targetId);
+	}
+
+	/**
+	 * @return the current "active" texture unit.
+	 */
+	protected int getCurrentActiveTextureUnitState()
+	{
+		return 0;
+	}
+	
+	/**
+	 * Sets the current texture unit state.
+	 * @param unit the current "active" texture unit to set.
+	 */
+	protected void setCurrentActiveTextureUnitState(int unit)
+	{
+		// Do nothing.
 	}
 	
 	@Override
@@ -148,274 +207,6 @@ public class OGL11Graphics extends OGLGraphics
 	{
 	    // Clean up abandoned objects.
 	    OGLTexture.destroyUndeleted();
-	}
-
-	/**
-	 * Sets the current matrix for matrix operations.
-	 * Note that other commands may change this mode automatically.
-	 * @param mode the matrix mode to set.
-	 */
-	public void matrixMode(MatrixMode mode)
-	{
-		checkNonCore();
-		glMatrixMode(mode.glValue);
-	}
-
-	/**
-	 * Loads the identity matrix into the current selected matrix.
-	 */
-	public void matrixReset()
-	{
-		checkNonCore();
-		glLoadIdentity();
-	}
-
-	/**
-	 * Pushes a copy of the current matrix onto the current selected stack.
-	 */
-	public void matrixPush()
-	{
-		checkNonCore();
-		glPushMatrix();
-	}
-
-	/**
-	 * Pops the current matrix off of the current selected stack.
-	 */
-	public void matrixPop()
-	{
-		checkNonCore();
-		glPopMatrix();
-	}
-
-	/**
-	 * Reads a current matrix into an array.
-	 * @param matrixType the type of matrix to load.
-	 * @param outArray the output array. Must be length 16 or greater.
-	 */
-	public void matrixGet(MatrixMode matrixType, float[] outArray)
-	{
-		checkNonCore();
-		glGetFloatv(matrixType.glReadValue, outArray);
-	}
-
-	/**
-	 * Reads a current matrix into a matrix.
-	 * @param matrixType the type of matrix to load.
-	 * @param matrix the output matrix.
-	 */
-	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
-	{
-		checkNonCore();
-		glGetFloatv(matrixType.glReadValue, matrix.getArray());
-	}
-
-	/**
-	 * Loads a matrix's contents from a column-major array into the current selected matrix.
-	 * @param matrixArray the column-major cells of a matrix.
-	 */
-	public void matrixSet(float[] matrixArray)
-	{
-		checkNonCore();
-		if (matrixArray.length < 16)
-			throw new GraphicsException("The array is less than 16 components.");
-		glLoadMatrixf(matrixArray);
-	}
-
-	/**
-	 * Loads a matrix's contents into the current selected matrix.
-	 * @param matrix the matrix to read from.
-	 */
-	public void matrixSet(Matrix4F matrix)
-	{
-		matrixSet(matrix.getArray());
-	}
-
-	/**
-	 * Multiplies a matrix into the current selected matrix from a column-major array into.
-	 * @param matrixArray the column-major cells of a matrix.
-	 */
-	public void matrixMultiply(float[] matrixArray)
-	{
-		checkNonCore();
-		if (matrixArray.length < 16)
-			throw new GraphicsException("The array is less than 16 components.");
-		glMultMatrixf(matrixArray);
-	}
-
-	/**
-	 * Multiplies a matrix into the current selected matrix.
-	 * @param matrix the matrix to read from.
-	 */
-	public void matrixMultiply(Matrix4F matrix)
-	{
-		matrixMultiply(matrix.getArray());
-	}
-
-	/**
-	 * Translates the current matrix by a set of units.
-	 * This is applied via multiplication with the current matrix.
-	 * @param x the x-axis translation.
-	 * @param y the y-axis translation.
-	 * @param z the z-axis translation.
-	 */
-	public void matrixTranslate(float x, float y, float z)
-	{
-		checkNonCore();
-		glTranslatef(x, y, z);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the X-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateX(float degrees)
-	{
-		checkNonCore();
-		glRotatef(degrees, 1, 0, 0);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the Y-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateY(float degrees)
-	{
-		checkNonCore();
-		glRotatef(degrees, 0, 1, 0);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the Z-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateZ(float degrees)
-	{
-		checkNonCore();
-		glRotatef(degrees, 0, 0, 1);
-	}
-
-	/**
-	 * Scales the current matrix by a set of scalars that 
-	 * correspond to each axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param x the x-axis scalar.
-	 * @param y the y-axis scalar.
-	 * @param z the z-axis scalar.
-	 */
-	public void matrixScale(float x, float y, float z)
-	{
-		checkNonCore();
-		glScalef(x, y, z);
-	}
-
-	/**
-	 * Multiplies the current matrix by a symmetric perspective projection matrix.
-	 * @param fov front of view angle in degrees.
-	 * @param aspect the aspect ratio, usually view width over view height.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>fov == 0 || aspect == 0 || near == far</code>.
-	 */
-	public void matrixPerpective(float fov, float aspect, float near, float far)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setPerspective(fov, aspect, near, far);
-		matrixMultiply(matrix);
-		getError();
-	}
-
-	/**
-	 * Multiplies the current matrix by a frustum projection matrix.
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
-	{
-		checkNonCore();
-		glFrustum(left, right, bottom, top, near, far);
-		getError();
-	}
-
-	/**
-	 * Multiplies the current matrix by an orthographic projection matrix.
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
-	{
-		checkNonCore();
-		glOrtho(left, right, bottom, top, near, far);
-		getError();
-	}
-
-	/**
-	 * Multiplies the current matrix by an aspect-adjusted orthographic projection matrix using the canvas dimensions.
-	 * @param targetAspect the target orthographic 
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixAspectOrtho(float targetAspect, float left, float right, float bottom, float top, float near, float far)
-	{
-		float viewWidth = Math.max(left, right) - Math.min(left, right);
-		float viewHeight = Math.max(bottom, top) - Math.min(bottom, top);
-		float viewAspect = viewWidth / viewHeight;
-	    
-	    if (targetAspect >= viewAspect)
-	    {
-	        float axis = targetAspect * viewHeight;
-	        float widthDiff = (axis - viewWidth) / 2f;
-	        right = left + viewWidth + widthDiff;
-	        left = left - widthDiff;
-	    }
-	    else
-	    {
-	        float axis = (1.0f / targetAspect) * viewWidth;
-	        float heightDiff = (axis - viewHeight) / 2f;
-	        top = bottom + viewHeight + heightDiff;
-	    	bottom = bottom - heightDiff;
-	    }
-		
-	    matrixOrtho(left, right, bottom, top, near, far);	
-	}
-
-	/**
-	 * Multiplies a "look at" matrix to the current matrix.
-	 * This sets up the matrix to look at a place in the world (if modelview).
-	 * @param eyeX the point to look at, X-coordinate.
-	 * @param eyeY the point to look at, Y-coordinate.
-	 * @param eyeZ the point to look at, Z-coordinate.
-	 * @param centerX the reference point to look from, X-coordinate.
-	 * @param centerY the reference point to look from, Y-coordinate.
-	 * @param centerZ the reference point to look from, Z-coordinate.
-	 * @param upX the up vector of the viewpoint, X-coordinate.
-	 * @param upY the up vector of the viewpoint, Y-coordinate.
-	 * @param upZ the up vector of the viewpoint, Z-coordinate.
-	 */
-	public void matrixLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
-		matrixMultiply(matrix);
-		getError();
 	}
 
 	/**
@@ -1437,6 +1228,243 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Sets the current matrix for matrix operations.
+	 * Note that other commands may change this mode automatically.
+	 * @param mode the matrix mode to set.
+	 */
+	public void matrixMode(MatrixMode mode)
+	{
+		glMatrixMode(mode.glValue);
+	}
+
+	/**
+	 * Loads the identity matrix into the current selected matrix.
+	 */
+	public void matrixReset()
+	{
+		glLoadIdentity();
+	}
+
+	/**
+	 * Pushes a copy of the current matrix onto the current selected stack.
+	 */
+	public void matrixPush()
+	{
+		glPushMatrix();
+	}
+
+	/**
+	 * Pops the current matrix off of the current selected stack.
+	 */
+	public void matrixPop()
+	{
+		glPopMatrix();
+	}
+
+	/**
+	 * Reads a current matrix into an array.
+	 * @param matrixType the type of matrix to load.
+	 * @param outArray the output array. Must be length 16 or greater.
+	 */
+	public void matrixGet(MatrixMode matrixType, float[] outArray)
+	{
+		glGetFloatv(matrixType.glReadValue, outArray);
+	}
+
+	/**
+	 * Reads a current matrix into a matrix.
+	 * @param matrixType the type of matrix to load.
+	 * @param matrix the output matrix.
+	 */
+	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
+	{
+		glGetFloatv(matrixType.glReadValue, matrix.getArray());
+	}
+
+	/**
+	 * Loads a matrix's contents from a column-major array into the current selected matrix.
+	 * @param matrixArray the column-major cells of a matrix.
+	 */
+	public void matrixSet(float[] matrixArray)
+	{
+		if (matrixArray.length < 16)
+			throw new GraphicsException("The array is less than 16 components.");
+		glLoadMatrixf(matrixArray);
+	}
+
+	/**
+	 * Loads a matrix's contents into the current selected matrix.
+	 * @param matrix the matrix to read from.
+	 */
+	public void matrixSet(Matrix4F matrix)
+	{
+		matrixSet(matrix.getArray());
+	}
+
+	/**
+	 * Multiplies a matrix into the current selected matrix from a column-major array into.
+	 * @param matrixArray the column-major cells of a matrix.
+	 */
+	public void matrixMultiply(float[] matrixArray)
+	{
+		if (matrixArray.length < 16)
+			throw new GraphicsException("The array is less than 16 components.");
+		glMultMatrixf(matrixArray);
+	}
+
+	/**
+	 * Multiplies a matrix into the current selected matrix.
+	 * @param matrix the matrix to read from.
+	 */
+	public void matrixMultiply(Matrix4F matrix)
+	{
+		matrixMultiply(matrix.getArray());
+	}
+
+	/**
+	 * Translates the current matrix by a set of units.
+	 * This is applied via multiplication with the current matrix.
+	 * @param x the x-axis translation.
+	 * @param y the y-axis translation.
+	 * @param z the z-axis translation.
+	 */
+	public void matrixTranslate(float x, float y, float z)
+	{
+		glTranslatef(x, y, z);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the X-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateX(float degrees)
+	{
+		glRotatef(degrees, 1, 0, 0);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the Y-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateY(float degrees)
+	{
+		glRotatef(degrees, 0, 1, 0);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the Z-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateZ(float degrees)
+	{
+		glRotatef(degrees, 0, 0, 1);
+	}
+
+	/**
+	 * Scales the current matrix by a set of scalars that 
+	 * correspond to each axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param x the x-axis scalar.
+	 * @param y the y-axis scalar.
+	 * @param z the z-axis scalar.
+	 */
+	public void matrixScale(float x, float y, float z)
+	{
+		glScalef(x, y, z);
+	}
+
+	/**
+	 * Multiplies the current matrix by a symmetric perspective projection matrix.
+	 * @param fov front of view angle in degrees.
+	 * @param aspect the aspect ratio, usually view width over view height.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>fov == 0 || aspect == 0 || near == far</code>.
+	 */
+	public void matrixPerspective(float fov, float aspect, float near, float far)
+	{
+		Matrix4F matrix = MATRIX.get();
+		matrix.setPerspective(fov, aspect, near, far);
+		matrixMultiply(matrix);
+		getError();
+	}
+
+	/**
+	 * Multiplies the current matrix by a frustum projection matrix.
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
+	{
+		glFrustum(left, right, bottom, top, near, far);
+		getError();
+	}
+
+	/**
+	 * Multiplies the current matrix by an orthographic projection matrix.
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
+	{
+		glOrtho(left, right, bottom, top, near, far);
+		getError();
+	}
+
+	/**
+	 * Multiplies the current matrix by an aspect-adjusted orthographic projection matrix using the canvas dimensions.
+	 * @param targetAspect the target orthographic 
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixAspectOrtho(float targetAspect, float left, float right, float bottom, float top, float near, float far)
+	{
+		Matrix4F matrix = MATRIX.get();
+		matrix.setAspectOrtho(targetAspect, left, right, bottom, top, near, far);
+		matrixMultiply(matrix);
+		getError();
+	}
+
+	/**
+	 * Multiplies a "look at" matrix to the current matrix.
+	 * This sets up the matrix to look at a place in the world (if modelview).
+	 * @param eyeX the point to look at, X-coordinate.
+	 * @param eyeY the point to look at, Y-coordinate.
+	 * @param eyeZ the point to look at, Z-coordinate.
+	 * @param centerX the reference point to look from, X-coordinate.
+	 * @param centerY the reference point to look from, Y-coordinate.
+	 * @param centerZ the reference point to look from, Z-coordinate.
+	 * @param upX the up vector of the viewpoint, X-coordinate.
+	 * @param upY the up vector of the viewpoint, Y-coordinate.
+	 * @param upZ the up vector of the viewpoint, Z-coordinate.
+	 */
+	public void matrixLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
+	{
+		Matrix4F matrix = MATRIX.get();
+		matrix.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+		matrixMultiply(matrix);
+		getError();
+	}
+
+	/**
 	 * Sets an OpenGL hint.
 	 * @param type the hint type to set.
 	 * @param value the value to set for the provided hint.
@@ -1833,114 +1861,136 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		return new OGLTexture();
 	}
-
+	
 	/**
-	 * Gets the currently bound 1D texture. 
+	 * Gets a texture currently bound to a target. 
+	 * @param target the texture target.
 	 * @return the texture, or null if no bound texture.
 	 */
-	public OGLTexture getTexture1D()
+	public OGLTexture getTexture(TextureTargetType target)
 	{
-		return currentTexture1D;
+		checkFeatureVersion(target);
+		return getCurrentActiveTextureState(target.glValue);
 	}
 	
 	/**
-	 * Sets if 1D texturing is enabled or not.
+	 * Sets if a texture target is enabled for rendering or not.
+	 * @param target the texture target.
 	 * @param enabled true to enable, false to disable.
 	 */
-	public void setTexture1DEnabled(boolean enabled)
+	public void setTextureEnabled(TextureTargetType target, boolean enabled)
 	{
-		setFlag(GL_TEXTURE_1D, enabled);
+		checkFeatureVersion(target);
+		setFlag(target.glValue, enabled);
 	}
-
+	
 	/**
-	 * Binds a 1D texture object to the current active texture unit.
+	 * Binds a texture object to the current active texture unit on the specified target.
+	 * This also sets the texture's target identity: if this texture from this point forward
+	 * is bound to any other target type, an exception will be thrown.
+	 * @param target the texture target.
 	 * @param texture the texture to bind.
+	 * @throws GraphicsException if the provided texture was previously bound to a different target.
 	 */
-	public void setTexture1D(OGLTexture texture)
+	public void setTexture(TextureTargetType target, OGLTexture texture)
 	{
+		checkFeatureVersion(target);
 		Objects.requireNonNull(texture);
-		glBindTexture(GL_TEXTURE_1D, texture.getName());
-		currentTexture1D = texture;
+		texture.setUsedTarget(target);
+		glBindTexture(target.glValue, texture.getName());
+		setCurrentActiveTextureState(target.glValue, texture);
 	}
-
+	
 	/**
-	 * Sets the current filtering for the current 1D texture.
+	 * Sets the filtering for the current texture bound to the specified target.
+	 * Assumes an anisotropy value of <code>1.0f</code> (not set if not supported).
+	 * @param target the texture target.
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 */
-	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
+	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter)
 	{
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		setTextureFiltering(target, minFilter, magFilter, 1.0f);
 	}
 
 	/**
-	 * Sets the current filtering for the current 1D texture.
-	 * If anisotropy is not supported, 
+	 * Sets the filtering for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
 	 */
-	public void setTexture1DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
+	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
 	{
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
+		checkFeatureVersion(target);
+		glTexParameteri(target.glValue, GL_TEXTURE_MAG_FILTER, magFilter.glid);
+		glTexParameteri(target.glValue, GL_TEXTURE_MIN_FILTER, minFilter.glid);
 		
 		if (getInfo().supportsTextureAnisotropy())
 		{
 			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_1D, 0x084FE, anisotropy);
+			glTexParameterf(target.glValue, 0x084FE, anisotropy);
 		}
 	}
 
 	/**
-	 * Sets the current wrapping for the current 1D texture.
+	 * Sets the current wrapping for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param wrapS the wrapping mode, S-axis.
+	 * @throws GraphicsException if the target is not a one-dimensionally-sampled target.
 	 */
-	public void setTexture1DWrapping(TextureWrapType wrapS)
+	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS)
 	{
+		checkFeatureVersion(target);
 		checkFeatureVersion(wrapS);
-		glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, wrapS.glValue);
+		target.checkSampleDimensions(1);
+		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_S, wrapS.glValue);
 	}
-
+	
 	/**
-	 * Sends a texture into OpenGL's memory for the current 1D texture at the topmost mipmap level.
+	 * Sets the current wrapping for the current texture bound to the specified target.
+	 * @param target the texture target.
+	 * @param wrapS the wrapping mode, S-axis.
+	 * @param wrapT the wrapping mode, T-axis.
+	 * @throws GraphicsException if the target is not a two-dimensionally-sampled target.
+	 */
+	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS, TextureWrapType wrapT)
+	{
+		checkFeatureVersion(target);
+		checkFeatureVersion(wrapS);
+		checkFeatureVersion(wrapT);
+		target.checkSampleDimensions(2);
+		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_S, wrapS.glValue);
+		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_T, wrapT.glValue);
+	}
+	
+	/**
+	 * Sends a texture to OpenGL's memory for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param imageData the image to send.
 	 * @param colorFormat the pixel storage format of the buffer data.
 	 * @param format the internal texture format.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
 	 * @param width the texture width in texels.
 	 * @param border the texel border to add, if any.
-	 * @throws GraphicsException if the buffer provided is not direct.
+	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored one-dimensionally.
 	 */
-	public void setTexture1DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int border)
+	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
 	{
-		setTexture1DData(imageData, colorFormat, format, 0, width, border);
-	}
+		checkFeatureVersion(target);
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+		target.checkStorageDimensions(1);
 
-	/**
-	 * Sends a texture into OpenGL's memory for the current 1D texture at the topmost mipmap level.
-	 * @param imageData the image to send.
-	 * @param colorFormat the pixel storage format of the buffer data.
-	 * @param format the internal texture format.
-	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
-	 * @param width the texture width in texels.
-	 * @param border the texel border to add, if any.
-	 * @throws GraphicsException if the buffer provided is not direct.
-	 */
-	public void setTexture1DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
-	{
 		if (width > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum width is "+ getInfo().getMaxTextureSize() + " pixels.");
 		
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 
-		checkFeatureVersion(colorFormat);
-		checkFeatureVersion(format);
-
 		clearError();
 		glTexImage1D(
-			GL_TEXTURE_1D,
+			target.glValue,
 			texlevel,
 			format.glValue, 
 			width,
@@ -1953,198 +2003,8 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Copies the contents of the current read frame buffer into the current 1D texture target already at the topmost mipmap level.
-	 * @param format    the internal texture format.
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 * @param border the texel border to add, if any.
-	 */
-	public void setTexture1DDataFromReadBuffer(TextureFormat format, int srcX, int srcY, int width, int border)
-	{
-		setTexture1DDataFromReadBuffer(format, 0, srcX, srcY, width, border);
-	}
-
-	/**
-	 * Copies the contents of the current read frame buffer into the current 1D texture target.
-	 * @param format    the internal texture format.
-	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 * @param border the texel border to add, if any.
-	 */
-	public void setTexture1DDataFromReadBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
-	{
-		checkFeatureVersion(format);
-		glCopyTexImage1D(GL_TEXTURE_1D, texlevel, format.glValue, srcX, srcY, width, border);
-	}
-
-	/**
-	 * Sends a subset of data to the currently-bound 1D texture already 
-	 * in OpenGL's memory at the topmost mipmap level.
-	 * @param imageData the image to send.
-	 * @param colorFormat the pixel storage format of the buffer data.
-	 * @param width the texture width in texels.
-	 * @param xoffs the texel offset.
-	 * @throws GraphicsException if the buffer provided is not direct.
-	 */
-	public void setTexture1DSubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int xoffs)
-	{
-		setTexture1DSubData(imageData, colorFormat, 0, width, xoffs);
-	}
-
-	/**
-	 * Sends a subset of data to the currently-bound 1D texture already in OpenGL's memory.
-	 * @param imageData the image to send.
-	 * @param colorFormat the pixel storage format of the buffer data.
-	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
-	 * @param width the texture width in texels.
-	 * @param xoffs the texel offset.
-	 * @throws GraphicsException if the buffer provided is not direct.
-	 */
-	public void setTexture1DSubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
-	{
-		if (!imageData.isDirect())
-			throw new GraphicsException("Data must be a direct buffer."); 
-	
-		checkFeatureVersion(colorFormat);
-
-		clearError();
-		glTexSubImage1D(
-			GL_TEXTURE_1D,
-			texlevel,
-			xoffs,
-			width,
-			colorFormat.glValue,
-			GL_UNSIGNED_BYTE,
-			imageData
-		);
-		getError();
-	}
-
-	/**
-	 * Copies the contents of the current read frame buffer into the current 1D texture target already at the topmost mipmap level.
-	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 */
-	public void setTexture1DSubDataFromReadBuffer(int xoffset, int srcX, int srcY, int width)
-	{
-		setTexture1DSubDataFromReadBuffer(0, xoffset, srcX, srcY, width);
-	}
-
-	/**
-	 * Copies the contents of the current read frame buffer into the current 1D texture target.
-	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
-	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 */
-	public void setTexture1DSubDataFromReadBuffer(int texlevel, int xoffset, int srcX, int srcY, int width)
-	{
-		glCopyTexSubImage1D(GL_TEXTURE_1D, texlevel, xoffset, srcX, srcY, width);
-	}
-
-	/**
-	 * Unbinds a texture from the current 1D target.
-	 */
-	public void unsetTexture1D()
-	{
-		glBindTexture(GL_TEXTURE_1D, 0);
-		currentTexture1D = null;
-	}
-
-	/**
-	 * Gets the currently bound 2D texture. 
-	 * @return the texture, or null if no bound texture.
-	 */
-	public OGLTexture getTexture2D()
-	{
-		return currentTexture2D;
-	}
-	
-	/**
-	 * Sets if 2D texturing is enabled or not.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTexture2DEnabled(boolean enabled)
-	{
-		setFlag(GL_TEXTURE_2D, enabled);
-	}
-
-	/**
-	 * Binds a 2D texture object to the current active texture unit.
-	 * @param texture the texture to bind.
-	 */
-	public void setTexture2D(OGLTexture texture)
-	{
-		Objects.requireNonNull(texture);
-		glBindTexture(GL_TEXTURE_2D, texture.getName());
-		currentTexture2D = texture;
-	}
-
-	/**
-	 * Sets the current filtering for the current 2D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 */
-	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
-	}
-
-	/**
-	 * Sets the current filtering for the current 2D texture.
-	 * @param minFilter the minification filter.
-	 * @param magFilter the magnification filter.
-	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
-	 */
-	public void setTexture2DFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter.glid);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter.glid);
-		
-		if (getInfo().supportsTextureAnisotropy())
-		{
-			anisotropy = Math.max(1.0f, Math.min(getInfo().getMaxTextureAnisotropy(), anisotropy));
-			glTexParameterf(GL_TEXTURE_2D, 0x084FE, anisotropy);
-		}
-	}
-
-	/**
-	 * Sets the current wrapping for the current 2D texture.
-	 * @param wrapS the wrapping mode, S-axis.
-	 * @param wrapT the wrapping mode, T-axis.
-	 */
-	public void setTexture2DWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
-	{
-		checkFeatureVersion(wrapS);
-		checkFeatureVersion(wrapT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS.glValue);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT.glValue);
-	}
-
-	/**
-	 * Sends a texture into OpenGL's memory for the current 2D texture at the topmost mipmap level.
-	 * @param imageData the image to send.
-	 * @param colorFormat the pixel storage format of the buffer data.
-	 * @param format the internal format.
-	 * @param width the texture width in texels.
-	 * @param height the texture height in texels.
-	 * @param border the texel border to add, if any.
-	 * @throws GraphicsException if the buffer provided is not direct.
-	 */
-	public void setTexture2DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int width, int height, int border)
-	{
-		setTexture2DData(imageData, colorFormat, format, 0, width, height, border);
-	}
-
-	/**
-	 * Sends a texture into OpenGL's memory for the current 2D texture.
+	 * Sends a texture into OpenGL's memory for the current texture bound to the specified target.
+	 * @param target the texture target.
 	 * @param imageData the image to send.
 	 * @param colorFormat the pixel storage format of the buffer data.
 	 * @param format the internal format.
@@ -2152,22 +2012,24 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
 	 * @param border the texel border to add, if any.
-	 * @throws GraphicsException if the buffer provided is not direct.
+	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored two-dimensionally.
 	 */
-	public void setTexture2DData(ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
+	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
 	{
+		checkFeatureVersion(target);
+		checkFeatureVersion(colorFormat);
+		checkFeatureVersion(format);
+		target.checkStorageDimensions(2);
+
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
 	
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 		
-		checkFeatureVersion(colorFormat);
-		checkFeatureVersion(format);
-
 		clearError();
 		glTexImage2D(
-			GL_TEXTURE_2D,
+			target.glValue,
 			texlevel,
 			format.glValue, 
 			width,
@@ -2181,53 +2043,40 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Copies the contents of the current read frame buffer into the current 2D texture target at the topmost mipmap level.
-	 * @param format    the internal format.
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 * @param height	the height of the screen in pixels to grab.
-	 * @param border    the texel border to add, if any.
-	 */
-	public void setTexture2DDataFromReadBuffer(TextureFormat format, int srcX, int srcY, int width, int height, int border)
-	{
-		setTexture2DDataFromReadBuffer(format, 0, srcX, srcY, width, height, border);
-	}
-
-	/**
-	 * Copies the contents of the current read frame buffer into the current 2D texture target.
-	 * @param format    the internal format.
-	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 * @param height	the height of the screen in pixels to grab.
-	 * @param border    the texel border to add, if any.
-	 */
-	public void setTexture2DDataFromReadBuffer(TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
-	{
-		checkFeatureVersion(format);
-		glCopyTexImage2D(GL_TEXTURE_2D, format.glValue, texlevel, srcX, srcY, width, height, border);
-	}
-
-	/**
-	 * Sends a subset of data to the currently-bound 2D texture 
-	 * already in OpenGL's memory at the topmost mipmap level.
+	 * Sends a subset of data to the current texture bound to the specified target already in OpenGL's memory.
+	 * @param target the texture target.
 	 * @param imageData the image to send.
 	 * @param colorFormat the pixel storage format of the buffer data.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
 	 * @param width the texture width in texels.
-	 * @param height the texture height in texels.
 	 * @param xoffs the texel offset.
-	 * @param yoffs the texel offset.
-	 * @throws GraphicsException if the buffer provided is not direct.
+	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored one-dimensionally.
 	 */
-	public void setTexture2DSubData(ByteBuffer imageData, ColorFormat colorFormat, int width, int height, int xoffs, int yoffs)
+	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
 	{
-		setTexture2DSubData(imageData, colorFormat, 0, width, height, xoffs, yoffs);
+		checkFeatureVersion(target);
+		checkFeatureVersion(colorFormat);
+		target.checkStorageDimensions(1);
+		
+		if (!imageData.isDirect())
+			throw new GraphicsException("Data must be a direct buffer."); 
+
+		clearError();
+		glTexSubImage1D(
+			target.glValue,
+			texlevel,
+			xoffs,
+			width,
+			colorFormat.glValue,
+			GL_UNSIGNED_BYTE,
+			imageData
+		);
+		getError();
 	}
 
 	/**
-	 * Sends a subset of data to the currently-bound 2D texture already in OpenGL's memory.
+	 * Sends a subset of data to the current texture bound to the specified target already in OpenGL's memory.
+	 * @param target the texture target.
 	 * @param imageData the image to send.
 	 * @param colorFormat the pixel storage format of the buffer data.
 	 * @param texlevel	the mipmapping level to copy this into (0 is topmost).
@@ -2235,18 +2084,20 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param height the texture height in texels.
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
-	 * @throws GraphicsException if the buffer provided is not direct.
+	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored two-dimensionally.
 	 */
-	public void setTexture2DSubData(ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
+	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
 	{
+		checkFeatureVersion(target);
+		checkFeatureVersion(colorFormat);
+		target.checkStorageDimensions(2);
+		
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
-		checkFeatureVersion(colorFormat);
-
 		clearError();
 		glTexSubImage2D(
-			GL_TEXTURE_2D,
+			target.glValue,
 			texlevel,
 			xoffs,
 			yoffs,
@@ -2260,45 +2111,91 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Copies the contents of the current read frame buffer into the 
-	 * current 2D texture target already in OpenGL's memory at the topmost mipmap level.
-	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
-	 * @param yoffset	the offset in pixels on this texture (y-coordinate) to put this texture data.
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 * @param height	the height of the screen in pixels to grab.
+	 * Copies the contents of the current read frame buffer into the current texture bound to the specified target.
+	 * @param target the texture target.
+	 * @param format the internal texture format.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost level).
+	 * @param srcX the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width	the width of the screen in pixels to grab.
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the target is not stored one-dimensionally.
 	 */
-	public void setTexture2DSubDataFromReadBuffer(int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureDataFromReadBuffer(TextureTargetType target, TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
 	{
-		setTexture2DSubDataFromReadBuffer(0, xoffset, yoffset, srcX, srcY, width, height);
+		checkFeatureVersion(target);
+		checkFeatureVersion(format);
+		target.checkStorageDimensions(1);
+		glCopyTexImage1D(target.glValue, texlevel, format.glValue, srcX, srcY, width, border);
 	}
 
 	/**
-	 * Copies the contents of the current read frame buffer into the 
-	 * current 2D texture target already in OpenGL's memory.
-	 * @param texlevel	the mipmapping level to copy this into (0 is topmost level).
-	 * @param xoffset	the offset in pixels on this texture (x-coordinate) to put this texture data.
-	 * @param yoffset	the offset in pixels on this texture (y-coordinate) to put this texture data.
-	 * @param srcX		the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
-	 * @param srcY		the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
-	 * @param width		the width of the screen in pixels to grab.
-	 * @param height	the height of the screen in pixels to grab.
+	 * Copies the contents of the current read frame buffer into the current texture bound to the specified target.
+	 * @param target the texture target.
+	 * @param format the internal format.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost level).
+	 * @param srcX the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width the width of the screen in pixels to grab.
+	 * @param height the height of the screen in pixels to grab.
+	 * @param border the texel border to add, if any.
+	 * @throws GraphicsException if the target is not stored two-dimensionally.
 	 */
-	public void setTexture2DSubDataFromReadBuffer(int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	public void setTextureDataFromReadBuffer(TextureTargetType target, TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
 	{
-		glCopyTexSubImage2D(GL_TEXTURE_2D, texlevel, xoffset, yoffset, srcX, srcY, width, height);
+		checkFeatureVersion(target);
+		checkFeatureVersion(format);
+		target.checkStorageDimensions(2);
+		glCopyTexImage2D(target.glValue, texlevel, format.glValue, srcX, srcY, width, height, border);
 	}
 
 	/**
-	 * Unbinds a texture from the current 2D target.
+	 * Copies the contents of the current read frame buffer into the current texture bound to the specified target already in OpenGL's memory.
+	 * @param target the texture target.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost level).
+	 * @param xoffset the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param srcX the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width the width of the screen in pixels to grab.
+	 * @throws GraphicsException if the target is not stored one-dimensionally.
 	 */
-	public void unsetTexture2D()
+	public void setTextureSubDataFromReadBuffer(TextureTargetType target, int texlevel, int xoffset, int srcX, int srcY, int width)
 	{
-		glBindTexture(GL_TEXTURE_2D, 0);
-		currentTexture2D = null;
+		checkFeatureVersion(target);
+		target.checkStorageDimensions(1);
+		glCopyTexSubImage1D(target.glValue, texlevel, xoffset, srcX, srcY, width);
 	}
 
+	/**
+	 * Copies the contents of the current read frame buffer into the current texture bound to the specified target already in OpenGL's memory.
+	 * @param target the texture target.
+	 * @param texlevel the mipmapping level to copy this into (0 is topmost level).
+	 * @param xoffset the offset in pixels on this texture (x-coordinate) to put this texture data.
+	 * @param yoffset the offset in pixels on this texture (y-coordinate) to put this texture data.
+	 * @param srcX the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
+	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
+	 * @param width the width of the screen in pixels to grab.
+	 * @param height the height of the screen in pixels to grab.
+	 * @throws GraphicsException if the target is not stored two-dimensionally.
+	 */
+	public void setTextureSubDataFromReadBuffer(TextureTargetType target, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
+	{
+		checkFeatureVersion(target);
+		target.checkStorageDimensions(2);
+		glCopyTexSubImage2D(target.glValue, texlevel, xoffset, yoffset, srcX, srcY, width, height);
+	}
+
+	/**
+	 * Unbinds a texture currently bound to a target.
+	 * @param target the texture target.
+	 */
+	public void unsetTexture(TextureTargetType target)
+	{
+		checkFeatureVersion(target);
+		glBindTexture(target.glValue, 0);
+		setCurrentActiveTextureState(target.glValue, null);
+	}
+	
 	/**
 	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data.
 	 * @param geometryType the geometry type - tells how to interpret the data.

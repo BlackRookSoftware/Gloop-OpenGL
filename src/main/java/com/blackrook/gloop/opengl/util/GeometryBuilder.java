@@ -11,6 +11,8 @@ import com.blackrook.gloop.opengl.struct.BufferUtils;
  * <p>
  * Buffer contents are interleaved, so the draw calls for this buffer after OpenGL transfer
  * should be set up using strides.
+ * <p>
+ * All of these methods can be called outside of the graphics thread.
  * @author Matthew Tropiano
  */
 public class GeometryBuilder
@@ -86,7 +88,7 @@ public class GeometryBuilder
 	 */
 	public GeometryBuilder add(int attributeId, float ... values)
 	{
-		checkComponentCount(attributeId, 1);
+		checkComponentCount(attributeId, values.length);
 		checkVertexCount(attributeId);
 		for (int i = 0; i < values.length; i++)
 			buffer.put(currentVertex[attributeId] * strideSize + i, values[i]);
