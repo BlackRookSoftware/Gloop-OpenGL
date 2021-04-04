@@ -25,13 +25,22 @@ public abstract class OGLObject
 
 	/**
 	 * Allocates a new OpenGL object. 
-	 * Calls allocate().
-	 * @see #allocate()
 	 */
 	protected OGLObject()
 	{
-		if ((this.glId = allocate()) == 0)
+		// Must orverride.
+	}
+	
+	/**
+	 * Sets this object's OpenGL name/id.
+	 * @param glId the new id.
+	 * @throws GraphicsException if the id is zero.
+	 */
+	protected void setName(int glId)
+	{
+		if (glId == 0)
 			throw new GraphicsException("Object could not be created.");
+		this.glId = glId;
 		this.allocated = true; 
 	}
 	
@@ -88,14 +97,6 @@ public abstract class OGLObject
 	{
 		return allocated;
 	}
-	
-	/**	 
-	 * Allocates a new type of this object in OpenAL.
-	 * Called by OALObject constructor.
-	 * @return the ALId of this new object.
-	 * @throws GraphicsException if the allocation cannot happen.
-	 */
-	protected abstract int allocate();
 	
 	/**
 	 * Destroys this object (deallocates it on OpenAL).

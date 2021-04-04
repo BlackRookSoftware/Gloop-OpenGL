@@ -22,6 +22,11 @@ import static org.lwjgl.opengl.GL11.glGetIntegerv;
 
 import java.util.Set;
 
+import org.lwjgl.opengl.ARBImaging;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL45;
+
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 
 /**
@@ -383,10 +388,6 @@ public abstract class OGLGraphics implements OGLVersioned
 	
 	/** The current frame rendered. */
 	private long currentFrame;
-	/** The current width. */
-	private int currentWidth;
-	/** The current height. */
-	private int currentHeight;
 	/** The starting millisecond at creation. */
 	private long startMilliseconds;
 	/** The current millisecond at the beginning of the frame. */
@@ -419,8 +420,6 @@ public abstract class OGLGraphics implements OGLVersioned
 	{
 		this.core = core;
 		this.currentFrame = 0L;
-		this.currentWidth = 0;
-		this.currentHeight = 0;
 		this.startMilliseconds = System.currentTimeMillis();
 		this.currentMilliseconds = -1L;
 		this.currentNanos = -1L;
@@ -456,10 +455,8 @@ public abstract class OGLGraphics implements OGLVersioned
 	/**
 	 * Called at the beginning of each {@link OGLSystem#display()} call for each frame.
 	 */
-	final void startFrame(int width, int height)
+	final void startFrame()
 	{
-		currentWidth = width;
-		currentHeight = height;
 		currentMilliseconds = System.currentTimeMillis();
 		currentNanos = System.nanoTime();
 		
@@ -582,30 +579,6 @@ public abstract class OGLGraphics implements OGLVersioned
 	}
 	
 	/**
-	 * @return the width of the framebuffer in pixels.
-	 */
-	public int getWidth()
-	{
-		return currentWidth;
-	}
-
-	/**
-	 * @return the height of the framebuffer in pixels.
-	 */
-	public int getHeight()
-	{
-		return currentHeight;
-	}
-
-	/**
-	 * @return the aspect ratio of the framebuffer.
-	 */
-	public float getAspect()
-	{
-		return (float)getWidth() / (float)getHeight();
-	}
-
-	/**
 	 * Grabs an OpenGL context integer value using a GL value enum. 
 	 * @param glEnum the GL enum.
 	 * @return the value. 
@@ -692,16 +665,54 @@ public abstract class OGLGraphics implements OGLVersioned
 	}
 
 	/**
-	 * Tests for an OpenGL error via glGetError(). 
+	 * Tests for an OpenGL error via glGetError(), but only if error checking is enabled.
 	 * If one is raised, this throws a GraphicsException with the error message.
+	 * @throws GraphicsException if an error is raised. 
+	 * @see #setErrorChecking(boolean)
 	 */
-	public void getError()
+	public void checkError()
 	{
-		if (errorChecking)
+		if (!errorChecking)
+			return;
+		
+		int error = glGetError();
+		if (error != GL_NO_ERROR)
 		{
-			int error = glGetError();
-			if (error != GL_NO_ERROR)
-				throw new GraphicsException("OpenGL raised error code " + error);
+			String errorName;
+			switch (error)
+			{
+				case GL11.GL_INVALID_ENUM:
+					errorName = "Invalid Enumeration";
+					break;
+				case GL11.GL_INVALID_VALUE:
+					errorName = "Invalid Value";
+					break;
+				case GL11.GL_INVALID_OPERATION:
+					errorName = "Invalid Operation";
+					break;
+				case GL11.GL_STACK_OVERFLOW:
+					errorName = "Stack Overflow";
+					break;
+				case GL11.GL_STACK_UNDERFLOW:
+					errorName = "Stack Underflow";
+					break;
+				case GL11.GL_OUT_OF_MEMORY:
+					errorName = "Out of Memory";
+					break;
+				case GL30.GL_INVALID_FRAMEBUFFER_OPERATION:
+					errorName = "Invalid Framebuffer Operation";
+					break;
+				case GL45.GL_CONTEXT_LOST:
+					errorName = "Context Lost";
+					break;
+				case ARBImaging.GL_TABLE_TOO_LARGE:
+					errorName = "Image Table Too Large";
+					break;
+				default:
+					errorName = "(UNKNOWN ERROR CODE)";
+					break;
+			}
+			throw new GraphicsException("OpenGL raised error code " + error + ": " + errorName);
 		}
 	}
 
@@ -719,7 +730,7 @@ public abstract class OGLGraphics implements OGLVersioned
 	/**
 	 * Sets if OpenGL error detection is enabled.
 	 * If false, this could reduce the amount of OpenGL calls this makes.
-	 * @param errorChecking if true, {@link #clearError()} and {@link #getError()} do nothing. Else, they do stuff.
+	 * @param errorChecking if true, {@link #clearError()} and {@link #checkError()} do nothing. Else, they do stuff.
 	 */
 	public void setErrorChecking(boolean errorChecking)
 	{

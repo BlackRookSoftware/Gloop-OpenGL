@@ -11,16 +11,16 @@
 package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.OGLObject;
-import com.blackrook.gloop.opengl.enums.ShaderProgramType;
+import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 
 import static org.lwjgl.opengl.GL20.*;
 
 /**
- * GLSL Shader program.
+ * A single GLSL shader in a program pipeline.
  * @author Matthew Tropiano
  */
-public class OGLShaderProgram extends OGLObject
+public class OGLProgramShader extends OGLObject
 {
 	/** List of OpenGL object ids that were not deleted properly. */
 	protected static int[] UNDELETED_IDS;
@@ -33,32 +33,28 @@ public class OGLShaderProgram extends OGLObject
 		UNDELETED_LENGTH = 0;
 	}
 
-	/** Shader program type. */
-	protected ShaderProgramType type;
+	/** Shader type. */
+	protected ShaderType type;
 
 	/** Compile log. */
 	protected String log;
 
 	/**
-	 * Protected constructor for the program class.
+	 * Constructor for the shader class.
 	 * @param type the shader program type.
 	 * @param streamName the source stream name.
 	 * @param sourceCode the source code itself.
 	 */
-	OGLShaderProgram(ShaderProgramType type, String streamName, String sourceCode)
+	OGLProgramShader(ShaderType type, String streamName, String sourceCode)
 	{
+		setName(glCreateShader(type.glValue));
+		
 		this.type = type;
 		glShaderSource(getName(), sourceCode);
         glCompileShader(getName());
         this.log = glGetShaderInfoLog(getName());
         if (glGetShaderi(getName(), GL_COMPILE_STATUS) == 0)
         	throw new GraphicsException("Failed to compile \"" + streamName + "\"\n" + log);
-	}
-
-	@Override
-	protected int allocate()
-	{
-		return glCreateShader(getType().glValue);
 	}
 
 	@Override
@@ -70,7 +66,7 @@ public class OGLShaderProgram extends OGLObject
 	/**
 	 * @return the shader program type.
 	 */
-	public ShaderProgramType getType()
+	public ShaderType getType()
 	{
 		return type;
 	}

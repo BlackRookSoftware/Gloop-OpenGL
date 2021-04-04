@@ -41,14 +41,8 @@ public class OGLQuery extends OGLObject
 	 */
 	OGLQuery(int glQueryType)
 	{
-		super();
+		setName(glGenQueries());
 		this.glQueryType = glQueryType;
-	}
-
-	@Override
-	protected int allocate()
-	{
-		return glGenQueries();
 	}
 
 	@Override

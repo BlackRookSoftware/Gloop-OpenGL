@@ -2,8 +2,6 @@ package com.blackrook.gloop.opengl.util;
 
 import java.nio.FloatBuffer;
 
-import com.blackrook.gloop.opengl.struct.BufferUtils;
-
 /**
  * A builder class that assists the building of geometric data to later fill in a buffer. 
  * The underlying buffer that this builder creates is a Java Native I/O direct float buffer,
@@ -24,6 +22,8 @@ public class GeometryBuilder
 	
 	/** Size of a full stride. */
 	private int strideSize;
+	/** Attribute offsets. */
+	private int[] attributeOffsets;
 	/** Current vertex per attribute. */
 	private int[] currentVertex;
 	/** The buffer that holds the data. */
@@ -38,6 +38,14 @@ public class GeometryBuilder
 		this.strideSize = 0;
 		for (int x : attributeSizes)
 			this.strideSize += x;
+
+		this.attributeOffsets = new int[attributeSizes.length];
+		for (int i = 0; i < attributeOffsets.length; i++)
+		{
+			if (i > 0)
+				this.attributeOffsets[i] = this.attributeOffsets[i - 1] + this.attributeSizes[i - 1];
+		}
+			
 		this.currentVertex = new int[attributeSizes.length];
 		buffer = BufferUtils.allocDirectFloatBuffer(vertices * strideSize);
 	}
@@ -91,9 +99,37 @@ public class GeometryBuilder
 		checkComponentCount(attributeId, values.length);
 		checkVertexCount(attributeId);
 		for (int i = 0; i < values.length; i++)
-			buffer.put(currentVertex[attributeId] * strideSize + i, values[i]);
+			buffer.put(currentVertex[attributeId] * strideSize + i + attributeOffsets[attributeId], values[i]);
 		currentVertex[attributeId]++;
 		return this;
+	}
+	
+	/**
+	 * @return the stride size.
+	 */
+	public int getStrideSize()
+	{
+		return strideSize;
+	}
+	
+	/**
+	 * Gets the element width for an attribute.
+	 * @param attributeId the attribute id.
+	 * @return the width for the provided attribute.
+	 */
+	public int getWidth(int attributeId)
+	{
+		return attributeSizes[attributeId];
+	}
+	
+	/**
+	 * Gets the stride offset for an attribute.
+	 * @param attributeId the attribute id.
+	 * @return the offset for the provided attribute.
+	 */
+	public int getOffset(int attributeId)
+	{
+		return attributeOffsets[attributeId];
 	}
 	
 	/**

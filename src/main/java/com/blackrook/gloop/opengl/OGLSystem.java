@@ -7,7 +7,6 @@ import org.lwjgl.opengl.GL;
 
 import com.blackrook.gloop.glfw.GLFWContext;
 import com.blackrook.gloop.glfw.GLFWWindow;
-import com.blackrook.gloop.glfw.GLFWWindow.Dimension;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowAdapter;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
@@ -54,11 +53,6 @@ public class OGLSystem<G extends OGLGraphics>
 	private long frameRenderTimeNanos;
 	/** Polygon count. */
 	private int polygonCount;
-
-	/** Frame buffer width. */
-	private int framebufferWidth;
-	/** Frame buffer height. */
-	private int framebufferHeight;
 
 	/** Whether or not to ignore window refresh events. */
 	private boolean ignoreRefresh;
@@ -265,9 +259,6 @@ public class OGLSystem<G extends OGLGraphics>
 		this.frameRenderTimeNanos = -1L;
 		this.polygonCount = 0;
 		
-		this.framebufferWidth = 0;
-		this.framebufferHeight = 0;
-		
 		this.window.addWindowListener(new WindowAdapter()
 		{
 			@Override
@@ -308,8 +299,6 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	private void resize(int width, int height)
 	{
-		framebufferWidth = width;
-		framebufferHeight = height;
 	    for (OGLNode<?> node : nodes)
 	    	node.onFramebufferResize(width, height);
 	}
@@ -324,8 +313,7 @@ public class OGLSystem<G extends OGLGraphics>
 		long rendertime = 0L;
 		int polys = 0;
 	
-		Dimension frame = window.getFramebufferSize();
-		graphics.startFrame(frame.width, frame.height);
+		graphics.startFrame();
 		
 	    for (int i = 0; i < nodes.size(); i++)
 	    {
@@ -353,7 +341,6 @@ public class OGLSystem<G extends OGLGraphics>
 	public void addNode(OGLNode<? super G> node)
 	{
 		nodes.add(node);
-		node.onFramebufferResize(framebufferWidth, framebufferHeight);
 	}
 
 	/**

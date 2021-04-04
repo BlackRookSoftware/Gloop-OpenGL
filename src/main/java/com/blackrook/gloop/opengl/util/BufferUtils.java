@@ -3,7 +3,7 @@
  * This program and the accompanying materials are made available under 
  * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
-package com.blackrook.gloop.opengl.struct;
+package com.blackrook.gloop.opengl.util;
 
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
@@ -39,24 +39,10 @@ public final class BufferUtils
 	private BufferUtils() {}
 
 	/**
-	 * Allocates a DIRECT ByteBuffer using byte array data.
-	 * Useful for native wrappers that require direct ByteBuffers.
-	 * @param b	the byte array to wrap. 
-	 * @return	a direct buffer that can hold <i>len</i> items.
-	 */
-	public static ByteBuffer wrapDirectBuffer(byte[] b)
-	{
-		ByteBuffer buf = allocDirectByteBuffer(b.length);
-		buf.put(b);
-		buf.rewind();
-		return buf;
-	}
-
-	/**
 	 * Allocates space for a DIRECT ByteBuffer in native byte order
 	 * (which really doesn't matter).
-	 * @param len	the length (IN BYTES) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN BYTES) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static ByteBuffer allocDirectByteBuffer(int len)
 	{
@@ -67,8 +53,8 @@ public final class BufferUtils
 
 	/**
 	 * Allocates space for a DIRECT IntBuffer in native byte order.
-	 * @param len	the length (IN INTS) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN INTS) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static IntBuffer allocDirectIntBuffer(int len)
 	{
@@ -79,8 +65,8 @@ public final class BufferUtils
 
 	/**
 	 * Allocates space for a DIRECT FloatBuffer in native byte order.
-	 * @param len	the length (IN FLOATS) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN FLOATS) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static FloatBuffer allocDirectFloatBuffer(int len)
 	{
@@ -91,8 +77,8 @@ public final class BufferUtils
 
 	/**
 	 * Allocates space for a DIRECT LongBuffer in native byte order
-	 * @param len	the length (IN LONGS) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN LONGS) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static LongBuffer allocDirectLongBuffer(int len)
 	{
@@ -103,8 +89,8 @@ public final class BufferUtils
 
 	/**
 	 * Allocates space for a DIRECT ShortBuffer in native byte order
-	 * @param len	the length (IN SHORTS) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN SHORTS) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static ShortBuffer allocDirectShortBuffer(int len)
 	{
@@ -115,8 +101,8 @@ public final class BufferUtils
 
 	/**
 	 * Allocates space for a DIRECT CharBuffer in native byte order
-	 * @param len	the length (IN CHARS) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN CHARS) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static CharBuffer allocDirectCharBuffer(int len)
 	{
@@ -127,14 +113,98 @@ public final class BufferUtils
 
 	/**
 	 * Allocates space for a DIRECT DoubleBuffer in native byte order
-	 * @param len	the length (IN DOUBLES) of the buffer. 
-	 * @return		a direct buffer that can hold <i>len</i> items.
+	 * @param len the length (IN DOUBLES) of the buffer. 
+	 * @return a direct buffer that can hold <code>len</code> items.
 	 */
 	public static DoubleBuffer allocDirectDoubleBuffer(int len)
 	{
 		ByteBuffer b = ByteBuffer.allocateDirect(len*SIZEOF_DOUBLE);
 		b.order(ByteOrder.nativeOrder());
 		return b.asDoubleBuffer();
+	}
+
+	/**
+	 * Allocates a DIRECT ByteBuffer using byte array data.
+	 * Useful for native wrappers that require direct ByteBuffers.
+	 * @param b	the byte array to wrap. 
+	 * @return a direct buffer that holds <code>len</code> items.
+	 */
+	public static ByteBuffer wrapDirectBuffer(byte[] b)
+	{
+		ByteBuffer buf = allocDirectByteBuffer(b.length);
+		buf.put(b);
+		buf.flip();
+		return buf;
+	}
+
+	/**
+	 * Allocates a DIRECT ShortBuffer using short array data.
+	 * Useful for native wrappers that require direct ShortBuffers.
+	 * @param s	the short array to wrap. 
+	 * @return a direct buffer that holds <code>len</code> items.
+	 */
+	public static ShortBuffer wrapDirectBuffer(short[] s)
+	{
+		ShortBuffer buf = allocDirectShortBuffer(s.length);
+		buf.put(s);
+		buf.flip();
+		return buf;
+	}
+
+	/**
+	 * Allocates a DIRECT IntBuffer using int array data.
+	 * Useful for native wrappers that require direct IntBuffers.
+	 * @param i	the int array to wrap. 
+	 * @return a direct buffer that holds <code>len</code> items.
+	 */
+	public static IntBuffer wrapDirectBuffer(int[] i)
+	{
+		IntBuffer buf = allocDirectIntBuffer(i.length);
+		buf.put(i);
+		buf.flip();
+		return buf;
+	}
+
+	/**
+	 * Allocates a DIRECT FloatBuffer using float array data.
+	 * Useful for native wrappers that require direct FloatBuffers.
+	 * @param f	the float array to wrap. 
+	 * @return a direct buffer that holds <code>len</code> items.
+	 */
+	public static FloatBuffer wrapDirectBuffer(float[] f)
+	{
+		FloatBuffer buf = allocDirectFloatBuffer(f.length);
+		buf.put(f);
+		buf.flip();
+		return buf;
+	}
+
+	/**
+	 * Allocates a DIRECT LongBuffer using long array data.
+	 * Useful for native wrappers that require direct LongBuffers.
+	 * @param l	the long array to wrap. 
+	 * @return a direct buffer that holds <code>len</code> items.
+	 */
+	public static LongBuffer wrapDirectBuffer(long[] l)
+	{
+		LongBuffer buf = allocDirectLongBuffer(l.length);
+		buf.put(l);
+		buf.flip();
+		return buf;
+	}
+
+	/**
+	 * Allocates a DIRECT DoubleBuffer using double array data.
+	 * Useful for native wrappers that require direct DoubleBuffers.
+	 * @param d	the double array to wrap. 
+	 * @return a direct buffer that holds <code>len</code> items.
+	 */
+	public static DoubleBuffer wrapDirectBuffer(double[] d)
+	{
+		DoubleBuffer buf = allocDirectDoubleBuffer(d.length);
+		buf.put(d);
+		buf.flip();
+		return buf;
 	}
 
 	/**

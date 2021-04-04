@@ -33,13 +33,7 @@ public class OGLBuffer extends OGLObject
 	 */
 	OGLBuffer()
 	{
-		super();
-	}
-	
-	@Override
-	protected int allocate()
-	{
-		return glGenBuffers();
+		setName(glGenBuffers());
 	}
 	
 	@Override

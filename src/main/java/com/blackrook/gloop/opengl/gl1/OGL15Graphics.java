@@ -150,7 +150,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, elements * dataType.size, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -166,7 +166,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -182,7 +182,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -198,7 +198,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -214,7 +214,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -230,7 +230,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -246,7 +246,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferData(type.glValue, data, cachingHint.glValue);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -262,7 +262,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -278,7 +278,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -294,7 +294,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -310,7 +310,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -326,7 +326,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -342,7 +342,7 @@ public class OGL15Graphics extends OGL14Graphics
 		clearError();
 		checkFeatureVersion(type);
 		glBufferSubData(type.glValue, offset, data);
-		getError();
+		checkError();
 	}
 
 	/**

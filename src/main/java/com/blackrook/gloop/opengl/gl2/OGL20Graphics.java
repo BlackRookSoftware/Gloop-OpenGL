@@ -10,7 +10,7 @@ package com.blackrook.gloop.opengl.gl2;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
-import com.blackrook.gloop.opengl.enums.ShaderProgramType;
+import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
 
@@ -25,6 +25,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.Charset;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.lwjgl.system.MemoryStack;
 
@@ -47,13 +48,13 @@ public class OGL20Graphics extends OGL15Graphics
 		}
 	}
 	
-	/** Current shader. */
-	private OGLShader currentShader;
+	/** Current program. */
+	private OGLProgram currentProgram;
 
 	public OGL20Graphics(boolean core)
 	{
 		super(core);
-		this.currentShader = null;
+		this.currentProgram = null;
 	}
 	
 	@Override
@@ -72,8 +73,8 @@ public class OGL20Graphics extends OGL15Graphics
 	protected void endFrame()
 	{
 	    // Clean up abandoned objects.
-	    OGLShader.destroyUndeleted();
-	    OGLShaderProgram.destroyUndeleted();
+	    OGLProgram.destroyUndeleted();
+	    OGLProgramShader.destroyUndeleted();
 	    super.endFrame();
 	}
 
@@ -101,7 +102,7 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Creates a new shader program object (vertex, fragment, etc.).
+	 * Creates a new shader object (vertex, fragment, etc.).
 	 * @param type the program type. if not a valid program type, this throws an exception.
 	 * @param file the source file to read for compiling.
 	 * @return the instantiated program.
@@ -109,159 +110,216 @@ public class OGL20Graphics extends OGL15Graphics
 	 * @throws IOException if the source of the source code can't be read.
 	 * @throws FileNotFoundException if the source file does not exist.
 	 */
-	public OGLShaderProgram createShaderProgram(ShaderProgramType type, File file) throws IOException
+	public OGLProgramShader createProgramShader(ShaderType type, File file) throws IOException
 	{
+		checkFeatureVersion(type);
+		Objects.requireNonNull(file);
 		try (FileInputStream fis = new FileInputStream(file))
 		{
-			return createShaderProgram(type, file.getPath(), new InputStreamReader(fis));
+			return createProgramShader(type, file.getPath(), new InputStreamReader(fis));
 		}
 	}
 	
 	/**
-	 * Creates a new shader program object (vertex, fragment, etc.).
-	 * @param type the program type. if not a valid program type, this throws an exception.
+	 * Creates a new shader object (vertex, fragment, etc.).
+	 * @param type the shader type. if not a valid shader type, this throws an exception.
 	 * @param streamName the name of the stream (can appear in exceptions).
 	 * @param in the stream to read the source from, assuming platform encoding.
-	 * @return the instantiated program.
+	 * @return the instantiated shader.
 	 * @throws NullPointerException if type, streamName, or in is null.
 	 * @throws IOException if the source of the source code can't be read.
 	 * @throws FileNotFoundException if the source file does not exist.
 	 */
-	public OGLShaderProgram createShaderProgram(ShaderProgramType type, String streamName, InputStream in) throws IOException
+	public OGLProgramShader createProgramShader(ShaderType type, String streamName, InputStream in) throws IOException
 	{
-		return createShaderProgram(type, streamName, new InputStreamReader(in));
+		checkFeatureVersion(type);
+		return createProgramShader(type, streamName, in, Charset.defaultCharset());
 	}
 	
 	/**
-	 * Creates a new shader program object (vertex, fragment, etc.).
-	 * @param type the program type. if not a valid program type, this throws an exception.
+	 * Creates a new shader object (vertex, fragment, etc.).
+	 * @param type the shader type. if not a valid shader type, this throws an exception.
 	 * @param streamName the name of the stream (can appear in exceptions).
 	 * @param in the stream to read the source from, assuming platform encoding.
 	 * @param charset the encoding charset for the input stream.
-	 * @return the instantiated program.
+	 * @return the instantiated shader.
 	 * @throws NullPointerException if type, streamName, or in is null.
 	 * @throws IOException if the source of the source code can't be read.
 	 * @throws FileNotFoundException if the source file does not exist.
 	 */
-	public OGLShaderProgram createShaderProgram(ShaderProgramType type, String streamName, InputStream in, Charset charset) throws IOException
+	public OGLProgramShader createProgramShader(ShaderType type, String streamName, InputStream in, Charset charset) throws IOException
 	{
-		return createShaderProgram(type, streamName, new InputStreamReader(in, charset));
+		checkFeatureVersion(type);
+		Objects.requireNonNull(in);
+		Objects.requireNonNull(charset);
+		return createProgramShader(type, streamName, new InputStreamReader(in, charset));
 	}
 	
 	/**
-	 * Creates a new shader program object (vertex, fragment, etc.).
-	 * @param type the program type. if not a valid program type, this throws an exception.
+	 * Creates a new shader object (vertex, fragment, etc.).
+	 * @param type the shader type. if not a valid shader type, this throws an exception.
 	 * @param streamName the name of the stream (can appear in exceptions).
 	 * @param reader the reader to read the source from.
-	 * @return the instantiated program.
+	 * @return the instantiated shader.
 	 * @throws NullPointerException if type, streamName, or reader is null.
 	 * @throws IOException if the source of the source code can't be read.
 	 * @throws FileNotFoundException if the source file does not exist.
 	 */
-	public OGLShaderProgram createShaderProgram(ShaderProgramType type, String streamName, Reader reader) throws IOException
+	public OGLProgramShader createProgramShader(ShaderType type, String streamName, Reader reader) throws IOException
 	{
+		checkFeatureVersion(type);
+		Objects.requireNonNull(reader);
+
+		int c = 0;
 		char[] cbuf = new char[4096];
 		StringBuilder sb = new StringBuilder();
-		int c = 0;
 		while ((c = reader.read(cbuf)) > 0)
 			sb.append(cbuf, 0, c);
-		return createShaderProgram(type, streamName, sb.toString());
+		
+		return createProgramShader(type, streamName, sb.toString());
 	}
 	
 	/**
-	 * Creates a new shader program object (vertex, fragment, etc.).
-	 * @param type the program type. if not a valid program type, this throws an exception.
+	 * Creates a new shader object (vertex, fragment, etc.).
+	 * @param type the shader type. if not a valid shader type, this throws an exception.
 	 * @param streamName the name of the originating stream (can appear in exceptions).
-	 * @param sourceCode the code to compile.
-	 * @return the instantiated program.
-	 * @throws NullPointerException if file is null.
-	 * @throws IOException if the source of the source code can't be read.
-	 * @throws FileNotFoundException if the source file does not exist.
+	 * @param sourceSupplier the supplier function for the source code.
+	 * @return the instantiated shader.
+	 * @throws NullPointerException if string is null.
 	 */
-	public OGLShaderProgram createShaderProgram(ShaderProgramType type, String streamName, String sourceCode) throws IOException
+	public OGLProgramShader createProgramShader(ShaderType type, String streamName, Supplier<String> sourceSupplier)
 	{
 		checkFeatureVersion(type);
-		return new OGLShaderProgram(type, streamName, sourceCode);
+		Objects.requireNonNull(sourceSupplier);
+		return new OGLProgramShader(type, streamName, sourceSupplier.get());
 	}
 
 	/**
-	 * Creates a new shader object.
-	 * @param programs the programs to attach.
-	 * @return a new, linked shader object.
+	 * Creates a new shader object (vertex, fragment, etc.).
+	 * @param type the shader type. if not a valid shader type, this throws an exception.
+	 * @param streamName the name of the originating stream (can appear in exceptions).
+	 * @param sourceCode the code to compile.
+	 * @return the instantiated shader.
+	 * @throws NullPointerException if string is null.
+	 */
+	public OGLProgramShader createProgramShader(ShaderType type, String streamName, String sourceCode)
+	{
+		checkFeatureVersion(type);
+		Objects.requireNonNull(type);
+		Objects.requireNonNull(streamName);
+		Objects.requireNonNull(sourceCode);
+		return new OGLProgramShader(type, streamName, sourceCode);
+	}
+
+	/**
+	 * Creates a new program object.
+	 * @param shaders the programs to attach.
+	 * @return a new program object with attached shaders.
 	 * @throws GraphicsException if the object could not be created, or compilation/linking failed.
 	 */
-	public OGLShader createShader(OGLShaderProgram ... programs)
+	public OGLProgram createProgram(OGLProgramShader ... shaders)
 	{
-		return new OGLShader(programs);
+		OGLProgram out = new OGLProgram(shaders); 
+		checkError();
+		return out;
 	}
 	
 	/**
-	 * Gets the currently bound shader. 
+	 * Binds a specific index to a vertex attribute by name.
+	 * Must be done before program link.
+	 * @param program the program.
+	 * @param attribName the vertex attribute name in the shader.
+	 * @param index the desired index.
+	 * @throws GraphicsException if the program shader has been linked already.
+	 */
+	public void setProgramVertexAttribLocation(OGLProgram program, String attribName, int index)
+	{
+		if (program.isLinked())
+			throw new GraphicsException("Target program has already been linked!");
+		glBindAttribLocation(program.getName(), index, attribName);
+		checkError();
+	}
+	
+	/**
+	 * Links the program with its attached program shaders.
+	 * @param program the program to link.
+	 * @throws GraphicsException if an error occurred during link.
+	 */
+	public void linkProgram(OGLProgram program)
+	{
+		program.link();
+		checkError();
+	}
+	
+	/**
+	 * Gets the currently bound program. 
 	 * @return the texture, or null if no bound texture.
 	 */
-	public OGLShader getShader()
+	public OGLProgram getProgram()
 	{
-		return currentShader;
+		return currentProgram;
 	}
-	
+
 	/**
-	 * Binds a shader to the current context.
-	 * @param shader the texture to bind.
+	 * Binds a program to the current context.
+	 * @param program the program to bind.
 	 */
-	public void setShader(OGLShader shader)
+	public void setProgram(OGLProgram program)
 	{
-		Objects.requireNonNull(shader);
-		glUseProgram(shader.getName());
-		currentShader = shader;
+		Objects.requireNonNull(program);
+		if (!program.isLinked())
+			throw new GraphicsException("Program has not been successfully linked yet!");
+		glUseProgram(program.getName());
+		currentProgram = program;
 	}
-	
+
 	/**
-	 * Sets a uniform integer value on the currently-bound shader.
+	 * Sets a uniform integer value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value the value to set.
 	 */
-	public void setShaderUniformInt(int locationId, int value)
+	public void setProgramUniformInt(int locationId, int value)
 	{
 		glUniform1i(locationId, value);
 	}
 	
 	/**
-	 * Sets a uniform integer value array on the currently-bound shader.
+	 * Sets a uniform integer value array on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param values the values to set.
 	 */
-	public void setShaderUniformIntArray(int locationId, int ... values)
+	public void setProgramUniformIntArray(int locationId, int ... values)
 	{
 		glUniform1iv(locationId, values);
 	}
 	
 	/**
-	 * Sets a uniform float value on the currently-bound shader.
+	 * Sets a uniform float value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value the value to set.
 	 */
-	public void setShaderUniformFloat(int locationId, float value)
+	public void setProgramUniformFloat(int locationId, float value)
 	{
 		glUniform1f(locationId, value);
 	}
 	
 	/**
-	 * Sets a uniform float array value on the currently-bound shader.
+	 * Sets a uniform float array value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param values the values to set.
 	 */
-	public void setShaderUniformFloatArray(int locationId, float ... values)
+	public void setProgramUniformFloatArray(int locationId, float ... values)
 	{
 		glUniform1fv(locationId, values);
 	}
 	
 	/**
-	 * Sets a uniform vec2 value on the currently-bound shader.
+	 * Sets a uniform vec2 value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
 	 */
-	public void setShaderUniformVec2(int locationId, float value0, float value1)
+	public void setProgramUniformVec2(int locationId, float value0, float value1)
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -273,13 +331,13 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Sets a uniform vec3 value on the currently-bound shader.
+	 * Sets a uniform vec3 value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
 	 * @param value2 the third value to set.
 	 */
-	public void setShaderUniformVec3(int locationId, float value0, float value1, float value2)
+	public void setProgramUniformVec3(int locationId, float value0, float value1, float value2)
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -292,14 +350,14 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Sets a uniform vec4 value on the currently-bound shader.
+	 * Sets a uniform vec4 value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
 	 * @param value2 the third value to set.
 	 * @param value3 the fourth value to set.
 	 */
-	public void setShaderUniformVec4(int locationId, float value0, float value1, float value2, float value3)
+	public void setProgramUniformVec4(int locationId, float value0, float value1, float value2, float value3)
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -313,12 +371,12 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 	
 	/**
-	 * Sets a uniform integer vec2 value on the currently-bound shader.
+	 * Sets a uniform integer vec2 value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
 	 */
-	public void setShaderUniformIVec2(int locationId, int value0, int value1)
+	public void setProgramUniformIVec2(int locationId, int value0, int value1)
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -330,13 +388,13 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Sets a uniform integer vec3 value on the currently-bound shader.
+	 * Sets a uniform integer vec3 value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
 	 * @param value2 the third value to set.
 	 */
-	public void setShaderUniformIVec3(int locationId, int value0, int value1, int value2)
+	public void setProgramUniformIVec3(int locationId, int value0, int value1, int value2)
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -349,14 +407,14 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Sets a uniform integer vec4 value on the currently-bound shader.
+	 * Sets a uniform integer vec4 value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param value0 the first value to set.
 	 * @param value1 the second value to set.
 	 * @param value2 the third value to set.
 	 * @param value3 the fourth value to set.
 	 */
-	public void setShaderUniformIVec4(int locationId, int value0, int value1, int value2, int value3)
+	public void setProgramUniformIVec4(int locationId, int value0, int value1, int value2, int value3)
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -370,12 +428,12 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Sets a uniform matrix (mat2) value on the currently-bound shader.
+	 * Sets a uniform matrix (mat2) value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 2x2 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix2(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix2(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -390,12 +448,12 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Sets a uniform matrix (mat3) value on the currently-bound shader.
+	 * Sets a uniform matrix (mat3) value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 3x3 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix3(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix3(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -415,12 +473,12 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Sets a uniform matrix (mat4) value on the currently-bound shader.
+	 * Sets a uniform matrix (mat4) value on the currently-bound program.
 	 * @param locationId the uniform location.
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 4x4 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix4(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix4(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -447,12 +505,12 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Unbinds a shader from the current context.
+	 * Unbinds a program from the current context.
 	 */
-	public void unsetShader()
+	public void unsetProgram()
 	{
 		glUseProgram(0);
-		currentShader = null;
+		currentProgram = null;
 	}
 
 	/**
@@ -460,12 +518,13 @@ public class OGL20Graphics extends OGL15Graphics
 	 * @param index the attribute index or uniform location id.
 	 * @param enable true to enable, false to disable.
 	 */
-	public void setVertexAttribArrayEnabled(int index, boolean enable)
+	public void setVertexAttribEnabled(int index, boolean enable)
 	{
 		if (enable)
 			glEnableVertexAttribArray(index);
 		else
 			glDisableVertexAttribArray(index);
+		checkError();
 	}
 
 	/**
@@ -475,15 +534,15 @@ public class OGL20Graphics extends OGL15Graphics
 	 * @param index the attribute index.
 	 * @param dataType the data type contained in the buffer that will be read (calculates actual sizes of data).
 	 * @param normalize if true, the data is normalized on read ([-1, 1] for signed values, [0, 1] for unsigned). Else, read as-is.
-	 * @param width the width of a full set of attribute components (in elements; 3-dimensional vertices = 3).
-	 * @param stride the distance (in elements) between each attribute.    
+	 * @param dimensions the dimensions of a full set of attribute components (in elements; 3-dimensional vertices = 3).
+	 * @param stride the distance (in elements) between each attribute.
 	 * @param offset the offset in each stride where each attribute starts (in elements).  
-	 * @see #setVertexAttribArrayEnabled(int, boolean)   
+	 * @see #setVertexAttribEnabled(int, boolean)   
 	 */
-	public void setVertexAttribArrayPointer(int index, DataType dataType, boolean normalize, int width, int stride, int offset)
+	public void setVertexAttribBufferPointer(int index, DataType dataType, boolean normalize, int dimensions, int stride, int offset)
 	{
-		glVertexAttribPointer(index, width, dataType.glValue, normalize, stride * dataType.size, offset * dataType.size);
-		getError();
+		glVertexAttribPointer(index, dimensions, dataType.glValue, normalize, stride * dataType.size, offset * dataType.size);
+		checkError();
 	}
 	
 }

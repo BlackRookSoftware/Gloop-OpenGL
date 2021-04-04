@@ -34,13 +34,7 @@ public class OGLVertexArrayState extends OGLObject
 	 */
 	OGLVertexArrayState()
 	{
-		super();
-	}
-
-	@Override
-	protected int allocate()
-	{
-		return glGenVertexArrays();
+		setName(glGenVertexArrays());
 	}
 
 	@Override

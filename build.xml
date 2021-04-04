@@ -52,6 +52,12 @@
 		<maven-jar-javadoc-dl group-path="org/lwjgl" artifact="lwjgl" version="${lwjgl.lib.version}" />
 	</target>
 
+	<target name="dependency.lwjglx.debug">
+		<get retries="3" src="https://build.lwjgl.org/addons/lwjglx-debug/lwjglx-debug-1.0.0.jar" dest="${dependencies.dir}/lwjglx-debug-1.0.0.jar"/>
+		<get retries="3" src="https://build.lwjgl.org/addons/lwjglx-debug/lwjglx-debug-1.0.0-sources.jar" dest="${dependencies.dir}/lwjglx-debug-1.0.0-sources.jar"/>
+		<get retries="3" src="https://build.lwjgl.org/addons/lwjglx-debug/lwjglx-debug-1.0.0-javadoc.jar" dest="${dependencies.dir}/lwjglx-debug-1.0.0-javadoc.jar"/>
+	</target>
+
 	<target name="dependency.lwjgl.glfw">
 		<maven-jar-dl group-path="org/lwjgl" artifact="lwjgl-glfw" version="${lwjgl.lib.version}" />
 		<maven-jar-dl group-path="org/lwjgl" artifact="lwjgl-glfw" version="${lwjgl.lib.version}" extension="-natives-windows" />
@@ -81,7 +87,7 @@
 		<github-dl repository="BlackRookSoftware/Gloop-GLFW" tag="${gloop.glfw.tag}" file="${gloop.glfw.jar.src}" dest="${dependencies.dir}" />	
 	</target>
 
-	<target name="dependencies" depends="init.dependencies, dependency.lwjgl, dependency.lwjgl.glfw, dependency.lwjgl.opengl, dependency.gloop.glfw, dependency.properties" description="Downloads and compiles the dependencies.">
+	<target name="dependencies" depends="init.dependencies, dependency.lwjgl, dependency.lwjglx.debug, dependency.lwjgl.glfw, dependency.lwjgl.opengl, dependency.gloop.glfw, dependency.properties" description="Downloads and compiles the dependencies.">
 	</target>
 		
 	<target name="javadoc" depends="init.docs" description="Builds the documentation.">

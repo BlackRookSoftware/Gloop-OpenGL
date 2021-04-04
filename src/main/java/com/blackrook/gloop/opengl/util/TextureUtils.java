@@ -5,8 +5,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 
-import com.blackrook.gloop.opengl.struct.BufferUtils;
-
 /**
  * Texture utility class.
  * <p> 

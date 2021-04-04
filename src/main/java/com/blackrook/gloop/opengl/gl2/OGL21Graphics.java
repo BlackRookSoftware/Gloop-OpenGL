@@ -38,7 +38,7 @@ public class OGL21Graphics extends OGL20Graphics
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 2x3 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix2x3(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix2x3(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -60,7 +60,7 @@ public class OGL21Graphics extends OGL20Graphics
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 2x4 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix2x4(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix2x4(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -84,7 +84,7 @@ public class OGL21Graphics extends OGL20Graphics
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 3x2 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix3x2(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix3x2(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -106,7 +106,7 @@ public class OGL21Graphics extends OGL20Graphics
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 3x4 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix3x4(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix3x4(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -134,7 +134,7 @@ public class OGL21Graphics extends OGL20Graphics
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 4x2 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix4x2(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix4x2(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())
@@ -158,7 +158,7 @@ public class OGL21Graphics extends OGL20Graphics
 	 * @param matrix the multidimensional array of values, each array as one row of values.
 	 * @throws ArrayIndexOutOfBoundsException if matrix is not 4x3 or greater and a value is fetched out-of-bounds.
 	 */
-	public void setShaderUniformMatrix4x3(int locationId, float[][] matrix)
+	public void setProgramUniformMatrix4x3(int locationId, float[][] matrix)
 	{
 		// Fill in column major order!
 		try (MemoryStack stack = MemoryStack.stackPush())

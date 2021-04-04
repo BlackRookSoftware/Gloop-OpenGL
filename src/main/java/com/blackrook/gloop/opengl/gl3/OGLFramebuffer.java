@@ -34,13 +34,7 @@ public class OGLFramebuffer extends OGLObject
 	 */
 	OGLFramebuffer()
 	{
-		super();
-	}
-
-	@Override
-	protected int allocate()
-	{
-		return glGenFramebuffers();
+		setName(glGenFramebuffers());
 	}
 
 	@Override

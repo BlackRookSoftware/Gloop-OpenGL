@@ -33,13 +33,7 @@ public class OGLRenderbuffer extends OGLObject
 	 */
 	OGLRenderbuffer()
 	{
-		super();
-	}
-
-	@Override
-	protected int allocate()
-	{
-		return glGenRenderbuffers();
+		setName(glGenRenderbuffers());
 	}
 
 	@Override

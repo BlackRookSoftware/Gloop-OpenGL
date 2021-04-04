@@ -38,7 +38,7 @@ public class OGLTexture extends OGLObject
 	 */
 	OGLTexture()
 	{
-		super();
+		setName(glGenTextures());
 		this.usedtarget = null;
 	}
 	
@@ -62,12 +62,6 @@ public class OGLTexture extends OGLObject
 	public TextureTargetType getUsedtarget()
 	{
 		return usedtarget;
-	}
-	
-	@Override
-	protected int allocate()
-	{
-		return glGenTextures();
 	}
 	
 	@Override

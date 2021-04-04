@@ -98,7 +98,7 @@ public class OGL12Graphics extends OGL11Graphics
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class OGL12Graphics extends OGL11Graphics
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class OGL12Graphics extends OGL11Graphics
 	public void drawGeometryElementRange(GeometryType geometryType, DataType dataType, int startIndex, int endIndex, int count)
 	{
 		glDrawRangeElements(geometryType.glValue, startIndex, endIndex, count, dataType.glValue, 0L);
-		getError();
+		checkError();
 	}
 	
 	

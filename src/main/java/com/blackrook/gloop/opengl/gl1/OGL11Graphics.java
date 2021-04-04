@@ -13,7 +13,6 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -74,9 +73,15 @@ public class OGL11Graphics extends OGLGraphics
 			this.version = glGetString(GL_VERSION);
 			this.renderer = glGetString(GL_RENDERER);
 
-			Set<String> set = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-			set.addAll(Arrays.asList(glGetString(GL_EXTENSIONS).split("\\s+")));
-			this.extensions = set;
+			this.extensions = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+			
+			// Attempt old way of getting extensions. If not good, a later version will fill it.
+			String extlist;
+			if ((extlist = glGetString(GL_EXTENSIONS)) != null)
+			{
+				extensions.addAll(Arrays.asList(extlist.split("\\s+")));
+				refreshExtensions();
+			}
 
 			String rend = new String(renderer.toLowerCase());
 			this.isNVidia = rend.contains("nvidia");
@@ -86,6 +91,23 @@ public class OGL11Graphics extends OGLGraphics
 			this.isMatrox = rend.contains("matrox");
 			this.isIntel = rend.contains("intel");
 			
+			this.maxLights = getInt(GL_MAX_LIGHTS);
+			this.maxTextureSize = getInt(GL_MAX_TEXTURE_SIZE);
+
+			float[] FLOAT_STATE = new float[2];
+			getFloats(GL_POINT_SIZE_RANGE, FLOAT_STATE);
+			this.minPointSize = FLOAT_STATE[0];
+			this.maxPointSize = FLOAT_STATE[1];
+			getFloats(GL_LINE_WIDTH_RANGE, FLOAT_STATE);
+			this.minLineWidth = FLOAT_STATE[0];
+			this.maxLineWidth = FLOAT_STATE[1];
+		}
+		
+		/**
+		 * Refreshes the extension-based fields.
+		 */
+		protected void refreshExtensions()
+		{
 			this.occlusionQueryExtensionPresent = extensionIsPresent("gl_arb_occlusion_query");
 			this.vertexShaderExtensionPresent = extensionIsPresent("gl_arb_vertex_program");
 			this.fragmentShaderExtensionPresent = extensionIsPresent("gl_arb_fragment_program");
@@ -102,21 +124,10 @@ public class OGL11Graphics extends OGLGraphics
 				extensionIsPresent("GL_texture_rectangle_arb");
 			this.pointSmoothingPresent = extensionIsPresent("gl_arb_point_smooth");
 			this.pointSpritesPresent = extensionIsPresent("gl_arb_point_sprite");
-			this.textureAnisotropyPresent = extensionIsPresent("ext_texture_filter_anisotropic");
-
-			this.maxLights = getInt(GL_MAX_LIGHTS);
-			this.maxTextureSize = getInt(GL_MAX_TEXTURE_SIZE);
-
-			float[] FLOAT_STATE = new float[2];
-			getFloats(GL_POINT_SIZE_RANGE, FLOAT_STATE);
-			this.minPointSize = FLOAT_STATE[0];
-			this.maxPointSize = FLOAT_STATE[1];
-			getFloats(GL_LINE_WIDTH_RANGE, FLOAT_STATE);
-			this.minLineWidth = FLOAT_STATE[0];
-			this.maxLineWidth = FLOAT_STATE[1];
+			this.textureAnisotropyPresent = extensionIsPresent("gl_ext_texture_filter_anisotropic");
 
 			if (textureAnisotropyPresent)
-				this.maxTextureAnisotropy = getFloat(0x084FF);
+				this.maxTextureAnisotropy = getFloat(0x084FF);			
 		}
 		
 	}
@@ -210,6 +221,258 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Sets the current matrix for matrix operations.
+	 * Note that other commands may change this mode automatically.
+	 * @param mode the matrix mode to set.
+	 */
+	public void matrixMode(MatrixMode mode)
+	{
+		checkNonCore();
+		glMatrixMode(mode.glValue);
+	}
+
+	/**
+	 * Loads the identity matrix into the current selected matrix.
+	 */
+	public void matrixReset()
+	{
+		checkNonCore();
+		glLoadIdentity();
+	}
+
+	/**
+	 * Pushes a copy of the current matrix onto the current selected stack.
+	 */
+	public void matrixPush()
+	{
+		checkNonCore();
+		glPushMatrix();
+	}
+
+	/**
+	 * Pops the current matrix off of the current selected stack.
+	 */
+	public void matrixPop()
+	{
+		checkNonCore();
+		glPopMatrix();
+	}
+
+	/**
+	 * Reads a current matrix into an array.
+	 * @param matrixType the type of matrix to load.
+	 * @param outArray the output array. Must be length 16 or greater.
+	 */
+	public void matrixGet(MatrixMode matrixType, float[] outArray)
+	{
+		checkNonCore();
+		glGetFloatv(matrixType.glReadValue, outArray);
+	}
+
+	/**
+	 * Reads a current matrix into a matrix.
+	 * @param matrixType the type of matrix to load.
+	 * @param matrix the output matrix.
+	 */
+	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
+	{
+		checkNonCore();
+		glGetFloatv(matrixType.glReadValue, matrix.getArray());
+	}
+
+	/**
+	 * Loads a matrix's contents from a column-major array into the current selected matrix.
+	 * @param matrixArray the column-major cells of a matrix.
+	 */
+	public void matrixSet(float[] matrixArray)
+	{
+		checkNonCore();
+		if (matrixArray.length < 16)
+			throw new GraphicsException("The array is less than 16 components.");
+		glLoadMatrixf(matrixArray);
+	}
+
+	/**
+	 * Loads a matrix's contents into the current selected matrix.
+	 * @param matrix the matrix to read from.
+	 */
+	public void matrixSet(Matrix4F matrix)
+	{
+		matrixSet(matrix.getArray());
+	}
+
+	/**
+	 * Multiplies a matrix into the current selected matrix from a column-major array into.
+	 * @param matrixArray the column-major cells of a matrix.
+	 */
+	public void matrixMultiply(float[] matrixArray)
+	{
+		checkNonCore();
+		if (matrixArray.length < 16)
+			throw new GraphicsException("The array is less than 16 components.");
+		glMultMatrixf(matrixArray);
+	}
+
+	/**
+	 * Multiplies a matrix into the current selected matrix.
+	 * @param matrix the matrix to read from.
+	 */
+	public void matrixMultiply(Matrix4F matrix)
+	{
+		matrixMultiply(matrix.getArray());
+	}
+
+	/**
+	 * Translates the current matrix by a set of units.
+	 * This is applied via multiplication with the current matrix.
+	 * @param x the x-axis translation.
+	 * @param y the y-axis translation.
+	 * @param z the z-axis translation.
+	 */
+	public void matrixTranslate(float x, float y, float z)
+	{
+		checkNonCore();
+		glTranslatef(x, y, z);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the X-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateX(float degrees)
+	{
+		checkNonCore();
+		glRotatef(degrees, 1, 0, 0);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the Y-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateY(float degrees)
+	{
+		checkNonCore();
+		glRotatef(degrees, 0, 1, 0);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the Z-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateZ(float degrees)
+	{
+		checkNonCore();
+		glRotatef(degrees, 0, 0, 1);
+	}
+
+	/**
+	 * Scales the current matrix by a set of scalars that 
+	 * correspond to each axis.
+	 * This is applied via multiplication with the current matrix.
+	 * @param x the x-axis scalar.
+	 * @param y the y-axis scalar.
+	 * @param z the z-axis scalar.
+	 */
+	public void matrixScale(float x, float y, float z)
+	{
+		checkNonCore();
+		glScalef(x, y, z);
+	}
+
+	/**
+	 * Multiplies the current matrix by a symmetric perspective projection matrix.
+	 * @param fov front of view angle in degrees.
+	 * @param aspect the aspect ratio, usually view width over view height.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>fov == 0 || aspect == 0 || near == far</code>.
+	 */
+	public void matrixPerspective(float fov, float aspect, float near, float far)
+	{
+		Matrix4F matrix = MATRIX.get();
+		matrix.setPerspective(fov, aspect, near, far);
+		matrixMultiply(matrix);
+		checkError();
+	}
+
+	/**
+	 * Multiplies the current matrix by a frustum projection matrix.
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
+	{
+		checkNonCore();
+		glFrustum(left, right, bottom, top, near, far);
+		checkError();
+	}
+
+	/**
+	 * Multiplies the current matrix by an orthographic projection matrix.
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
+	{
+		checkNonCore();
+		glOrtho(left, right, bottom, top, near, far);
+		checkError();
+	}
+
+	/**
+	 * Multiplies the current matrix by an aspect-adjusted orthographic projection matrix using the canvas dimensions.
+	 * @param targetAspect the target orthographic 
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixAspectOrtho(float targetAspect, float left, float right, float bottom, float top, float near, float far)
+	{
+		Matrix4F matrix = MATRIX.get();
+		matrix.setAspectOrtho(targetAspect, left, right, bottom, top, near, far);
+		matrixMultiply(matrix);
+		checkError();
+	}
+
+	/**
+	 * Multiplies a "look at" matrix to the current matrix.
+	 * This sets up the matrix to look at a place in the world (if modelview).
+	 * @param eyeX the point to look at, X-coordinate.
+	 * @param eyeY the point to look at, Y-coordinate.
+	 * @param eyeZ the point to look at, Z-coordinate.
+	 * @param centerX the reference point to look from, X-coordinate.
+	 * @param centerY the reference point to look from, Y-coordinate.
+	 * @param centerZ the reference point to look from, Z-coordinate.
+	 * @param upX the up vector of the viewpoint, X-coordinate.
+	 * @param upY the up vector of the viewpoint, Y-coordinate.
+	 * @param upZ the up vector of the viewpoint, Z-coordinate.
+	 */
+	public void matrixLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
+	{
+		Matrix4F matrix = MATRIX.get();
+		matrix.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+		matrixMultiply(matrix);
+		checkError();
+	}
+
+	/**
 	 * Sets the current color used for drawing polygons and other geometry.
 	 * @param c the color to use.
 	 */
@@ -288,7 +551,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkLightId(sourceId);
 		setFlag(GL_LIGHT0 + sourceId, enable);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -323,11 +586,11 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkLightId(sourceId);
 		glLightf(GL_LIGHT0 + sourceId, GL_CONSTANT_ATTENUATION, constant);
-		getError();
+		checkError();
 		glLightf(GL_LIGHT0 + sourceId, GL_LINEAR_ATTENUATION, linear);
-		getError();
+		checkError();
 		glLightf(GL_LIGHT0 + sourceId, GL_QUADRATIC_ATTENUATION, quadratic);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -378,7 +641,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glLightfv(GL_LIGHT0 + sourceId, GL_AMBIENT, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -429,7 +692,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glLightfv(GL_LIGHT0 + sourceId, GL_DIFFUSE, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -480,7 +743,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glLightfv(GL_LIGHT0 + sourceId, GL_SPECULAR, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -504,7 +767,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, w);
 			glLightfv(GL_LIGHT0 + sourceId, GL_POSITION, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -581,7 +844,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glMaterialfv(faceside.glValue, GL_AMBIENT, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -629,7 +892,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glMaterialfv(faceside.glValue, GL_DIFFUSE, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -677,7 +940,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glMaterialfv(faceside.glValue, GL_SPECULAR, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -725,7 +988,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glMaterialfv(faceside.glValue, GL_EMISSION, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -839,7 +1102,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, alpha);
 			glFogfv(GL_FOG_COLOR, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -971,7 +1234,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, d);
 			glTexGenfv(coord.glValue, GL_EYE_PLANE, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -994,7 +1257,7 @@ public class OGL11Graphics extends OGLGraphics
 			fbuf.put(3, d);
 			glTexGenfv(coord.glValue, GL_OBJECT_PLANE, fbuf);
 		}
-		getError();
+		checkError();
 	}
 
 	/**
@@ -1122,7 +1385,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkNonCore();
 		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -1147,7 +1410,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkNonCore();
 		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -1172,7 +1435,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkNonCore();
 		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -1196,7 +1459,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkNonCore();
 		glNormalPointer(dataType.glValue, stride * dataType.size, offset * dataType.size);
-		getError();
+		checkError();
 	}
 	
 	/* ==================================================================== */
@@ -1225,243 +1488,6 @@ public class OGL11Graphics extends OGLGraphics
 	public void finish()
 	{
 		glFinish();
-	}
-
-	/**
-	 * Sets the current matrix for matrix operations.
-	 * Note that other commands may change this mode automatically.
-	 * @param mode the matrix mode to set.
-	 */
-	public void matrixMode(MatrixMode mode)
-	{
-		glMatrixMode(mode.glValue);
-	}
-
-	/**
-	 * Loads the identity matrix into the current selected matrix.
-	 */
-	public void matrixReset()
-	{
-		glLoadIdentity();
-	}
-
-	/**
-	 * Pushes a copy of the current matrix onto the current selected stack.
-	 */
-	public void matrixPush()
-	{
-		glPushMatrix();
-	}
-
-	/**
-	 * Pops the current matrix off of the current selected stack.
-	 */
-	public void matrixPop()
-	{
-		glPopMatrix();
-	}
-
-	/**
-	 * Reads a current matrix into an array.
-	 * @param matrixType the type of matrix to load.
-	 * @param outArray the output array. Must be length 16 or greater.
-	 */
-	public void matrixGet(MatrixMode matrixType, float[] outArray)
-	{
-		glGetFloatv(matrixType.glReadValue, outArray);
-	}
-
-	/**
-	 * Reads a current matrix into a matrix.
-	 * @param matrixType the type of matrix to load.
-	 * @param matrix the output matrix.
-	 */
-	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
-	{
-		glGetFloatv(matrixType.glReadValue, matrix.getArray());
-	}
-
-	/**
-	 * Loads a matrix's contents from a column-major array into the current selected matrix.
-	 * @param matrixArray the column-major cells of a matrix.
-	 */
-	public void matrixSet(float[] matrixArray)
-	{
-		if (matrixArray.length < 16)
-			throw new GraphicsException("The array is less than 16 components.");
-		glLoadMatrixf(matrixArray);
-	}
-
-	/**
-	 * Loads a matrix's contents into the current selected matrix.
-	 * @param matrix the matrix to read from.
-	 */
-	public void matrixSet(Matrix4F matrix)
-	{
-		matrixSet(matrix.getArray());
-	}
-
-	/**
-	 * Multiplies a matrix into the current selected matrix from a column-major array into.
-	 * @param matrixArray the column-major cells of a matrix.
-	 */
-	public void matrixMultiply(float[] matrixArray)
-	{
-		if (matrixArray.length < 16)
-			throw new GraphicsException("The array is less than 16 components.");
-		glMultMatrixf(matrixArray);
-	}
-
-	/**
-	 * Multiplies a matrix into the current selected matrix.
-	 * @param matrix the matrix to read from.
-	 */
-	public void matrixMultiply(Matrix4F matrix)
-	{
-		matrixMultiply(matrix.getArray());
-	}
-
-	/**
-	 * Translates the current matrix by a set of units.
-	 * This is applied via multiplication with the current matrix.
-	 * @param x the x-axis translation.
-	 * @param y the y-axis translation.
-	 * @param z the z-axis translation.
-	 */
-	public void matrixTranslate(float x, float y, float z)
-	{
-		glTranslatef(x, y, z);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the X-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateX(float degrees)
-	{
-		glRotatef(degrees, 1, 0, 0);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the Y-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateY(float degrees)
-	{
-		glRotatef(degrees, 0, 1, 0);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the Z-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateZ(float degrees)
-	{
-		glRotatef(degrees, 0, 0, 1);
-	}
-
-	/**
-	 * Scales the current matrix by a set of scalars that 
-	 * correspond to each axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param x the x-axis scalar.
-	 * @param y the y-axis scalar.
-	 * @param z the z-axis scalar.
-	 */
-	public void matrixScale(float x, float y, float z)
-	{
-		glScalef(x, y, z);
-	}
-
-	/**
-	 * Multiplies the current matrix by a symmetric perspective projection matrix.
-	 * @param fov front of view angle in degrees.
-	 * @param aspect the aspect ratio, usually view width over view height.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>fov == 0 || aspect == 0 || near == far</code>.
-	 */
-	public void matrixPerspective(float fov, float aspect, float near, float far)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setPerspective(fov, aspect, near, far);
-		matrixMultiply(matrix);
-		getError();
-	}
-
-	/**
-	 * Multiplies the current matrix by a frustum projection matrix.
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
-	{
-		glFrustum(left, right, bottom, top, near, far);
-		getError();
-	}
-
-	/**
-	 * Multiplies the current matrix by an orthographic projection matrix.
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
-	{
-		glOrtho(left, right, bottom, top, near, far);
-		getError();
-	}
-
-	/**
-	 * Multiplies the current matrix by an aspect-adjusted orthographic projection matrix using the canvas dimensions.
-	 * @param targetAspect the target orthographic 
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixAspectOrtho(float targetAspect, float left, float right, float bottom, float top, float near, float far)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setAspectOrtho(targetAspect, left, right, bottom, top, near, far);
-		matrixMultiply(matrix);
-		getError();
-	}
-
-	/**
-	 * Multiplies a "look at" matrix to the current matrix.
-	 * This sets up the matrix to look at a place in the world (if modelview).
-	 * @param eyeX the point to look at, X-coordinate.
-	 * @param eyeY the point to look at, Y-coordinate.
-	 * @param eyeZ the point to look at, Z-coordinate.
-	 * @param centerX the reference point to look from, X-coordinate.
-	 * @param centerY the reference point to look from, Y-coordinate.
-	 * @param centerZ the reference point to look from, Z-coordinate.
-	 * @param upX the up vector of the viewpoint, X-coordinate.
-	 * @param upY the up vector of the viewpoint, Y-coordinate.
-	 * @param upZ the up vector of the viewpoint, Z-coordinate.
-	 */
-	public void matrixLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
-		matrixMultiply(matrix);
-		getError();
 	}
 
 	/**
@@ -1999,7 +2025,7 @@ public class OGL11Graphics extends OGLGraphics
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -2039,7 +2065,7 @@ public class OGL11Graphics extends OGLGraphics
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -2071,7 +2097,7 @@ public class OGL11Graphics extends OGLGraphics
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -2107,7 +2133,7 @@ public class OGL11Graphics extends OGLGraphics
 			GL_UNSIGNED_BYTE,
 			imageData
 		);
-		getError();
+		checkError();
 	}
 
 	/**
@@ -2203,19 +2229,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param elementCount the number of elements to draw using bound buffers.
 	 * NOTE: an element is in terms of array elements, so if the bound buffers describe the coordinates of 4 vertices,
 	 * <code>elementCount</code> should be 4.
-	 * @see #setVertexArrayEnabled(boolean)
-	 * @see #setTextureCoordinateArrayEnabled(boolean)
-	 * @see #setNormalArrayEnabled(boolean)
-	 * @see #setColorArrayEnabled(boolean)
-	 * @see #setVertexArrayPointer(DataType, int, int, int)
-	 * @see #setTextureCoordinateArrayPointer(DataType, int, int, int)
-	 * @see #setNormalArrayPointer(DataType, int, int)
-	 * @see #setColorArrayPointer(DataType, int, int, int)
 	 */
 	public void drawGeometryArray(GeometryType geometryType, int offset, int elementCount)
 	{
 		glDrawArrays(geometryType.glValue, offset, elementCount);
-		getError();
+		checkError();
 	}
 	
 	/**
@@ -2225,19 +2243,11 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param dataType the data type of the indices in the {@link BufferTargetType#INDICES}-bound buffer (must be an unsigned type).
 	 * @param count the amount of element indices to interpret in the {@link BufferTargetType#INDICES}-bound buffer.
 	 * @param offset the starting offset in the index buffer (in elements).
-	 * @see #setVertexArrayEnabled(boolean)
-	 * @see #setTextureCoordinateArrayEnabled(boolean)
-	 * @see #setNormalArrayEnabled(boolean)
-	 * @see #setColorArrayEnabled(boolean)
-	 * @see #setVertexArrayPointer(DataType, int, int, int)
-	 * @see #setTextureCoordinateArrayPointer(DataType, int, int, int)
-	 * @see #setNormalArrayPointer(DataType, int, int)
-	 * @see #setColorArrayPointer(DataType, int, int, int)
 	 */
 	public void drawGeometryElements(GeometryType geometryType, DataType dataType, int count, int offset)
 	{
 		glDrawElements(geometryType.glValue, count, dataType.glValue, dataType.size * offset);
-		getError();
+		checkError();
 	}
 
 }

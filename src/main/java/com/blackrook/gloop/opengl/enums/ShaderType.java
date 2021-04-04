@@ -19,7 +19,7 @@ import com.blackrook.gloop.opengl.OGLVersioned;
  * Shader program type.
  * @author Matthew Tropiano
  */
-public enum ShaderProgramType implements OGLVersioned
+public enum ShaderType implements OGLVersioned
 {
 	/** Vertex shader program. */
 	VERTEX(OGLVersion.GL20, GL20.GL_VERTEX_SHADER),
@@ -37,7 +37,7 @@ public enum ShaderProgramType implements OGLVersioned
 	private final OGLVersion version;
 	public final int glValue;
 	
-	private ShaderProgramType(OGLVersion version, int glValue) 
+	private ShaderType(OGLVersion version, int glValue) 
 	{
 		this.version = version;
 		this.glValue = glValue;

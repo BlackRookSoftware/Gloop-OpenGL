@@ -80,7 +80,7 @@ public class OGL13Graphics extends OGL12Graphics
 			throw new GraphicsException("Unit cannot be greater than " + getInfo().getMaxTextureUnits());
 		
 		glActiveTexture(GL_TEXTURE0 + unit);
-		getError();
+		checkError();
 		currentActiveTexture = unit;
 	}
 

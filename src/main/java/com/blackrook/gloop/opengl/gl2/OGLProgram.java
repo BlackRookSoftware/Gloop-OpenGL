@@ -29,10 +29,10 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
 import static org.lwjgl.opengl.GL20.*;
 
 /**
- * The main shader program class.
+ * A linked-together shader program pipeline class.
  * @author Matthew Tropiano
  */
-public class OGLShader extends OGLObject
+public class OGLProgram extends OGLObject
 {
 	/** List of OpenGL object ids that were not deleted properly. */
 	protected static int[] UNDELETED_IDS;
@@ -167,17 +167,20 @@ public class OGLShader extends OGLObject
 	}
 	
 	/** Vertex program. */
-	private OGLShaderProgram vertexProgram;
+	private OGLProgramShader vertexProgram;
 	/** Tessellation control program. */
-	private OGLShaderProgram tessellationControlProgram;
+	private OGLProgramShader tessellationControlProgram;
 	/** Tessellation evaluation program. */
-	private OGLShaderProgram tessellationEvaluationProgram;
+	private OGLProgramShader tessellationEvaluationProgram;
 	/** Geometry program. */
-	private OGLShaderProgram geometryProgram;
+	private OGLProgramShader geometryProgram;
 	/** Fragment program. */
-	private OGLShaderProgram fragmentProgram;
+	private OGLProgramShader fragmentProgram;
 	
 	/* == After link == */
+	
+	/** Linked status of the shader. */
+	private boolean linked;
 	
 	/** The shader log. */
 	private String log;
@@ -197,9 +200,10 @@ public class OGLShader extends OGLObject
 	 * Each program can be null and is just left absent in the complete program.
 	 * @param programs the programs to attach.
 	 */
-	OGLShader(OGLShaderProgram ... programs)
+	OGLProgram(OGLProgramShader ... programs)
 	{
-		super();
+		setName(glCreateProgram());
+		
 		this.vertexProgram = null;
 		this.tessellationControlProgram = null;
 		this.tessellationEvaluationProgram = null;
@@ -207,7 +211,7 @@ public class OGLShader extends OGLObject
 		this.fragmentProgram = null;
 
 		// Get programs.
-		for (OGLShaderProgram program : programs)
+		for (OGLProgramShader program : programs)
 		{
 			if (program != null) switch (program.getType())
 			{
@@ -267,14 +271,6 @@ public class OGLShader extends OGLObject
 			glAttachShader(getName(), geometryProgram.getName());
 		if (fragmentProgram != null)
 			glAttachShader(getName(), fragmentProgram.getName());
-
-		// link programs.
-		glLinkProgram(getName());
-	    this.log = glGetProgramInfoLog(getName());
-	    if (glGetProgrami(getName(), GL_LINK_STATUS) == 0)
-	    	throw new GraphicsException("Failed to link together program " + getName() + ".\n"+log);
-		
-	    refreshUniformsAndAttribs();
 	}
 
 	// Gets the uniform data.
@@ -285,6 +281,8 @@ public class OGLShader extends OGLObject
 		
 		this.uniformLocationList = new Uniform[uniformCount];
 		this.uniformMap = new HashMap<String, Uniform>(uniformCount, 1.0f);
+		this.attributeLocationList = new Attribute[attribCount];
+		this.attributeMap = new HashMap<String, Attribute>(attribCount, 1.0f);
 		
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
@@ -308,7 +306,7 @@ public class OGLShader extends OGLObject
 				name.rewind();
 				
 				uniformLocationList[i] = new Uniform();
-				uniformLocationList[i].locationId = i;
+				uniformLocationList[i].index = i;
 				uniformLocationList[i].name = new String(namebytes, 0, len);
 				uniformLocationList[i].size = size.get(0);
 				uniformLocationList[i].type = typeId;
@@ -329,7 +327,7 @@ public class OGLShader extends OGLObject
 				name.rewind();
 				
 				attributeLocationList[i] = new Attribute();
-				attributeLocationList[i].locationId = i;
+				attributeLocationList[i].index = i;
 				attributeLocationList[i].name = new String(namebytes, 0, len);
 				attributeLocationList[i].size = size.get(0);
 				attributeLocationList[i].type = typeId;
@@ -339,12 +337,6 @@ public class OGLShader extends OGLObject
 			}
 			
 		}
-	}
-
-	@Override
-	protected int allocate()
-	{
-		return glCreateProgram();
 	}
 
 	@Override
@@ -362,9 +354,38 @@ public class OGLShader extends OGLObject
 			glDetachShader(getName(), fragmentProgram.getName());
 		glDeleteProgram(getName());
 	}
+
+	/**
+	 * Links this program together with its attached shaders.
+	 */
+	void link()
+	{
+		if (!linked)
+		{
+			// link programs.
+			glLinkProgram(getName());
+		    this.log = glGetProgramInfoLog(getName());
+		    if (glGetProgrami(getName(), GL_LINK_STATUS) == 0)
+		    	throw new GraphicsException("Failed to link together program " + getName() + ".\n"+log);
+		    refreshUniformsAndAttribs();
+		    this.linked = true;
+		}
+	}
 	
 	/**
-	 * @return the log from this program's linking.
+	 * Gets if this program has been linked yet.
+	 * Some functions can only happen if the program has not been linked yet,
+	 * for instance, vertex attrib location binding and fragment data location binding.
+	 * @return true if so, false if not.
+	 */
+	public boolean isLinked()
+	{
+		return linked;
+	}
+	
+	/**
+	 * Gets the program log after the last attempted link.
+	 * @return the log from this program's linking, or null if not linked yet.
 	 */
 	public String getLog()
 	{
@@ -372,7 +393,9 @@ public class OGLShader extends OGLObject
 	}
 	
 	/**
-	 * @return the number of uniforms on this shader.
+	 * Gets the number of uniforms on this program.
+	 * Only available after linking.
+	 * @return the number of uniforms on this program.
 	 */
 	public int getUniformCount()
 	{
@@ -381,6 +404,7 @@ public class OGLShader extends OGLObject
 
 	/**
 	 * Gets a {@link Uniform} by its location id.
+	 * Only available after linking.
 	 * @param locationId the location id.
 	 * @return the corresponding uniform or null if not found.
 	 */
@@ -393,6 +417,7 @@ public class OGLShader extends OGLObject
 	
 	/**
 	 * Gets a {@link Uniform} by uniform name.
+	 * Only available after linking.
 	 * @param name the uniform name.
 	 * @return the corresponding uniform or null if not found.
 	 */
@@ -402,7 +427,9 @@ public class OGLShader extends OGLObject
 	}
 	
 	/**
-	 * @return the number of attribute on this shader.
+	 * Gets the number of attributes on this program.
+	 * Only available after linking.
+	 * @return the number of attributes on this program.
 	 */
 	public int getAttributeCount()
 	{
@@ -432,7 +459,7 @@ public class OGLShader extends OGLObject
 	}
 	
 	/**
-	 * Destroys undeleted shader programs abandoned from destroyed Java objects.
+	 * Destroys undeleted programs abandoned from destroyed Java objects.
 	 */
 	public static void destroyUndeleted()
 	{
@@ -465,8 +492,8 @@ public class OGLShader extends OGLObject
 	 */
 	public static class Uniform
 	{
-		/** Location id. */
-		private int locationId;
+		/** Uniform index id. */
+		private int index;
 		/** Uniform name. */
 		private String name;
 		/** Uniform size (in positions). */
@@ -478,10 +505,10 @@ public class OGLShader extends OGLObject
 		
 		private Uniform() {}
 		
-		/** @return the uniform location id. */
-		public int getLocationId() 
+		/** @return the attribute index. */
+		public int getIndex() 
 		{
-			return locationId;
+			return index;
 		}
 		
 		/** @return the uniform name. */
@@ -511,7 +538,7 @@ public class OGLShader extends OGLObject
 		@Override
 		public String toString() 
 		{
-			return "uniform "+typeName+" "+name+" (location "+locationId+")";
+			return "uniform "+typeName+" "+name+" (location "+index+")";
 		}
 		
 	}
@@ -521,8 +548,8 @@ public class OGLShader extends OGLObject
 	 */
 	public static class Attribute
 	{
-		/** Location id. */
-		private int locationId;
+		/** Attribute index id. */
+		private int index;
 		/** Attribute name. */
 		private String name;
 		/** Attribute size (in positions). */
@@ -534,19 +561,19 @@ public class OGLShader extends OGLObject
 		
 		private Attribute() {}
 		
-		/** @return the uniform location id. */
-		public int getLocationId() 
+		/** @return the attribute index. */
+		public int getIndex() 
 		{
-			return locationId;
+			return index;
 		}
 		
-		/** @return the uniform name. */
+		/** @return the attribute name. */
 		public String getName() 
 		{
 			return name;
 		}
 		
-		/** @return the size of the uniform. */
+		/** @return the size of the attribute. */
 		public int getSize() 
 		{
 			return size;
@@ -567,7 +594,7 @@ public class OGLShader extends OGLObject
 		@Override
 		public String toString() 
 		{
-			return "attrib "+typeName+" "+name+" (location "+locationId+")";
+			return "attrib "+typeName+" "+name+" (location "+index+")";
 		}
 		
 	}
