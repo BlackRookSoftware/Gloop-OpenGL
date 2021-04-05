@@ -15,6 +15,8 @@ import com.blackrook.gloop.glfw.GLFWWindow.WindowHints;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
+import com.blackrook.gloop.opengl.OGLGraphics.OGLShaderBuilderAbstract;
+import com.blackrook.gloop.opengl.OGLGraphics.ShaderBuilder;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.CachingHint;
 import com.blackrook.gloop.opengl.enums.DataType;
@@ -23,6 +25,7 @@ import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.gl1.OGLBuffer;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
+import com.blackrook.gloop.opengl.gl3.OGL30Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl3.OGLVertexArrayState;
 import com.blackrook.gloop.opengl.node.OGLNodeAdapter;
@@ -110,11 +113,8 @@ public final class OGLTest
 			
 			if (!once)
 			{
-				gl.setClearColor(0, 0, 0, 1);
-				gl.setClearDepth(-1);
-				
-				program = gl.createProgram(
-					gl.createProgramShader(ShaderType.VERTEX, "vert", (new StringBuilder())
+				program = gl.createProgramBuilder()
+					.setShader(ShaderType.VERTEX, (new StringBuilder())
 						.append("#version 330\n")
 						.append("in vec3 position;\n")
 						.append("in vec4 color;\n")
@@ -126,8 +126,8 @@ public final class OGLTest
 						.append("    varyingColor = color;\n")
 						.append("    gl_Position = vec4(position.xyz, 1.0);\n")
 						.append("}\n")
-					.toString()),
-					gl.createProgramShader(ShaderType.FRAGMENT, "frag", (new StringBuilder())
+					.toString())
+					.setShader(ShaderType.FRAGMENT, (new StringBuilder())
 						.append("#version 330\n")
 						.append("in vec4 varyingColor;\n")
 						.append("\n")
@@ -138,11 +138,9 @@ public final class OGLTest
 						.append("    outColor = varyingColor;\n")
 						.append("}\n")
 					.toString())
-				);
-				gl.setProgramVertexAttribLocation(program, "position", VERTEX);
-				gl.setProgramVertexAttribLocation(program, "color", COLOR);
-				gl.setProgramFragmentDataLocation(program, "outColor", 0);
-				gl.linkProgram(program);
+					.attributeLocation("position", VERTEX)
+					.attributeLocation("color", COLOR)
+				.create();
 				
 				GeometryBuilder builder = GeometryBuilder.start(4, 3, 4)
 					.add(VERTEX,   -0.5f,  0.5f, 0.0f)
@@ -161,8 +159,6 @@ public final class OGLTest
 					.add(COLOR,     1,     1,    1,   1)
 //					.add(TEXCOORD,  1,     1)
 				;
-
-				BufferUtils.printBuffer(builder.getBuffer(), System.out);
 
 				// Geometry Buffer
 				geometry = gl.createBuffer();
@@ -183,6 +179,9 @@ public final class OGLTest
 				
 				gl.unsetBuffer(BufferTargetType.GEOMETRY);
 				gl.unsetVertexArrayState();
+				
+				gl.setClearColor(0, 0, 0, 1);
+				gl.setClearDepth(-1);
 				
 				once = true;
 			}

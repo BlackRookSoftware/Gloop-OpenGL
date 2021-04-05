@@ -137,13 +137,31 @@ public class OGL11Graphics extends OGLGraphics
 	/**
 	 * Texture builder used for OpenGL 1.1.  
 	 */
-	private static class OGL11TextureBuilder extends TextureBuilder<OGL11Graphics>
+	private static class OGL11TextureBuilder extends OGLTextureBuilderAbstract<OGL11Graphics>
 	{
 		protected OGL11TextureBuilder(OGL11Graphics gl)
 		{
 			super(gl);
 		}
 
+		@Override
+		public TextureBuilder setCompressed(boolean enabled)
+		{
+			throw new UnsupportedOperationException("Texture compression is not supported in this implementation.");
+		}
+		
+		@Override
+		public TextureBuilder setAutoGenerateMipMaps(boolean autoGenerateMipMaps)
+		{
+			throw new UnsupportedOperationException("Mipmap auto-generation is not supported in this implementation.");
+		}
+
+		@Override
+		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
+		{
+			throw new UnsupportedOperationException("Three-dimensional wrapping is not supported in this implementation.");
+		}
+		
 		@Override
 		public OGLTexture create()
 		{
@@ -201,7 +219,7 @@ public class OGL11Graphics extends OGLGraphics
 				}
 				
 			} catch (Exception e) {
-				out.free();
+				out.destroy();
 				throw e;
 			} finally {
 				gl.unsetTexture(targetType);
@@ -1960,12 +1978,13 @@ public class OGL11Graphics extends OGLGraphics
 	/**
 	 * Creates a texture builder.
 	 * <p> This texture builder aids in building texture objects, and its
-	 * {@link com.blackrook.gloop.opengl.OGLGraphics.TextureBuilder#create()} method will bind a new texture to its required target,
+	 * {@link TextureBuilder#create()} method will bind a new texture to its required target,
 	 * send the data, set the filtering and build mipmaps, unbind the target, and return the new object.
 	 * <p> Limitations on this implementation version are: No 3D support, no compression, no auto mipmapgen, force RGBA.
 	 * @return a new texture builder.
 	 */
-	public TextureBuilder<OGL11Graphics> createTextureBuilder()
+	@SuppressWarnings("javadoc")
+	public TextureBuilder createTextureBuilder()
 	{
 		return new OGL11TextureBuilder(this);
 	}

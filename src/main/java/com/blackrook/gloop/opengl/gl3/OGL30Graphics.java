@@ -9,16 +9,22 @@ package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
+import com.blackrook.gloop.opengl.gl2.OGLProgramShader;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.AttachPoint;
 import com.blackrook.gloop.opengl.enums.RenderbufferFormat;
+import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGLTexture;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.lwjgl.system.MemoryStack;
 
@@ -30,7 +36,6 @@ import static org.lwjgl.opengl.GL30.*;
  * OpenGL 3.0 Graphics Implementation.
  * @author Matthew Tropiano
  * TODO: Make TextureBuilder for this version (better mipmap gen).
- * TODO: Make ShaderBuilder for this version (fragment data binding).
  */
 public class OGL30Graphics extends OGL21Graphics
 {
@@ -62,6 +67,54 @@ public class OGL30Graphics extends OGL21Graphics
 			this.maxRenderBufferSize = getInt(GL_MAX_RENDERBUFFER_SIZE);
 			this.maxRenderBufferColorAttachments = getInt(GL_MAX_COLOR_ATTACHMENTS);
 		}
+	}
+	
+	/**
+	 * Shader builder used for OpenGL 3.0.  
+	 */
+	public static class OGL30ShaderBuilder extends OGLShaderBuilderAbstract<OGL30Graphics>
+	{
+		protected OGL30ShaderBuilder(OGL30Graphics gl)
+		{
+			super(gl);
+		}
+
+		@Override
+		public OGLProgram create()
+		{
+			OGLProgram out = gl.createProgram();
+			List<OGLProgramShader> list = new LinkedList<>();
+			try {
+				for (Map.Entry<ShaderType, Supplier<String>> entry : shaderPrograms.entrySet())
+				{
+					OGLProgramShader ps = null;
+					try {
+						ShaderType type = entry.getKey();
+						ps = gl.createProgramShader(type, type.name(), entry.getValue());
+						fireShaderLog(type, ps.getLog());
+						gl.attachProgramShaders(out, ps);
+						list.add(ps);
+					} catch (Exception e) {
+						if (ps != null) ps.destroy();
+					}
+				}
+				
+				for (Map.Entry<String, Integer> entry : attributeLocationBindings.entrySet())
+					gl.setProgramVertexAttribLocation(out, entry.getKey(), entry.getValue());
+				for (Map.Entry<String, Integer> entry : fragmentDataBindings.entrySet())
+					gl.setProgramFragmentDataLocation(out, entry.getKey(), entry.getValue());
+				
+				gl.linkProgram(out);
+				
+			} catch (Exception e) {
+				out.destroy();
+				for (OGLProgramShader ps : list)
+					ps.destroy();
+				throw e;
+			}
+			return out;
+		}
+		
 	}
 	
 	@Override

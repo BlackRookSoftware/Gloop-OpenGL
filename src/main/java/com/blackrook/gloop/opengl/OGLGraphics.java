@@ -405,12 +405,213 @@ public abstract class OGLGraphics implements OGLVersioned
 		}
 		
 	}
+
+	/**
+	 * Texture builder utility class.
+	 * <p>
+	 * This class is used to generate textures in a "builder" way.
+	 * Mostly useful for small applications and test applications, not necessarily for
+	 * large enterprise applications that may employ better methods for texture loading and assembly.
+	 * <p>
+	 * Depending on implementation version, some methods may not be supported or available,
+	 * and will throw {@link UnsupportedOperationException} if so.
+	 */
+	public interface TextureBuilder
+	{
+		/**
+		 * Sets the texture target type.
+		 * By default, this is {@link TextureTargetType#TEXTURE_2D}.
+		 * @param targetType the target type to use.
+		 * @return this builder.
+		 */
+		TextureBuilder setTargetType(TextureTargetType targetType);
+
+		/**
+		 * Sets the minification filter on the texture.
+		 * By default, this is {@link TextureMinFilter#NEAREST}.
+		 * @param minFilter the minification filter to use. 
+		 * @return this builder.
+		 */
+		TextureBuilder setMinFilter(TextureMinFilter minFilter);
+		
+		/**
+		 * Sets the magnification filter on the texture.
+		 * By default, this is {@link TextureMagFilter#NEAREST}.
+		 * @param magFilter the magnification filter to use. 
+		 * @return this builder.
+		 */
+		TextureBuilder setMagFilter(TextureMagFilter magFilter);
+		
+		/**
+		 * Sets the border size on the texture in texels.
+		 * By default, this is <code>0</code>.
+		 * @param texels the texel width. 
+		 * @return this builder.
+		 */
+		TextureBuilder setBorder(int texels);
+		
+		/**
+		 * Sets the wrapping on the texture.
+		 * By default, all wrapping is {@link TextureWrapType#TILE}.
+		 * @param wrapS the S-coordinate wrap type. 
+		 * @return this builder.
+		 */
+		TextureBuilder setWrapping(TextureWrapType wrapS);
+		
+		/**
+		 * Sets the wrapping on the texture.
+		 * By default, all wrapping is {@link TextureWrapType#TILE}.
+		 * @param wrapS the S-coordinate wrap type. 
+		 * @param wrapT the T-coordinate wrap type. 
+		 * @return this builder.
+		 */
+		TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT);
+		
+		/**
+		 * Sets the wrapping on the texture.
+		 * By default, all wrapping is {@link TextureWrapType#TILE}.
+		 * @param wrapS the S-coordinate wrap type. 
+		 * @param wrapT the T-coordinate wrap type. 
+		 * @param wrapR the R-coordinate wrap type. 
+		 * @return this builder.
+		 */
+		TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR);
+		
+		/**
+		 * Sets if the texture is stored in a compressed format.
+		 * By default, this is <code>false</code>.
+		 * @param enabled true to enable, false if disabled.
+		 * @return this builder.
+		 */
+		TextureBuilder setCompressed(boolean enabled);
+		
+		/**
+		 * Sets if this generator auto-generates mipmaps on or after data transfer.
+		 * By default, this is <code>false</code>.
+		 * @param autoGenerateMipMaps true to auto-generate mipmaps for this texture.
+		 * @return this builder.
+		 */
+		TextureBuilder setAutoGenerateMipMaps(boolean autoGenerateMipMaps);
+		
+		/**
+		 * Sets texture anisotropy level.
+		 * By default, this is <code>1.0f</code>.
+		 * @param anisotropy the anisotropy level (1.0f or less = no anisotropy).
+		 * @return this builder.
+		 */
+		TextureBuilder setAnisotropy(float anisotropy);
+		
+		/**
+		 * Adds one or more textures to a mipmap level, each image in this batch
+		 * past the first is considered part of the depth dimension (an array of 4 images implies a depth of 4, height of 4 if 1D Array).
+		 * The first call to this is the topmost level, and each subsequent call is the next lower level.
+		 * Every texture past the first one is ignored if mipmap auto-generation is enabled.
+		 * @param images the image to add at this level.
+		 * @return this builder.
+		 */
+		TextureBuilder addTexture(BufferedImage ... images);
+		
+		/**
+		 * Creates this texture.
+		 * @return the texture object created.
+		 * @throws GraphicsException if the texture could not be created.
+		 */
+		OGLTexture create();
+	}
+	
+	/**
+	 * Shader builder utility class.
+	 * <p>
+	 * This class is used to generate linked shader programs in a "builder" way.
+	 * Mostly useful for small applications and test applications, not necessarily for
+	 * large enterprise applications that may employ better methods for shader loading and assembly.
+	 * <p>
+	 * Depending on implementation version, some methods may not be supported or available,
+	 * and will throw {@link UnsupportedOperationException} if so.
+	 */
+	public interface ShaderBuilder
+	{
+		@FunctionalInterface
+		public interface Listener
+		{
+			/**
+			 * Called when a shader is compiled, and the log built.
+			 * @param type the shader type built.
+			 * @param log the log content.
+			 */
+			void onShaderLog(ShaderType type, String log);
+		}
+		
+		/**
+		 * Binds an attribute name to a specific location index.
+		 * @param attributeName the attribute name.
+		 * @param locationId the location id.
+		 * @return this builder.
+		 */
+		ShaderBuilder attributeLocation(String attributeName, int locationId);
+		
+		/**
+		 * Binds a fragment output attribute name to a specific output color index.
+		 * @param attributeName the attribute name.
+		 * @param index the index.
+		 * @return this builder.
+		 */
+		ShaderBuilder fragmentDataLocation(String attributeName, int index);
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param file the source file.
+		 * @return this builder.
+		 */
+		ShaderBuilder setShader(ShaderType type, final File file);
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param in the input stream to read from.
+		 * @return this builder.
+		 */
+		ShaderBuilder setShader(ShaderType type, final InputStream in);
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param reader the reader to read from.
+		 * @return this builder.
+		 */
+		ShaderBuilder setShader(ShaderType type, final Reader reader);
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param source the string that contains the source code.
+		 * @return this builder.
+		 */
+		ShaderBuilder setShader(ShaderType type, final String source);
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param source the source code supplier.
+		 * @return this builder.
+		 */
+		ShaderBuilder setShader(ShaderType type, Supplier<String> source);
+
+		/**
+		 * Creates the program.
+		 * @return the shader program created.
+		 * @throws GraphicsException if the program could not be created.
+		 */
+		OGLProgram create();
+
+	}
 	
 	/**
 	 * Texture builder utility class.
 	 * @param <GL> the graphics implementation that this executes on.
 	 */
-	public static abstract class TextureBuilder<GL extends OGLGraphics>
+	protected static abstract class OGLTextureBuilderAbstract<GL extends OGLGraphics> implements TextureBuilder
 	{
 		protected GL gl;
 		protected TextureTargetType targetType;
@@ -429,7 +630,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * Creates a new Texture Builder with defaults set.
 		 * @param gl the graphics implementation that created this (and will execute this).
 		 */
-		protected TextureBuilder(GL gl)
+		protected OGLTextureBuilderAbstract(GL gl)
 		{
 			this.gl = gl;
 			this.targetType = TextureTargetType.TEXTURE_2D;
@@ -444,90 +645,52 @@ public abstract class OGLGraphics implements OGLVersioned
 			this.anisotropy = 1.0f;
 			this.imageLevels = new LinkedList<>();
 		}
-
-		/**
-		 * Sets the texture target type.
-		 * By default, this is {@link TextureTargetType#TEXTURE_2D}.
-		 * @param targetType the target type to use.
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setTargetType(TextureTargetType targetType)
+	
+		@Override
+		public TextureBuilder setTargetType(TextureTargetType targetType)
 		{
 			this.targetType = targetType;
 			return this;
 		}
-
-		/**
-		 * Sets the minification filter on the texture.
-		 * By default, this is {@link TextureMinFilter#NEAREST}.
-		 * @param minFilter the minification filter to use. 
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setMinFilter(TextureMinFilter minFilter)
+	
+		@Override
+		public TextureBuilder setMinFilter(TextureMinFilter minFilter)
 		{
 			this.minFilter = minFilter;
 			return this;
 		}
 		
-		/**
-		 * Sets the magnification filter on the texture.
-		 * By default, this is {@link TextureMagFilter#NEAREST}.
-		 * @param magFilter the magnification filter to use. 
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setMagFilter(TextureMagFilter magFilter)
+		@Override
+		public TextureBuilder setMagFilter(TextureMagFilter magFilter)
 		{
 			this.magFilter = magFilter;
 			return this;
 		}
 		
-		/**
-		 * Sets the border size on the texture in texels.
-		 * By default, this is <code>0</code>.
-		 * @param texels the texel width. 
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setBorder(int texels)
+		@Override
+		public TextureBuilder setBorder(int texels)
 		{
 			this.border = texels;
 			return this;
 		}
 		
-		/**
-		 * Sets the wrapping on the texture.
-		 * By default, all wrapping is {@link TextureWrapType#TILE}.
-		 * @param wrapS the S-coordinate wrap type. 
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setWrapping(TextureWrapType wrapS)
+		@Override
+		public TextureBuilder setWrapping(TextureWrapType wrapS)
 		{
 			this.wrapS = wrapS;
 			return this;
 		}
 		
-		/**
-		 * Sets the wrapping on the texture.
-		 * By default, all wrapping is {@link TextureWrapType#TILE}.
-		 * @param wrapS the S-coordinate wrap type. 
-		 * @param wrapT the T-coordinate wrap type. 
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
+		@Override
+		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
 		{
 			this.wrapS = wrapS;
 			this.wrapT = wrapT;
 			return this;
 		}
 		
-		/**
-		 * Sets the wrapping on the texture.
-		 * By default, all wrapping is {@link TextureWrapType#TILE}.
-		 * @param wrapS the S-coordinate wrap type. 
-		 * @param wrapT the T-coordinate wrap type. 
-		 * @param wrapR the R-coordinate wrap type. 
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
+		@Override
+		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 		{
 			this.wrapS = wrapS;
 			this.wrapT = wrapT;
@@ -535,51 +698,29 @@ public abstract class OGLGraphics implements OGLVersioned
 			return this;
 		}
 		
-		/**
-		 * Sets if the texture is stored in a compressed format.
-		 * By default, this is <code>false</code>.
-		 * @param enabled true to enable, false if disabled.
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setCompressed(boolean enabled)
+		@Override
+		public TextureBuilder setCompressed(boolean enabled)
 		{
 			this.compressed = enabled;
 			return this;
 		}
 		
-		/**
-		 * Sets if this generator auto-generates mipmaps on or after data transfer.
-		 * By default, this is <code>false</code>.
-		 * @param autoGenerateMipMaps true to auto-generate mipmaps for this texture.
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setAutoGenerateMipMaps(boolean autoGenerateMipMaps)
+		@Override
+		public TextureBuilder setAutoGenerateMipMaps(boolean autoGenerateMipMaps)
 		{
 			this.autoGenerateMipMaps = autoGenerateMipMaps;
 			return this;
 		}
 		
-		/**
-		 * Sets texture anisotropy level.
-		 * By default, this is <code>1.0f</code>.
-		 * @param anisotropy the anisotropy level (1.0f or less = no anisotropy).
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> setAnisotropy(float anisotropy)
+		@Override
+		public TextureBuilder setAnisotropy(float anisotropy)
 		{
 			this.anisotropy = anisotropy;
 			return this;
 		}
-		
-		/**
-		 * Adds one or more textures to a mipmap level, each image in this batch
-		 * past the first is considered part of the depth dimension (an array of 4 images implies a depth of 4, height of 4 if 1D Array).
-		 * The first call to this is the topmost level, and each subsequent call is the next lower level.
-		 * Every texture past the first one is ignored if mipmap auto-generation is enabled.
-		 * @param images the image to add at this level.
-		 * @return this builder.
-		 */
-		public TextureBuilder<GL> addTexture(BufferedImage ... images)
+	
+		@Override
+		public TextureBuilder addTexture(BufferedImage ... images)
 		{
 			if (images.length == 0)
 				throw new GraphicsException("Must add at least one image.");
@@ -590,43 +731,25 @@ public abstract class OGLGraphics implements OGLVersioned
 			return this;
 		}
 		
-		/**
-		 * Creates this texture.
-		 * @return the texture object created.
-		 * @throws GraphicsException if the texture could not be created.
-		 */
-		public abstract OGLTexture create();
-		
 	}
-	
+
 	/**
 	 * Shader builder utility class.
 	 * @param <GL> the graphics implementation that this executes on.
 	 */
-	public static abstract class ShaderBuilder<GL extends OGLGraphics>
+	public static abstract class OGLShaderBuilderAbstract<GL extends OGLGraphics> implements ShaderBuilder
 	{
 		protected GL gl;
 		protected Map<String, Integer> attributeLocationBindings;
 		protected Map<String, Integer> fragmentDataBindings;
 		protected Map<ShaderType, Supplier<String>> shaderPrograms;
-		protected Listener builderListener;
+		protected ShaderBuilder.Listener builderListener;
 
-		@FunctionalInterface
-		public interface Listener
-		{
-			/**
-			 * Called when a shader is compiled, and the log built.
-			 * @param type the shader type built.
-			 * @param log the log content.
-			 */
-			void onShaderLog(ShaderType type, String log);
-		}
-		
 		/**
 		 * Creates a new Shader Builder with defaults set.
 		 * @param gl the graphics implementation that created this (and will execute this).
 		 */
-		protected ShaderBuilder(GL gl)
+		protected OGLShaderBuilderAbstract(GL gl)
 		{
 			this.gl = gl;
 			this.attributeLocationBindings = new TreeMap<>();
@@ -652,7 +775,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param locationId the location id.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> attributeLocation(String attributeName, int locationId)
+		public ShaderBuilder attributeLocation(String attributeName, int locationId)
 		{
 			attributeLocationBindings.put(attributeName, locationId);
 			return this;
@@ -664,7 +787,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param index the index.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> fragmentDataLocation(String attributeName, int index)
+		public ShaderBuilder fragmentDataLocation(String attributeName, int index)
 		{
 			fragmentDataBindings.put(attributeName, index);
 			return this;
@@ -676,7 +799,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param file the source file.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> setShader(ShaderType type, final File file)
+		public ShaderBuilder setShader(ShaderType type, final File file)
 		{
 			return setShader(type, () ->
 			{
@@ -701,7 +824,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param in the input stream to read from.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> setShader(ShaderType type, final InputStream in)
+		public ShaderBuilder setShader(ShaderType type, final InputStream in)
 		{
 			return setShader(type, () ->
 			{
@@ -726,7 +849,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param reader the reader to read from.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> setShader(ShaderType type, final Reader reader)
+		public ShaderBuilder setShader(ShaderType type, final Reader reader)
 		{
 			return setShader(type, () ->
 			{
@@ -751,7 +874,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param source the string that contains the source code.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> setShader(ShaderType type, final String source)
+		public ShaderBuilder setShader(ShaderType type, final String source)
 		{
 			return setShader(type, ()->source);
 		}
@@ -762,7 +885,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		 * @param source the source code supplier.
 		 * @return this builder.
 		 */
-		public ShaderBuilder<GL> setShader(ShaderType type, Supplier<String> source)
+		public ShaderBuilder setShader(ShaderType type, Supplier<String> source)
 		{
 			shaderPrograms.put(type, source);
 			return this;
@@ -779,13 +902,6 @@ public abstract class OGLGraphics implements OGLVersioned
 				builderListener.onShaderLog(type, log);
 		}
 		
-		/**
-		 * Creates the program.
-		 * @return the shader program created.
-		 * @throws GraphicsException if the program could not be created.
-		 */
-		public abstract OGLProgram create();
-
 	}
 	
 	/** The current frame rendered. */

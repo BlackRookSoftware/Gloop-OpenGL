@@ -17,6 +17,9 @@ import com.blackrook.gloop.opengl.math.Matrix4F;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -27,7 +30,6 @@ import static org.lwjgl.opengl.GL20.*;
 /**
  * OpenGL 2.0 Graphics Implementation.
  * @author Matthew Tropiano
- * TODO: Make ShaderBuilder for this version (base).
  */
 public class OGL20Graphics extends OGL15Graphics
 {
@@ -40,6 +42,58 @@ public class OGL20Graphics extends OGL15Graphics
 			this.maxTextureUnits = getInt(GL_MAX_TEXTURE_IMAGE_UNITS);
 			this.maxDrawBuffers = getInt(GL_MAX_DRAW_BUFFERS);
 		}
+	}
+	
+	/**
+	 * Shader builder used for OpenGL 2.0.  
+	 */
+	public static class OGL20ShaderBuilder extends OGLShaderBuilderAbstract<OGL20Graphics>
+	{
+		protected OGL20ShaderBuilder(OGL20Graphics gl)
+		{
+			super(gl);
+		}
+
+		@Override
+		public OGLShaderBuilderAbstract<OGL20Graphics> fragmentDataLocation(String attributeName, int index)
+		{
+			throw new UnsupportedOperationException("Cannot bind fragment locations in this implementation.");
+		}
+		
+		@Override
+		public OGLProgram create()
+		{
+			OGLProgram out = gl.createProgram();
+			List<OGLProgramShader> list = new LinkedList<>();
+			try {
+				for (Map.Entry<ShaderType, Supplier<String>> entry : shaderPrograms.entrySet())
+				{
+					OGLProgramShader ps = null;
+					try {
+						ShaderType type = entry.getKey();
+						ps = gl.createProgramShader(type, type.name(), entry.getValue());
+						fireShaderLog(type, ps.getLog());
+						gl.attachProgramShaders(out, ps);
+						list.add(ps);
+					} catch (Exception e) {
+						if (ps != null) ps.destroy();
+					}
+				}
+				
+				for (Map.Entry<String, Integer> entry : attributeLocationBindings.entrySet())
+					gl.setProgramVertexAttribLocation(out, entry.getKey(), entry.getValue());
+				
+				gl.linkProgram(out);
+				
+			} catch (Exception e) {
+				out.destroy();
+				for (OGLProgramShader ps : list)
+					ps.destroy();
+				throw e;
+			}
+			return out;
+		}
+		
 	}
 	
 	/** Current program. */
@@ -96,6 +150,19 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
+	 * Creates a new shader builder.
+	 * <p> This program builder aids in building shader program objects, and its
+	 * {@link ShaderBuilder#create()} method will compile and link all of the shaders and return the new object.
+	 * <p> Limitations on this implementation version are: No fragment data binding.
+	 * @return a new program builder.
+	 */
+	@SuppressWarnings("javadoc")
+	public ShaderBuilder createProgramBuilder()
+	{
+		return new OGL20ShaderBuilder(this);
+	}
+	
+	/**
 	 * Creates a new shader object (vertex, fragment, etc.).
 	 * @param type the shader type. if not a valid shader type, this throws an exception.
 	 * @param streamName the name of the originating stream (can appear in exceptions).
@@ -129,15 +196,27 @@ public class OGL20Graphics extends OGL15Graphics
 
 	/**
 	 * Creates a new program object.
-	 * @param shaders the programs to attach.
-	 * @return a new program object with attached shaders.
-	 * @throws GraphicsException if the object could not be created, or compilation/linking failed.
+	 * @return a new program object.
+	 * @throws GraphicsException if the object could not be created.
 	 */
-	public OGLProgram createProgram(OGLProgramShader ... shaders)
+	public OGLProgram createProgram()
 	{
-		OGLProgram out = new OGLProgram(shaders); 
+		OGLProgram out = new OGLProgram(); 
 		checkError();
 		return out;
+	}
+
+	/**
+	 * Attaches a shader to a program.
+	 * Throws an error if this program was already linked, or if a program of the same type was already attached.
+	 * @param program the program to attach the shaders to.
+	 * @param shaders the shaders to attach.
+	 * @throws GraphicsException if this program was already linked, or if a shader of the same type was already attached.
+	 */
+	public void attachProgramShaders(OGLProgram program, OGLProgramShader ... shaders)
+	{
+		for (OGLProgramShader shader : shaders)
+			program.attachShader(shader);
 	}
 	
 	/**

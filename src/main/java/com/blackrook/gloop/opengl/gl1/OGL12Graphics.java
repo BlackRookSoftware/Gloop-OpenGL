@@ -166,7 +166,5 @@ public class OGL12Graphics extends OGL11Graphics
 		glDrawRangeElements(geometryType.glValue, startIndex, endIndex, count, dataType.glValue, 0L);
 		checkError();
 	}
-	
-	
 
 }

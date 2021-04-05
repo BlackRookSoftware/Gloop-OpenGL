@@ -200,77 +200,14 @@ public class OGLProgram extends OGLObject
 	 * Each program can be null and is just left absent in the complete program.
 	 * @param programs the programs to attach.
 	 */
-	OGLProgram(OGLProgramShader ... programs)
+	OGLProgram()
 	{
 		setName(glCreateProgram());
-		
 		this.vertexProgram = null;
 		this.tessellationControlProgram = null;
 		this.tessellationEvaluationProgram = null;
 		this.geometryProgram = null;
 		this.fragmentProgram = null;
-
-		// Get programs.
-		for (OGLProgramShader program : programs)
-		{
-			if (program != null) switch (program.getType())
-			{
-				case VERTEX:
-					if (vertexProgram != null)
-						throw new GraphicsException("Vertex program already provided.");
-					else
-						vertexProgram = program;
-					break;
-				case TESSELLATION_CONTROL:
-					if (tessellationControlProgram != null)
-						throw new GraphicsException("Tessellation control program already provided.");
-					else
-						tessellationControlProgram = program;
-					break;
-				case TESSELLATION_EVALUATION:
-					if (tessellationEvaluationProgram != null)
-						throw new GraphicsException("Tessellation evaluation program already provided.");
-					else
-						tessellationEvaluationProgram = program;
-					break;
-				case GEOMETRY:
-					if (geometryProgram != null)
-						throw new GraphicsException("Geometry program already provided.");
-					else
-						geometryProgram = program;
-					break;
-				case FRAGMENT:
-					if (fragmentProgram != null)
-						throw new GraphicsException("Fragment program already provided.");
-					else
-						fragmentProgram = program;
-					break;
-				case COMPUTE:
-					throw new GraphicsException("Compute shaders are not created this way."); 
-				default:
-					throw new GraphicsException("Unexpected program type."); 
-			}
-		}
-		
-		if (vertexProgram == null 
-			&& tessellationControlProgram == null 
-			&& tessellationEvaluationProgram == null 
-			&& geometryProgram == null
-			&& fragmentProgram == null 
-		)
-			throw new GraphicsException("All provided programs are null!");
-		
-		// attach the programs.
-		if (vertexProgram != null)
-			glAttachShader(getName(), vertexProgram.getName());
-		if (tessellationControlProgram != null)
-			glAttachShader(getName(), tessellationControlProgram.getName());
-		if (tessellationEvaluationProgram != null)
-			glAttachShader(getName(), tessellationEvaluationProgram.getName());
-		if (geometryProgram != null)
-			glAttachShader(getName(), geometryProgram.getName());
-		if (fragmentProgram != null)
-			glAttachShader(getName(), fragmentProgram.getName());
 	}
 
 	// Gets the uniform data.
@@ -335,7 +272,6 @@ public class OGLProgram extends OGLObject
 				
 				attributeMap.put(attributeLocationList[i].name, attributeLocationList[i]);
 			}
-			
 		}
 	}
 
@@ -353,6 +289,59 @@ public class OGLProgram extends OGLObject
 		if (fragmentProgram != null)
 			glDetachShader(getName(), fragmentProgram.getName());
 		glDeleteProgram(getName());
+	}
+
+	/**
+	 * Attaches a shader to this pipeline program.
+	 * Throws an error if this program was already linked, 
+	 * or if a program of the same type was already attached.
+	 * @param shader the shader to attach.
+	 * @throws GraphicsException if this program was already linked, 
+	 * or if a program of the same type was already attached.
+	 */
+	void attachShader(OGLProgramShader shader)
+	{
+		if (isLinked())
+			throw new GraphicsException("Cannot attach shader: this program was already linked!");
+		
+		switch (shader.getType())
+		{
+			case VERTEX:
+				if (vertexProgram != null)
+					throw new GraphicsException("Vertex program already provided.");
+				else
+					vertexProgram = shader;
+				break;
+			case TESSELLATION_CONTROL:
+				if (tessellationControlProgram != null)
+					throw new GraphicsException("Tessellation control program already provided.");
+				else
+					tessellationControlProgram = shader;
+				break;
+			case TESSELLATION_EVALUATION:
+				if (tessellationEvaluationProgram != null)
+					throw new GraphicsException("Tessellation evaluation program already provided.");
+				else
+					tessellationEvaluationProgram = shader;
+				break;
+			case GEOMETRY:
+				if (geometryProgram != null)
+					throw new GraphicsException("Geometry program already provided.");
+				else
+					geometryProgram = shader;
+				break;
+			case FRAGMENT:
+				if (fragmentProgram != null)
+					throw new GraphicsException("Fragment program already provided.");
+				else
+					fragmentProgram = shader;
+				break;
+			case COMPUTE:
+				throw new GraphicsException("Compute shaders are not created this way."); 
+			default:
+				throw new GraphicsException("Unexpected program type."); 
+		}
+		glAttachShader(getName(), shader.getName());
 	}
 
 	/**
