@@ -130,6 +130,38 @@ public final class TextureUtils
 	    return out;
 	}
 
+	/**
+	 * Gets the byte data for a texture in ARGB color information per pixel.
+	 * @param image the input image.
+	 * @return a new direct {@link ByteBuffer} of the image's byte data.
+	 */
+	public static ByteBuffer getRGBAByteData(BufferedImage image)
+	{
+		ByteBuffer out = BufferUtils.allocDirectByteBuffer(getRawSize(image));
+		out.order(ByteOrder.BIG_ENDIAN);
+		convertRGBAImageData(image, out.asIntBuffer());
+	    return out;
+	}
+
+	/**
+	 * Gets the byte data for a texture in ARGB color information per pixel.
+	 * @param image the input image.
+	 * @return a new direct {@link ByteBuffer} of the image's byte data.
+	 */
+	public static ByteBuffer getRGBAByteData(BufferedImage ... image)
+	{
+		int size = 0;
+		for (int i = 0; i < image.length; i++)
+			size += getRawSize(image[i]);
+		
+		ByteBuffer out = BufferUtils.allocDirectByteBuffer(size);
+		out.order(ByteOrder.BIG_ENDIAN);
+		IntBuffer ibuf = out.asIntBuffer();
+		for (int i = 0; i < image.length; i++)
+			convertRGBAImageData(image[i], ibuf);
+	    return out;
+	}
+
 	// Puts image data into an IntBuffer.
 	private static void convertImageData(BufferedImage image, IntBuffer intout)
 	{
@@ -137,6 +169,18 @@ public final class TextureUtils
 		int imageHeight = image.getHeight();
 	    int[] data = new int[imageWidth * imageHeight];
 	    image.getRGB(0, 0, imageWidth, imageHeight, data, 0, imageWidth);
+		intout.put(data);
+	}
+
+	// Puts image data into an IntBuffer.
+	private static void convertRGBAImageData(BufferedImage image, IntBuffer intout)
+	{
+		int imageWidth = image.getWidth();
+		int imageHeight = image.getHeight();
+	    int[] data = new int[imageWidth * imageHeight];
+	    image.getRGB(0, 0, imageWidth, imageHeight, data, 0, imageWidth);
+	    for (int i = 0; i < data.length; i++)
+	    	data[i] = (data[i] << 8) | (((data[i] & 0xff000000) >> 24) & 0x0ff);
 		intout.put(data);
 	}
 

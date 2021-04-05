@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.math.Matrix4F;
+import com.blackrook.gloop.opengl.util.TextureUtils;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -132,6 +134,83 @@ public class OGL11Graphics extends OGLGraphics
 		
 	}
 
+	/**
+	 * Texture builder used for OpenGL 1.1.  
+	 */
+	private static class OGL11TextureBuilder extends TextureBuilder<OGL11Graphics>
+	{
+		protected OGL11TextureBuilder(OGL11Graphics gl)
+		{
+			super(gl);
+		}
+
+		@Override
+		public OGLTexture create()
+		{
+			OGLTexture out = gl.createTexture();
+			try {
+				
+				if (imageLevels.isEmpty())
+					throw new GraphicsException("No data to store for texture.");
+				
+				// No 3D support, no compression, no auto mipmapgen, force RGBA.
+				
+				gl.setTexture(targetType, out);
+				gl.setTextureFiltering(targetType, minFilter, magFilter, anisotropy);
+				
+				switch (targetType)
+				{
+					case TEXTURE_1D:
+					{
+						int i = 0;
+						gl.setTextureWrapping(targetType, wrapS);
+						for (BufferedImage[] imageArray : imageLevels)
+						{
+							gl.setTextureData(
+								targetType, 
+								TextureUtils.getRGBAByteData(imageArray[0]), 
+								ColorFormat.RGBA, 
+								TextureFormat.RGBA, 
+								i, imageArray[0].getWidth(), border
+							);
+							i++;
+						}
+					}
+					break;
+
+					case TEXTURE_2D:
+					{
+						int i = 0;
+						gl.setTextureWrapping(targetType, wrapS, wrapT);
+						for (BufferedImage[] imageArray : imageLevels)
+						{
+							gl.setTextureData(
+								targetType, 
+								TextureUtils.getRGBAByteData(imageArray[0]), 
+								ColorFormat.RGBA, 
+								TextureFormat.RGBA, 
+								i, imageArray[0].getWidth(), imageArray[0].getHeight(), border
+							);
+							i++;
+						}
+					}
+					break;
+					
+					default:
+						throw new GraphicsException("Unsupported texture target: " + targetType.name());
+				}
+				
+			} catch (Exception e) {
+				out.free();
+				throw e;
+			} finally {
+				gl.unsetTexture(targetType);
+			}
+			
+			return out;
+		}
+	}
+	
 	/** Current bound textures per unit. */
 	private Map<Integer, Map<Integer, OGLTexture>> currentTextures;
 	
@@ -1878,6 +1957,19 @@ public class OGL11Graphics extends OGLGraphics
 		glCullFace(side.glValue);
 	}
 
+	/**
+	 * Creates a texture builder.
+	 * <p> This texture builder aids in building texture objects, and its
+	 * {@link com.blackrook.gloop.opengl.OGLGraphics.TextureBuilder#create()} method will bind a new texture to its required target,
+	 * send the data, set the filtering and build mipmaps, unbind the target, and return the new object.
+	 * <p> Limitations on this implementation version are: No 3D support, no compression, no auto mipmapgen, force RGBA.
+	 * @return a new texture builder.
+	 */
+	public TextureBuilder<OGL11Graphics> createTextureBuilder()
+	{
+		return new OGL11TextureBuilder(this);
+	}
+	
 	/**
 	 * Creates a new texture object.
 	 * @return a new, uninitialized texture object.

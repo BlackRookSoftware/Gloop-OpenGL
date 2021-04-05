@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 /**
  * OpenGL 1.2 Graphics Implementation.
  * @author Matthew Tropiano
+ * TODO: Make TextureBuilder for this version (3D Textures).
  */
 public class OGL12Graphics extends OGL11Graphics
 {

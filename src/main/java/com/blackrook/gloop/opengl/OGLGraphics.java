@@ -20,14 +20,34 @@ import static org.lwjgl.opengl.GL11.glGetFloatv;
 import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.glGetIntegerv;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Supplier;
 
 import org.lwjgl.opengl.ARBImaging;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL45;
 
+import com.blackrook.gloop.opengl.enums.ShaderType;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureTargetType;
+import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
+import com.blackrook.gloop.opengl.gl1.OGLTexture;
+import com.blackrook.gloop.opengl.gl2.OGLProgram;
 
 /**
  * A common encapsulator for all OpenGL implementations.
@@ -384,6 +404,388 @@ public abstract class OGLGraphics implements OGLVersioned
 			return isIntel;
 		}
 		
+	}
+	
+	/**
+	 * Texture builder utility class.
+	 * @param <GL> the graphics implementation that this executes on.
+	 */
+	public static abstract class TextureBuilder<GL extends OGLGraphics>
+	{
+		protected GL gl;
+		protected TextureTargetType targetType;
+		protected TextureMinFilter minFilter;
+		protected TextureMagFilter magFilter;
+		protected TextureWrapType wrapS;
+		protected TextureWrapType wrapT;
+		protected TextureWrapType wrapR;
+		protected int border;
+		protected boolean compressed;
+		protected boolean autoGenerateMipMaps;
+		protected float anisotropy;
+		protected List<BufferedImage[]> imageLevels;
+		
+		/**
+		 * Creates a new Texture Builder with defaults set.
+		 * @param gl the graphics implementation that created this (and will execute this).
+		 */
+		protected TextureBuilder(GL gl)
+		{
+			this.gl = gl;
+			this.targetType = TextureTargetType.TEXTURE_2D;
+			this.minFilter = TextureMinFilter.NEAREST;
+			this.magFilter = TextureMagFilter.NEAREST;
+			this.wrapS = TextureWrapType.TILE;
+			this.wrapT = TextureWrapType.TILE;
+			this.wrapR = TextureWrapType.TILE;
+			this.border = 0;
+			this.compressed = false;
+			this.autoGenerateMipMaps = false;
+			this.anisotropy = 1.0f;
+			this.imageLevels = new LinkedList<>();
+		}
+
+		/**
+		 * Sets the texture target type.
+		 * By default, this is {@link TextureTargetType#TEXTURE_2D}.
+		 * @param targetType the target type to use.
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setTargetType(TextureTargetType targetType)
+		{
+			this.targetType = targetType;
+			return this;
+		}
+
+		/**
+		 * Sets the minification filter on the texture.
+		 * By default, this is {@link TextureMinFilter#NEAREST}.
+		 * @param minFilter the minification filter to use. 
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setMinFilter(TextureMinFilter minFilter)
+		{
+			this.minFilter = minFilter;
+			return this;
+		}
+		
+		/**
+		 * Sets the magnification filter on the texture.
+		 * By default, this is {@link TextureMagFilter#NEAREST}.
+		 * @param magFilter the magnification filter to use. 
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setMagFilter(TextureMagFilter magFilter)
+		{
+			this.magFilter = magFilter;
+			return this;
+		}
+		
+		/**
+		 * Sets the border size on the texture in texels.
+		 * By default, this is <code>0</code>.
+		 * @param texels the texel width. 
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setBorder(int texels)
+		{
+			this.border = texels;
+			return this;
+		}
+		
+		/**
+		 * Sets the wrapping on the texture.
+		 * By default, all wrapping is {@link TextureWrapType#TILE}.
+		 * @param wrapS the S-coordinate wrap type. 
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setWrapping(TextureWrapType wrapS)
+		{
+			this.wrapS = wrapS;
+			return this;
+		}
+		
+		/**
+		 * Sets the wrapping on the texture.
+		 * By default, all wrapping is {@link TextureWrapType#TILE}.
+		 * @param wrapS the S-coordinate wrap type. 
+		 * @param wrapT the T-coordinate wrap type. 
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
+		{
+			this.wrapS = wrapS;
+			this.wrapT = wrapT;
+			return this;
+		}
+		
+		/**
+		 * Sets the wrapping on the texture.
+		 * By default, all wrapping is {@link TextureWrapType#TILE}.
+		 * @param wrapS the S-coordinate wrap type. 
+		 * @param wrapT the T-coordinate wrap type. 
+		 * @param wrapR the R-coordinate wrap type. 
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
+		{
+			this.wrapS = wrapS;
+			this.wrapT = wrapT;
+			this.wrapR = wrapR;
+			return this;
+		}
+		
+		/**
+		 * Sets if the texture is stored in a compressed format.
+		 * By default, this is <code>false</code>.
+		 * @param enabled true to enable, false if disabled.
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setCompressed(boolean enabled)
+		{
+			this.compressed = enabled;
+			return this;
+		}
+		
+		/**
+		 * Sets if this generator auto-generates mipmaps on or after data transfer.
+		 * By default, this is <code>false</code>.
+		 * @param autoGenerateMipMaps true to auto-generate mipmaps for this texture.
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setAutoGenerateMipMaps(boolean autoGenerateMipMaps)
+		{
+			this.autoGenerateMipMaps = autoGenerateMipMaps;
+			return this;
+		}
+		
+		/**
+		 * Sets texture anisotropy level.
+		 * By default, this is <code>1.0f</code>.
+		 * @param anisotropy the anisotropy level (1.0f or less = no anisotropy).
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> setAnisotropy(float anisotropy)
+		{
+			this.anisotropy = anisotropy;
+			return this;
+		}
+		
+		/**
+		 * Adds one or more textures to a mipmap level, each image in this batch
+		 * past the first is considered part of the depth dimension (an array of 4 images implies a depth of 4, height of 4 if 1D Array).
+		 * The first call to this is the topmost level, and each subsequent call is the next lower level.
+		 * Every texture past the first one is ignored if mipmap auto-generation is enabled.
+		 * @param images the image to add at this level.
+		 * @return this builder.
+		 */
+		public TextureBuilder<GL> addTexture(BufferedImage ... images)
+		{
+			if (images.length == 0)
+				throw new GraphicsException("Must add at least one image.");
+			
+			BufferedImage[] imageSet = new BufferedImage[images.length];
+			System.arraycopy(images, 0, imageSet, 0, images.length);
+			this.imageLevels.add(imageSet);
+			return this;
+		}
+		
+		/**
+		 * Creates this texture.
+		 * @return the texture object created.
+		 * @throws GraphicsException if the texture could not be created.
+		 */
+		public abstract OGLTexture create();
+		
+	}
+	
+	/**
+	 * Shader builder utility class.
+	 * @param <GL> the graphics implementation that this executes on.
+	 */
+	public static abstract class ShaderBuilder<GL extends OGLGraphics>
+	{
+		protected GL gl;
+		protected Map<String, Integer> attributeLocationBindings;
+		protected Map<String, Integer> fragmentDataBindings;
+		protected Map<ShaderType, Supplier<String>> shaderPrograms;
+		protected Listener builderListener;
+
+		@FunctionalInterface
+		public interface Listener
+		{
+			/**
+			 * Called when a shader is compiled, and the log built.
+			 * @param type the shader type built.
+			 * @param log the log content.
+			 */
+			void onShaderLog(ShaderType type, String log);
+		}
+		
+		/**
+		 * Creates a new Shader Builder with defaults set.
+		 * @param gl the graphics implementation that created this (and will execute this).
+		 */
+		protected ShaderBuilder(GL gl)
+		{
+			this.gl = gl;
+			this.attributeLocationBindings = new TreeMap<>();
+			this.fragmentDataBindings = new TreeMap<>();
+			this.shaderPrograms = new TreeMap<>();
+			this.builderListener = null;
+		}
+		
+		// Reads source from a reader.
+		private static String readSource(Reader reader) throws IOException
+		{
+			int c = 0;
+			char[] cbuf = new char[4096];
+			StringBuilder sb = new StringBuilder();
+			while ((c = reader.read(cbuf)) > 0)
+				sb.append(cbuf, 0, c);
+			return sb.toString();
+		}
+
+		/**
+		 * Binds an attribute name to a specific location index.
+		 * @param attributeName the attribute name.
+		 * @param locationId the location id.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> attributeLocation(String attributeName, int locationId)
+		{
+			attributeLocationBindings.put(attributeName, locationId);
+			return this;
+		}
+		
+		/**
+		 * Binds a fragment output attribute name to a specific output color index.
+		 * @param attributeName the attribute name.
+		 * @param index the index.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> fragmentDataLocation(String attributeName, int index)
+		{
+			fragmentDataBindings.put(attributeName, index);
+			return this;
+		}
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param file the source file.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> setShader(ShaderType type, final File file)
+		{
+			return setShader(type, () ->
+			{
+				try (Reader reader = new InputStreamReader(new FileInputStream(file)))
+				{
+					return readSource(reader);
+				}
+				catch (FileNotFoundException e)
+				{
+					throw new GraphicsException("Shader source for " + type.name() + " could not be found.", e);
+				}
+				catch (IOException e)
+				{
+					throw new GraphicsException("Shader source for " + type.name() + " could not be read.", e);
+				}
+			});
+		}
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param in the input stream to read from.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> setShader(ShaderType type, final InputStream in)
+		{
+			return setShader(type, () ->
+			{
+				try (Reader reader = new InputStreamReader(in))
+				{
+					return readSource(reader);
+				}
+				catch (FileNotFoundException e)
+				{
+					throw new GraphicsException("Shader source for " + type.name() + " could not be found.", e);
+				}
+				catch (IOException e)
+				{
+					throw new GraphicsException("Shader source for " + type.name() + " could not be read.", e);
+				}
+			});
+		}
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param reader the reader to read from.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> setShader(ShaderType type, final Reader reader)
+		{
+			return setShader(type, () ->
+			{
+				try
+				{
+					return readSource(reader);
+				}
+				catch (FileNotFoundException e)
+				{
+					throw new GraphicsException("Shader source for " + type.name() + " could not be found.", e);
+				}
+				catch (IOException e)
+				{
+					throw new GraphicsException("Shader source for " + type.name() + " could not be read.", e);
+				}
+			});
+		}
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param source the string that contains the source code.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> setShader(ShaderType type, final String source)
+		{
+			return setShader(type, ()->source);
+		}
+		
+		/**
+		 * Sets a shader program and a shader source. 
+		 * @param type the shader type.
+		 * @param source the source code supplier.
+		 * @return this builder.
+		 */
+		public ShaderBuilder<GL> setShader(ShaderType type, Supplier<String> source)
+		{
+			shaderPrograms.put(type, source);
+			return this;
+		}
+
+		/**
+		 * Fires a log event to the listener, if attached.
+		 * @param type the shader type.
+		 * @param log the shader log.
+		 */
+		protected final void fireShaderLog(ShaderType type, String log)
+		{
+			if (builderListener != null)
+				builderListener.onShaderLog(type, log);
+		}
+		
+		/**
+		 * Creates the program.
+		 * @return the shader program created.
+		 * @throws GraphicsException if the program could not be created.
+		 */
+		public abstract OGLProgram create();
+
 	}
 	
 	/** The current frame rendered. */

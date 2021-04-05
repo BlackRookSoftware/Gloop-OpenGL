@@ -21,6 +21,7 @@ import static org.lwjgl.opengl.GL14.*;
 /**
  * OpenGL 1.4 Graphics Implementation.
  * @author Matthew Tropiano
+ * TODO: Make TextureBuilder for this version (mipmap autogen).
  */
 public class OGL14Graphics extends OGL13Graphics
 {

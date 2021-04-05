@@ -29,6 +29,8 @@ import static org.lwjgl.opengl.GL30.*;
 /**
  * OpenGL 3.0 Graphics Implementation.
  * @author Matthew Tropiano
+ * TODO: Make TextureBuilder for this version (better mipmap gen).
+ * TODO: Make ShaderBuilder for this version (fragment data binding).
  */
 public class OGL30Graphics extends OGL21Graphics
 {

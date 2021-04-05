@@ -139,8 +139,8 @@ public final class OGLTest
 						.append("}\n")
 					.toString())
 				);
-				gl.setProgramVertexAttribLocation(program, "position", 0);
-				gl.setProgramVertexAttribLocation(program, "color", 1);
+				gl.setProgramVertexAttribLocation(program, "position", VERTEX);
+				gl.setProgramVertexAttribLocation(program, "color", COLOR);
 				gl.setProgramFragmentDataLocation(program, "outColor", 0);
 				gl.linkProgram(program);
 				
@@ -175,14 +175,14 @@ public final class OGLTest
 				gl.setVertexArrayState(vstate);
 				gl.setBuffer(BufferTargetType.GEOMETRY, geometry);
 
-				gl.setVertexAttribEnabled(0, true);
-				gl.setVertexAttribBufferPointer(0, DataType.FLOAT, false, builder.getWidth(VERTEX), builder.getStrideSize(), builder.getOffset(VERTEX));
+				gl.setVertexAttribEnabled(VERTEX, true);
+				gl.setVertexAttribBufferPointer(VERTEX, DataType.FLOAT, false, builder.getWidth(VERTEX), builder.getStrideSize(), builder.getOffset(VERTEX));
 				
-				gl.setVertexAttribEnabled(1, true);
-				gl.setVertexAttribBufferPointer(1, DataType.FLOAT, false, builder.getWidth(COLOR), builder.getStrideSize(), builder.getOffset(COLOR));
+				gl.setVertexAttribEnabled(COLOR, true);
+				gl.setVertexAttribBufferPointer(COLOR, DataType.FLOAT, false, builder.getWidth(COLOR), builder.getStrideSize(), builder.getOffset(COLOR));
 				
-				gl.unsetVertexArrayState();
 				gl.unsetBuffer(BufferTargetType.GEOMETRY);
+				gl.unsetVertexArrayState();
 				
 				once = true;
 			}

@@ -13,17 +13,10 @@ import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
+import com.blackrook.gloop.opengl.math.Matrix4F;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -34,6 +27,7 @@ import static org.lwjgl.opengl.GL20.*;
 /**
  * OpenGL 2.0 Graphics Implementation.
  * @author Matthew Tropiano
+ * TODO: Make ShaderBuilder for this version (base).
  */
 public class OGL20Graphics extends OGL15Graphics
 {
@@ -103,82 +97,19 @@ public class OGL20Graphics extends OGL15Graphics
 
 	/**
 	 * Creates a new shader object (vertex, fragment, etc.).
-	 * @param type the program type. if not a valid program type, this throws an exception.
-	 * @param file the source file to read for compiling.
-	 * @return the instantiated program.
-	 * @throws NullPointerException if type or file is null.
-	 * @throws IOException if the source of the source code can't be read.
-	 * @throws FileNotFoundException if the source file does not exist.
-	 */
-	public OGLProgramShader createProgramShader(ShaderType type, File file) throws IOException
-	{
-		checkFeatureVersion(type);
-		Objects.requireNonNull(file);
-		try (FileInputStream fis = new FileInputStream(file))
-		{
-			return createProgramShader(type, file.getPath(), new InputStreamReader(fis));
-		}
-	}
-	
-	/**
-	 * Creates a new shader object (vertex, fragment, etc.).
 	 * @param type the shader type. if not a valid shader type, this throws an exception.
-	 * @param streamName the name of the stream (can appear in exceptions).
-	 * @param in the stream to read the source from, assuming platform encoding.
+	 * @param streamName the name of the originating stream (can appear in exceptions).
+	 * @param sourceCode the code to compile.
 	 * @return the instantiated shader.
-	 * @throws NullPointerException if type, streamName, or in is null.
-	 * @throws IOException if the source of the source code can't be read.
-	 * @throws FileNotFoundException if the source file does not exist.
+	 * @throws NullPointerException if string is null.
 	 */
-	public OGLProgramShader createProgramShader(ShaderType type, String streamName, InputStream in) throws IOException
+	public OGLProgramShader createProgramShader(ShaderType type, String streamName, final String sourceCode)
 	{
 		checkFeatureVersion(type);
-		return createProgramShader(type, streamName, in, Charset.defaultCharset());
+		Objects.requireNonNull(sourceCode);
+		return createProgramShader(type, streamName, ()->sourceCode);
 	}
-	
-	/**
-	 * Creates a new shader object (vertex, fragment, etc.).
-	 * @param type the shader type. if not a valid shader type, this throws an exception.
-	 * @param streamName the name of the stream (can appear in exceptions).
-	 * @param in the stream to read the source from, assuming platform encoding.
-	 * @param charset the encoding charset for the input stream.
-	 * @return the instantiated shader.
-	 * @throws NullPointerException if type, streamName, or in is null.
-	 * @throws IOException if the source of the source code can't be read.
-	 * @throws FileNotFoundException if the source file does not exist.
-	 */
-	public OGLProgramShader createProgramShader(ShaderType type, String streamName, InputStream in, Charset charset) throws IOException
-	{
-		checkFeatureVersion(type);
-		Objects.requireNonNull(in);
-		Objects.requireNonNull(charset);
-		return createProgramShader(type, streamName, new InputStreamReader(in, charset));
-	}
-	
-	/**
-	 * Creates a new shader object (vertex, fragment, etc.).
-	 * @param type the shader type. if not a valid shader type, this throws an exception.
-	 * @param streamName the name of the stream (can appear in exceptions).
-	 * @param reader the reader to read the source from.
-	 * @return the instantiated shader.
-	 * @throws NullPointerException if type, streamName, or reader is null.
-	 * @throws IOException if the source of the source code can't be read.
-	 * @throws FileNotFoundException if the source file does not exist.
-	 */
-	public OGLProgramShader createProgramShader(ShaderType type, String streamName, Reader reader) throws IOException
-	{
-		checkFeatureVersion(type);
-		Objects.requireNonNull(reader);
 
-		int c = 0;
-		char[] cbuf = new char[4096];
-		StringBuilder sb = new StringBuilder();
-		while ((c = reader.read(cbuf)) > 0)
-			sb.append(cbuf, 0, c);
-		
-		return createProgramShader(type, streamName, sb.toString());
-	}
-	
 	/**
 	 * Creates a new shader object (vertex, fragment, etc.).
 	 * @param type the shader type. if not a valid shader type, this throws an exception.
@@ -190,25 +121,10 @@ public class OGL20Graphics extends OGL15Graphics
 	public OGLProgramShader createProgramShader(ShaderType type, String streamName, Supplier<String> sourceSupplier)
 	{
 		checkFeatureVersion(type);
-		Objects.requireNonNull(sourceSupplier);
-		return new OGLProgramShader(type, streamName, sourceSupplier.get());
-	}
-
-	/**
-	 * Creates a new shader object (vertex, fragment, etc.).
-	 * @param type the shader type. if not a valid shader type, this throws an exception.
-	 * @param streamName the name of the originating stream (can appear in exceptions).
-	 * @param sourceCode the code to compile.
-	 * @return the instantiated shader.
-	 * @throws NullPointerException if string is null.
-	 */
-	public OGLProgramShader createProgramShader(ShaderType type, String streamName, String sourceCode)
-	{
-		checkFeatureVersion(type);
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(streamName);
-		Objects.requireNonNull(sourceCode);
-		return new OGLProgramShader(type, streamName, sourceCode);
+		Objects.requireNonNull(sourceSupplier);
+		return new OGLProgramShader(type, streamName, sourceSupplier.get());
 	}
 
 	/**
@@ -326,7 +242,7 @@ public class OGL20Graphics extends OGL15Graphics
 			FloatBuffer fbuf = stack.mallocFloat(2);
 			fbuf.put(0, value0);
 			fbuf.put(1, value1);
-			glUniform2fv(locationId, fbuf);			
+			glUniform2fv(locationId, fbuf);
 		}
 	}
 	
@@ -383,7 +299,7 @@ public class OGL20Graphics extends OGL15Graphics
 			IntBuffer ibuf = stack.mallocInt(2);
 			ibuf.put(0, value0);
 			ibuf.put(1, value1);
-			glUniform2iv(locationId, ibuf);			
+			glUniform2iv(locationId, ibuf);
 		}
 	}
 
@@ -402,7 +318,7 @@ public class OGL20Graphics extends OGL15Graphics
 			ibuf.put(0, value0);
 			ibuf.put(1, value1);
 			ibuf.put(2, value2);
-			glUniform3iv(locationId, ibuf);			
+			glUniform3iv(locationId, ibuf);
 		}
 	}
 
@@ -423,7 +339,25 @@ public class OGL20Graphics extends OGL15Graphics
 			ibuf.put(1, value1);
 			ibuf.put(2, value2);
 			ibuf.put(3, value3);
-			glUniform4iv(locationId, ibuf);			
+			glUniform4iv(locationId, ibuf);
+		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat2) value on the currently-bound program.
+	 * @param locationId the uniform location.
+	 * @param matrix the column-major array of values.
+	 * @throws ArrayIndexOutOfBoundsException if matrix is not 4 elements or greater and a value is fetched out-of-bounds.
+	 */
+	public void setProgramUniformMatrix2(int locationId, float[] matrix)
+	{
+		// Fill in column major order!
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(4);
+			fbuf.put(matrix);
+			fbuf.flip();
+			glUniformMatrix2fv(locationId, false, fbuf);
 		}
 	}
 
@@ -443,7 +377,25 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.put(1, matrix[1][0]);
 			fbuf.put(2, matrix[0][1]);
 			fbuf.put(3, matrix[1][1]);
-			glUniformMatrix2fv(locationId, false, fbuf);			
+			glUniformMatrix2fv(locationId, false, fbuf);
+		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat3) value on the currently-bound program.
+	 * @param locationId the uniform location.
+	 * @param matrix the column-major array of values.
+	 * @throws ArrayIndexOutOfBoundsException if matrix is not 9 elements or greater and a value is fetched out-of-bounds.
+	 */
+	public void setProgramUniformMatrix3(int locationId, float[] matrix)
+	{
+		// Fill in column major order!
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(9);
+			fbuf.put(matrix);
+			fbuf.flip();
+			glUniformMatrix3fv(locationId, false, fbuf);
 		}
 	}
 
@@ -468,7 +420,25 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.put(6, matrix[0][2]);
 			fbuf.put(7, matrix[1][2]);
 			fbuf.put(8, matrix[2][2]);
-			glUniformMatrix3fv(locationId, false, fbuf);			
+			glUniformMatrix3fv(locationId, false, fbuf);
+		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat4) value on the currently-bound program.
+	 * @param locationId the uniform location.
+	 * @param matrix the column-major array of values.
+	 * @throws ArrayIndexOutOfBoundsException if matrix is not 16 elements or greater and a value is fetched out-of-bounds.
+	 */
+	public void setProgramUniformMatrix4(int locationId, float[] matrix)
+	{
+		// Fill in column major order!
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			FloatBuffer fbuf = stack.mallocFloat(16);
+			fbuf.put(matrix);
+			fbuf.flip();
+			glUniformMatrix4fv(locationId, false, fbuf);
 		}
 	}
 
@@ -500,8 +470,18 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.put(13, matrix[1][3]);
 			fbuf.put(14, matrix[2][3]);
 			fbuf.put(15, matrix[3][3]);
-			glUniformMatrix4fv(locationId, false, fbuf);			
+			glUniformMatrix4fv(locationId, false, fbuf);
 		}
+	}
+
+	/**
+	 * Sets a uniform matrix (mat4) value on the currently-bound program.
+	 * @param locationId the uniform location.
+	 * @param matrix the multidimensional array of values, each array as one row of values.
+	 */
+	public void setProgramUniformMatrix4(int locationId, Matrix4F matrix)
+	{
+		setProgramUniformMatrix4(locationId, matrix.getArray());
 	}
 
 	/**
