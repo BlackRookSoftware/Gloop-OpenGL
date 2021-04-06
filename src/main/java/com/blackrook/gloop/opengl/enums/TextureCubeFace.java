@@ -17,14 +17,14 @@ public enum TextureCubeFace
 {
 	/** Cube +X face. */
 	PX(GL_TEXTURE_CUBE_MAP_POSITIVE_X),
-	/** Cube +Y face. */
-	PY(GL_TEXTURE_CUBE_MAP_POSITIVE_Y),
-	/** Cube +Z face. */
-	PZ(GL_TEXTURE_CUBE_MAP_POSITIVE_Z),
 	/** Cube -X face. */
 	NX(GL_TEXTURE_CUBE_MAP_NEGATIVE_X),
+	/** Cube +Y face. */
+	PY(GL_TEXTURE_CUBE_MAP_POSITIVE_Y),
 	/** Cube -Y face. */
 	NY(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y),
+	/** Cube +Z face. */
+	PZ(GL_TEXTURE_CUBE_MAP_POSITIVE_Z),
 	/** Cube -Z face. */
 	NZ(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 	

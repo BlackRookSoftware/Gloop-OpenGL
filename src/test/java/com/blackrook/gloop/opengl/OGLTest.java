@@ -15,21 +15,14 @@ import com.blackrook.gloop.glfw.GLFWWindow.WindowHints;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
-import com.blackrook.gloop.opengl.OGLGraphics.OGLShaderBuilderAbstract;
-import com.blackrook.gloop.opengl.OGLGraphics.ShaderBuilder;
-import com.blackrook.gloop.opengl.enums.BufferTargetType;
-import com.blackrook.gloop.opengl.enums.CachingHint;
-import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.GeometryType;
 import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.gl1.OGLBuffer;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
-import com.blackrook.gloop.opengl.gl3.OGL30Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl3.OGLVertexArrayState;
 import com.blackrook.gloop.opengl.node.OGLNodeAdapter;
-import com.blackrook.gloop.opengl.util.BufferUtils;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
 public final class OGLTest 
@@ -140,9 +133,11 @@ public final class OGLTest
 					.toString())
 					.attributeLocation("position", VERTEX)
 					.attributeLocation("color", COLOR)
+					.fragmentDataLocation("outColor", 0)
 				.create();
 				
-				GeometryBuilder builder = GeometryBuilder.start(4, 3, 4)
+				// Geometry Buffer
+				GeometryBuilder gbuilder = gl.createGeometryBuilder(4, 3, 4) 
 					.add(VERTEX,   -0.5f,  0.5f, 0.0f)
 					.add(COLOR,     1,     0,    0,   1)
 //					.add(TEXCOORD,  0,     0)
@@ -159,27 +154,10 @@ public final class OGLTest
 					.add(COLOR,     1,     1,    1,   1)
 //					.add(TEXCOORD,  1,     1)
 				;
+				
+				geometry = gbuilder.create();
+				vstate = gl.createVertexArrayState(geometry, gbuilder);
 
-				// Geometry Buffer
-				geometry = gl.createBuffer();
-				gl.setBuffer(BufferTargetType.GEOMETRY, geometry);
-				gl.setBufferData(BufferTargetType.GEOMETRY, CachingHint.STATIC_DRAW, builder.getBuffer());
-				gl.unsetBuffer(BufferTargetType.GEOMETRY);
-				
-				vstate = gl.createVertexArrayState();
-				
-				gl.setVertexArrayState(vstate);
-				gl.setBuffer(BufferTargetType.GEOMETRY, geometry);
-
-				gl.setVertexAttribEnabled(VERTEX, true);
-				gl.setVertexAttribBufferPointer(VERTEX, DataType.FLOAT, false, builder.getWidth(VERTEX), builder.getStrideSize(), builder.getOffset(VERTEX));
-				
-				gl.setVertexAttribEnabled(COLOR, true);
-				gl.setVertexAttribBufferPointer(COLOR, DataType.FLOAT, false, builder.getWidth(COLOR), builder.getStrideSize(), builder.getOffset(COLOR));
-				
-				gl.unsetBuffer(BufferTargetType.GEOMETRY);
-				gl.unsetVertexArrayState();
-				
 				gl.setClearColor(0, 0, 0, 1);
 				gl.setClearDepth(-1);
 				

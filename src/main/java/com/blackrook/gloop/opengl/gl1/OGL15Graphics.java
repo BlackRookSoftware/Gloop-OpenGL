@@ -14,6 +14,7 @@ import com.blackrook.gloop.opengl.enums.CachingHint;
 import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.FogCoordinateType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
+import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -33,6 +34,28 @@ import static org.lwjgl.opengl.GL15.*;
  */
 public class OGL15Graphics extends OGL14Graphics
 {
+	/**
+	 * Geometry builder used for OpenGL 1.5.  
+	 */
+	public static class OGL15GeometryBuilder extends GeometryBuilder.Abstract<OGL15Graphics>
+	{
+		protected OGL15GeometryBuilder(OGL15Graphics gl, int vertices, int ... attributeSizes)
+		{
+			super(gl, vertices, attributeSizes);
+		}
+
+		@Override
+		public OGLBuffer create()
+		{
+			OGLBuffer out = gl.createBuffer(); 
+			gl.setBuffer(BufferTargetType.GEOMETRY, out);
+			gl.setBufferData(BufferTargetType.GEOMETRY, CachingHint.STATIC_DRAW, buffer);
+			gl.unsetBuffer(BufferTargetType.GEOMETRY);
+			return out;
+		}
+
+	}
+	
 	/** Current buffer binding map. */
 	private Map<BufferTargetType, OGLBuffer> currentBuffer;
 
@@ -102,6 +125,27 @@ public class OGL15Graphics extends OGL14Graphics
 	public OGLQuery createSampleQuery()
 	{
 		return new OGLQuery(GL_SAMPLES_PASSED);
+	}
+
+	/**
+	 * Creates a new geometry builder.
+	 * The internal size of the buffer (number of float elements) is <code>vertices</code> times the sum of all of
+	 * the attribute sizes, which would house the whole object.
+	 * <p> This geometry builder aids in building buffer objects, and its
+	 * {@link GeometryBuilder#create()} method will bind a new buffer to the {@link BufferTargetType#GEOMETRY} target,
+	 * send the data, unbind the target, and return the new object.
+	 * <p> 
+	 * For example, if this is a builder of a four-vertex mesh with 3D spatial coordinates and an RGBA color,
+	 * the constructor for this 4-vertex, 2 attribute builder is:
+	 * <pre>GeometryBuilder.start(4, 3, 4)</pre>
+	 * ...and the resultant buffer capacity is 28 (<code>4 * (3 + 4)</code>).
+	 * @param vertices the number of individual vertices or attribute sets.
+	 * @param attributeSizes the list of attribute sizes in components.
+	 * @return the new builder.
+	 */
+	public GeometryBuilder createGeometryBuilder(int vertices, int ... attributeSizes)
+	{
+		return new OGL15GeometryBuilder(this, vertices, attributeSizes);
 	}
 
 	/**

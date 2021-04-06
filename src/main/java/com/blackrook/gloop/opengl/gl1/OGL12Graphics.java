@@ -16,18 +16,111 @@ import com.blackrook.gloop.opengl.enums.TextureFormat;
 import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
+import com.blackrook.gloop.opengl.util.TextureBuilder;
+import com.blackrook.gloop.opengl.util.TextureUtils;
 
 import static org.lwjgl.opengl.GL12.*;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.function.Function;
 
 /**
  * OpenGL 1.2 Graphics Implementation.
  * @author Matthew Tropiano
- * TODO: Make TextureBuilder for this version (3D Textures).
  */
 public class OGL12Graphics extends OGL11Graphics
 {
+	/**
+	 * Texture builder used for OpenGL 1.2.  
+	 */
+	private static class OGL12TextureBuilder extends TextureBuilder.Abstract<OGL12Graphics>
+	{
+		protected OGL12TextureBuilder(OGL12Graphics gl)
+		{
+			super(gl);
+		}
+
+		@Override
+		public TextureBuilder setCompressed(boolean enabled)
+		{
+			throw new UnsupportedOperationException("Texture compression is not supported in this implementation.");
+		}
+		
+		@Override
+		public TextureBuilder setAutoGenerateMipMaps(boolean autoGenerateMipMaps)
+		{
+			throw new UnsupportedOperationException("Mipmap auto-generation is not supported in this implementation.");
+		}
+
+		@Override
+		public OGLTexture create()
+		{
+			OGLTexture out = gl.createTexture();
+			try {
+				
+				if (imageLevels.isEmpty())
+					throw new GraphicsException("No data to store for texture.");
+				
+				// No compression, no auto mipmapgen.
+				
+				gl.setTexture(targetType, out);
+				gl.setTextureFiltering(targetType, minFilter, magFilter, anisotropy);
+				
+				ByteOrder nativeByteOrder = ByteOrder.nativeOrder();
+				Function<BufferedImage, ByteBuffer> dataFunc = nativeByteOrder == ByteOrder.LITTLE_ENDIAN 
+					? TextureUtils::getBGRAByteData
+					: TextureUtils::getRGBAByteData
+				;
+				Function<BufferedImage[], ByteBuffer> dataArrayFunc = nativeByteOrder == ByteOrder.LITTLE_ENDIAN 
+					? TextureUtils::getBGRAByteData
+					: TextureUtils::getRGBAByteData
+				;
+				ColorFormat colorFormat = nativeByteOrder == ByteOrder.LITTLE_ENDIAN
+					? ColorFormat.BGRA
+					: ColorFormat.RGBA
+				;
+				TextureFormat textureFormat = TextureFormat.RGBA;
+				
+				switch (targetType)
+				{
+					case TEXTURE_1D:
+						store1D(gl, dataFunc, colorFormat, textureFormat);
+						break;
+
+					case TEXTURE_2D:
+					case TEXTURE_RECTANGLE:
+						store2D(gl, dataFunc, colorFormat, textureFormat);
+						break;
+
+					case TEXTURE_1D_ARRAY:
+						store1DArray(gl, dataArrayFunc, colorFormat, textureFormat);
+						break;
+					
+					case TEXTURE_3D:
+						store3D(gl, dataArrayFunc, colorFormat, textureFormat);
+						break;
+					
+					case TEXTURE_2D_ARRAY:
+						store2DArray(gl, dataArrayFunc, colorFormat, textureFormat);
+						break;
+					
+					default:
+						throw new GraphicsException("Unsupported texture target: " + targetType.name());
+				}
+				
+			} catch (Exception e) {
+				out.destroy();
+				throw e;
+			} finally {
+				gl.unsetTexture(targetType);
+			}
+			
+			return out;
+		}
+	}
+	
 	// Create OpenGL 1.2 context.
 	public OGL12Graphics(boolean core)
 	{
@@ -38,6 +131,19 @@ public class OGL12Graphics extends OGL11Graphics
 	public OGLVersion getVersion()
 	{
 		return OGLVersion.GL12;
+	}
+	
+	/**
+	 * Creates a texture builder.
+	 * <p> This texture builder aids in building texture objects, and its
+	 * {@link TextureBuilder#create()} method will bind a new texture to its required target,
+	 * send the data, set the filtering and build mipmaps, unbind the target, and return the new object.
+	 * <p> Limitations on this implementation version are: No compression, no auto mipmapgen.
+	 * @return a new texture builder.
+	 */
+	public TextureBuilder createTextureBuilder()
+	{
+		return new OGL12TextureBuilder(this);
 	}
 	
 	/**
@@ -116,7 +222,7 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param zoffs the texel offset.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored three-dimensionally.
 	 */
-	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int depth, int height, int xoffs, int yoffs, int zoffs)
+	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int depth, int xoffs, int yoffs, int zoffs)
 	{
 		checkFeatureVersion(target);
 		checkFeatureVersion(colorFormat);

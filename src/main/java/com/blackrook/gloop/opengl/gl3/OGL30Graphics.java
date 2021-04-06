@@ -10,12 +10,19 @@ package com.blackrook.gloop.opengl.gl3;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
 import com.blackrook.gloop.opengl.gl2.OGLProgramShader;
+import com.blackrook.gloop.opengl.util.GeometryBuilder;
+import com.blackrook.gloop.opengl.util.ProgramBuilder;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.AttachPoint;
+import com.blackrook.gloop.opengl.enums.BufferTargetType;
+import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.RenderbufferFormat;
 import com.blackrook.gloop.opengl.enums.ShaderType;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
+import com.blackrook.gloop.opengl.gl1.OGLBuffer;
 import com.blackrook.gloop.opengl.gl1.OGLTexture;
 
 import java.nio.IntBuffer;
@@ -28,14 +35,11 @@ import java.util.function.Supplier;
 
 import org.lwjgl.system.MemoryStack;
 
-import static org.lwjgl.opengl.GL11.GL_EXTENSIONS;
-import static org.lwjgl.opengl.GL11.glGetString;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
  * OpenGL 3.0 Graphics Implementation.
  * @author Matthew Tropiano
- * TODO: Make TextureBuilder for this version (better mipmap gen).
  */
 public class OGL30Graphics extends OGL21Graphics
 {
@@ -72,9 +76,9 @@ public class OGL30Graphics extends OGL21Graphics
 	/**
 	 * Shader builder used for OpenGL 3.0.  
 	 */
-	public static class OGL30ShaderBuilder extends OGLShaderBuilderAbstract<OGL30Graphics>
+	public static class OGL30ProgramBuilder extends ProgramBuilder.Abstract<OGL30Graphics>
 	{
-		protected OGL30ShaderBuilder(OGL30Graphics gl)
+		protected OGL30ProgramBuilder(OGL30Graphics gl)
 		{
 			super(gl);
 		}
@@ -138,6 +142,22 @@ public class OGL30Graphics extends OGL21Graphics
 	    super.endFrame();
 	}
 
+	@Override
+	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
+	{
+		setTextureFiltering(target, minFilter, magFilter);
+		if (genMipmaps)
+			generateMipmaps(target);
+	}
+
+	@Override
+	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy, boolean genMipmaps)
+	{
+		setTextureFiltering(target, minFilter, magFilter, anisotropy);
+		if (genMipmaps)
+			generateMipmaps(target);
+	}
+
 	/**
 	 * Generates mipmaps on-demand internally for the current texture bound to the provided target.
 	 * @param target the texture target.
@@ -146,6 +166,17 @@ public class OGL30Graphics extends OGL21Graphics
 	{
 		glGenerateMipmap(target.glValue);
 		checkError();
+	}
+
+	/**
+	 * Creates a new program builder.
+	 * <p> This program builder aids in building shader program objects, and its
+	 * {@link ProgramBuilder#create()} method will compile and link all of the shaders and return the new object.
+	 * @return a new program builder.
+	 */
+	public ProgramBuilder createProgramBuilder()
+	{
+		return new OGL30ProgramBuilder(this);
 	}
 
 	/**
@@ -230,6 +261,32 @@ public class OGL30Graphics extends OGL21Graphics
 		}
 	}
 
+	/**
+	 * Creates a vertex array state object, which maintains the state of bound
+	 * vertex attributes and bound buffer targets.
+	 * This uses the content of a {@link GeometryBuilder} and the buffer it created 
+	 * to set the pointers used by the array state. 
+	 * @param buffer the buffer created by the builder.
+	 * @param builder the builder to get the attribute data from.
+	 * @return the new object.
+	 */
+	public OGLVertexArrayState createVertexArrayState(OGLBuffer buffer, GeometryBuilder builder)
+	{
+		OGLVertexArrayState out = createVertexArrayState();
+		setVertexArrayState(out);
+		setBuffer(BufferTargetType.GEOMETRY, buffer);
+
+		for (int i = 0; i < builder.getAttributeCount(); i++)
+		{
+			setVertexAttribEnabled(i, true);
+			setVertexAttribBufferPointer(i, DataType.FLOAT, false, builder.getWidth(i), builder.getStrideSize(), builder.getOffset(i));
+		}
+		
+		unsetBuffer(BufferTargetType.GEOMETRY);
+		unsetVertexArrayState();
+		return out;
+	}
+	
 	/**
 	 * Creates a vertex array state object, which maintains the state of bound
 	 * vertex attributes and bound buffer targets.

@@ -98,5 +98,33 @@ public final class ImageUtils
 		g2d.dispose();
 		return out;
 	}
+	
+	// Splits an image into a set of mipmap images.
+	private static BufferedImage createMipMapImage(BufferedImage source)
+	{
+		// TODO: Finish this.
+		return null;
+	}
 
+	// Splits an image into a set of mipmap images.
+	private static BufferedImage createRGBMipMapImage(BufferedImage source)
+	{
+		// TODO: Finish this.
+		return null;
+	}
+
+	// Splits an image into a set of mipmap images.
+	private static BufferedImage[] splitMipMapImage(BufferedImage source)
+	{
+		// TODO: Finish this.
+		return null;
+	}
+
+	// Splits an image into a set of cube map textures.
+	private static BufferedImage[] splitCubeMapImage(BufferedImage source)
+	{
+		// TODO: Finish this.
+		return null;		
+	}
+	
 }

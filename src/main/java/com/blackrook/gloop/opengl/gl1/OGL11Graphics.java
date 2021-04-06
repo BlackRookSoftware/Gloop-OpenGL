@@ -49,6 +49,7 @@ import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.math.Matrix4F;
+import com.blackrook.gloop.opengl.util.TextureBuilder;
 import com.blackrook.gloop.opengl.util.TextureUtils;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -135,9 +136,9 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Texture builder used for OpenGL 1.1.  
+	 * Texture builder used for OpenGL 1.1.
 	 */
-	private static class OGL11TextureBuilder extends OGLTextureBuilderAbstract<OGL11Graphics>
+	private static class OGL11TextureBuilder extends TextureBuilder.Abstract<OGL11Graphics>
 	{
 		protected OGL11TextureBuilder(OGL11Graphics gl)
 		{
@@ -1983,7 +1984,6 @@ public class OGL11Graphics extends OGLGraphics
 	 * <p> Limitations on this implementation version are: No 3D support, no compression, no auto mipmapgen, force RGBA.
 	 * @return a new texture builder.
 	 */
-	@SuppressWarnings("javadoc")
 	public TextureBuilder createTextureBuilder()
 	{
 		return new OGL11TextureBuilder(this);

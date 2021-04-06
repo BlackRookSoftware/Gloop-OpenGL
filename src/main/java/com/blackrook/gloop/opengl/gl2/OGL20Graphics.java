@@ -14,6 +14,7 @@ import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
 import com.blackrook.gloop.opengl.math.Matrix4F;
+import com.blackrook.gloop.opengl.util.ProgramBuilder;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -47,15 +48,15 @@ public class OGL20Graphics extends OGL15Graphics
 	/**
 	 * Shader builder used for OpenGL 2.0.  
 	 */
-	public static class OGL20ShaderBuilder extends OGLShaderBuilderAbstract<OGL20Graphics>
+	public static class OGL20ProgramBuilder extends ProgramBuilder.Abstract<OGL20Graphics>
 	{
-		protected OGL20ShaderBuilder(OGL20Graphics gl)
+		protected OGL20ProgramBuilder(OGL20Graphics gl)
 		{
 			super(gl);
 		}
 
 		@Override
-		public OGLShaderBuilderAbstract<OGL20Graphics> fragmentDataLocation(String attributeName, int index)
+		public ProgramBuilder fragmentDataLocation(String attributeName, int index)
 		{
 			throw new UnsupportedOperationException("Cannot bind fragment locations in this implementation.");
 		}
@@ -150,16 +151,15 @@ public class OGL20Graphics extends OGL15Graphics
 	}
 
 	/**
-	 * Creates a new shader builder.
+	 * Creates a new program builder.
 	 * <p> This program builder aids in building shader program objects, and its
-	 * {@link ShaderBuilder#create()} method will compile and link all of the shaders and return the new object.
+	 * {@link ProgramBuilder#create()} method will compile and link all of the shaders and return the new object.
 	 * <p> Limitations on this implementation version are: No fragment data binding.
 	 * @return a new program builder.
 	 */
-	@SuppressWarnings("javadoc")
-	public ShaderBuilder createProgramBuilder()
+	public ProgramBuilder createProgramBuilder()
 	{
-		return new OGL20ShaderBuilder(this);
+		return new OGL20ProgramBuilder(this);
 	}
 	
 	/**
