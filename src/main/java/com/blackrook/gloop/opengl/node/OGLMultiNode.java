@@ -13,7 +13,7 @@ import java.util.List;
 import com.blackrook.gloop.opengl.OGLGraphics;
 
 /**
- * An listener node that contains other {@link OGLNode}s.
+ * A framebuffer node that contains other {@link OGLNode}s.
  * Contains methods to invoke before they are displayed and after they are displayed.
  * @param <GL> the graphics object to call.
  * @author Matthew Tropiano

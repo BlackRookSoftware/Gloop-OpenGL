@@ -10,7 +10,7 @@ package com.blackrook.gloop.opengl.node;
 import com.blackrook.gloop.opengl.OGLGraphics;
 
 /**
- * An abstract canvas node class that basically overrides most
+ * An abstract framebuffer node class that basically overrides most
  * of {@link OGLNode} methods and does NOTHING with them.
  * It's merely a convenience class in the vein of "Adapter" classes
  * that helps reduce code clutter.

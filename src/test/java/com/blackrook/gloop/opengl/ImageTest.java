@@ -10,6 +10,7 @@ package com.blackrook.gloop.opengl;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
@@ -19,8 +20,27 @@ public final class ImageTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		BufferedImage image = ImageIO.read(new File("E:\\Users\\Matt\\Desktop\\Untitled.png"));
-		ImageIO.write(ImageUtils.createMipMapImage(image, ImageUtils.ResizeQuality.BICUBIC), "png", new File("junk.png"));
+		try (InputStream in = openResource("example/textures/earth.png"))
+		{
+			ImageIO.write(ImageUtils.createMipMapImage(ImageIO.read(in), ImageUtils.ResizeQuality.BICUBIC), "png", new File("junk.png"));
+		}
+		try (InputStream in = openResource("example/textures/earth.png"))
+		{
+			BufferedImage[] images = ImageUtils.splitTextureGrid(ImageIO.read(in), 4, 3); 
+			for (int i = 0; i < images.length; i++)
+				ImageIO.write(images[i], "png", new File("junk"+i+".png"));
+		}
 	}
-	
+
+	/**
+	 * Opens an {@link InputStream} to a resource using the current thread's {@link ClassLoader}.
+	 * @param pathString the resource pathname.
+	 * @return an open {@link InputStream} for reading the resource or null if not found.
+	 * @see ClassLoader#getResourceAsStream(String)
+	 */
+	public static InputStream openResource(String pathString)
+	{
+		return Thread.currentThread().getContextClassLoader().getResourceAsStream(pathString);
+	}
+
 }

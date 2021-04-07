@@ -10,7 +10,7 @@ package com.blackrook.gloop.opengl.node;
 import com.blackrook.gloop.opengl.OGLGraphics;
 
 /**
- * A canvas node that performs a one-time set of graphics commands.
+ * A framebuffer node that performs a one-time set of graphics commands.
  * Can be reset so that the one-time function can be performed again.
  * @author Matthew Tropiano
  * @param <GL> the graphics object to call.
@@ -41,7 +41,7 @@ public abstract class OGLTriggeredNode<GL extends OGLGraphics> extends OGLNodeAd
 	}
 
 	@Override
-	public void onDisplay(GL gl)
+	public final void onDisplay(GL gl)
 	{
 		if (trigger)
 		{
@@ -59,8 +59,8 @@ public abstract class OGLTriggeredNode<GL extends OGLGraphics> extends OGLNodeAd
 	}
 	
 	/**
-	 * This is the method called by display for when the triggered
-	 * method needs to run.
+	 * This is the method called by {@link #onDisplay(OGLGraphics)} 
+	 * for when the triggered method needs to run.
 	 * @param gl the OGLGraphics context. 
 	 */
 	public abstract void doTriggeredFunction(GL gl);
