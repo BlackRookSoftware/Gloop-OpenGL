@@ -8,6 +8,11 @@
 
 package com.blackrook.gloop.opengl;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
+
 import com.blackrook.gloop.glfw.GLFWContext;
 import com.blackrook.gloop.glfw.GLFWInputSystem;
 import com.blackrook.gloop.glfw.GLFWWindow;
@@ -18,7 +23,12 @@ import com.blackrook.gloop.glfw.input.enums.KeyType;
 import com.blackrook.gloop.opengl.enums.GeometryType;
 import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
+import com.blackrook.gloop.opengl.enums.TextureMagFilter;
+import com.blackrook.gloop.opengl.enums.TextureMinFilter;
+import com.blackrook.gloop.opengl.enums.TextureTargetType;
+import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGLBuffer;
+import com.blackrook.gloop.opengl.gl1.OGLTexture;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl3.OGLVertexArrayState;
@@ -73,13 +83,9 @@ public final class OGLTest
 	
 	public static class DrawNode extends OGLNodeAdapter<OGL33Graphics>
 	{
-		private static final int VERTEX = 0;
-		private static final int COLOR = 1;
-		// private static final int TEXCOORD = 2;
-
 		private OGLProgram program;
 		private OGLBuffer geometry;
-		// private OGLTexture texture;
+		private OGLTexture texture;
 		private OGLVertexArrayState vstate;
 		private boolean once;
 		
@@ -98,61 +104,77 @@ public final class OGLTest
 		@Override
 		public void onDisplay(OGL33Graphics gl)
 		{
-			if (viewportChange)
-			{
-				gl.setViewport(0, 0, viewportWidth, viewportHeight);
-				viewportChange = false;
-			}
-			
 			if (!once)
 			{
+				final int VERTEX = 0;
+				final int COLOR = 1;
+				final int TEXCOORD = 2;
+
 				program = gl.createProgramBuilder()
 					.setShader(ShaderType.VERTEX, (new StringBuilder())
 						.append("#version 330\n")
 						.append("in vec3 position;\n")
 						.append("in vec4 color;\n")
+						.append("in vec2 texcoord;\n")
 						.append("\n")
 						.append("out vec4 varyingColor;\n")
+						.append("out vec2 varyingTexcoord;\n")
 						.append("\n")
 						.append("void main()\n")
 						.append("{\n")
 						.append("    varyingColor = color;\n")
+						.append("    varyingTexcoord = texcoord;\n")
 						.append("    gl_Position = vec4(position.xyz, 1.0);\n")
 						.append("}\n")
 					.toString())
 					.setShader(ShaderType.FRAGMENT, (new StringBuilder())
 						.append("#version 330\n")
 						.append("in vec4 varyingColor;\n")
+						.append("in vec2 varyingTexcoord;\n")
+						.append("\n")
+						.append("uniform sampler2D texture0;")
 						.append("\n")
 						.append("out vec4 outColor;\n")
 						.append("\n")
 						.append("void main()\n")
 						.append("{\n")
-						.append("    outColor = varyingColor;\n")
+						.append("    outColor = varyingColor * texture2D(texture0, varyingTexcoord);\n")
 						.append("}\n")
 					.toString())
 					.attributeLocation("position", VERTEX)
 					.attributeLocation("color", COLOR)
+					.attributeLocation("texcoord", TEXCOORD)
 					.fragmentDataLocation("outColor", 0)
 				.create();
 				
+				try (InputStream in = openResource("example/textures/earth.png"))
+				{
+					texture = gl.createTextureBuilder()
+						.setFiltering(TextureMinFilter.NEAREST, TextureMagFilter.NEAREST)
+						.setTargetType(TextureTargetType.TEXTURE_2D)
+						.addTextureImage(ImageIO.read(in))
+						.create()
+					;
+				} 
+				catch (IOException e) 
+				{
+					throw new GraphicsException("Could not read texture file.", e);
+				}
+				
 				// Geometry Buffer
-				GeometryBuilder gbuilder = gl.createGeometryBuilder(4, 3, 4) 
+				GeometryBuilder gbuilder = gl.createGeometryBuilder(4, 3, 4, 2) 
 					.add(VERTEX,   -0.5f,  0.5f, 0.0f)
 					.add(COLOR,     1,     0,    0,   1)
-//					.add(TEXCOORD,  0,     0)
-	
+					.add(TEXCOORD,  0,     0)
 					.add(VERTEX,   -0.5f, -0.5f, 0.0f)
 					.add(COLOR,     0,     1,    0,   1)
-//					.add(TEXCOORD,  0,     1)
-					
+					.add(TEXCOORD,  0,     1)
 					.add(VERTEX,    0.5f,  0.5f, 0.0f)
 					.add(COLOR,     0,     0,    1,   1)
-//					.add(TEXCOORD,  1,     0)
-
+					.add(TEXCOORD,  1,     0)
 					.add(VERTEX,    0.5f, -0.5f, 0.0f)
 					.add(COLOR,     1,     1,    1,   1)
-//					.add(TEXCOORD,  1,     1)
+					.add(TEXCOORD,  1,     1)
 				;
 				
 				geometry = gbuilder.create();
@@ -162,6 +184,12 @@ public final class OGLTest
 				gl.setClearDepth(-1);
 				
 				once = true;
+			}
+			
+			if (viewportChange)
+			{
+				gl.setViewport(0, 0, viewportWidth, viewportHeight);
+				viewportChange = false;
 			}
 			
 			gl.clear(true, true, false, false);
@@ -176,11 +204,19 @@ public final class OGLTest
 			gl.matrixMode(MatrixMode.MODELVIEW);
 			gl.matrixReset();
 			
+			gl.setTextureEnabled(TextureTargetType.TEXTURE_2D, true);
+			gl.setTextureUnit(0);
+			gl.setTexture(TextureTargetType.TEXTURE_2D, texture);
+			
 			gl.setProgram(program);
+			gl.setProgramUniformInt(program.getUniform("texture0").getIndex(), 0);
 			gl.setVertexArrayState(vstate);
 			gl.drawGeometryArray(GeometryType.TRIANGLE_STRIP, 0, 4);
 			gl.unsetVertexArrayState();
 			gl.unsetProgram();
+			
+			gl.unsetTexture(TextureTargetType.TEXTURE_2D);
+			gl.setTextureEnabled(TextureTargetType.TEXTURE_2D, false);
 		}
 	}
 	
@@ -189,4 +225,15 @@ public final class OGLTest
 		(new OGLTest()).run();
 	}
 	
+	/**
+	 * Opens an {@link InputStream} to a resource using the current thread's {@link ClassLoader}.
+	 * @param pathString the resource pathname.
+	 * @return an open {@link InputStream} for reading the resource or null if not found.
+	 * @see ClassLoader#getResourceAsStream(String)
+	 */
+	public static InputStream openResource(String pathString)
+	{
+		return Thread.currentThread().getContextClassLoader().getResourceAsStream(pathString);
+	}
+
 }

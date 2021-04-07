@@ -43,20 +43,13 @@ public interface TextureBuilder
 	TextureBuilder setTargetType(TextureTargetType targetType);
 
 	/**
-	 * Sets the minification filter on the texture.
-	 * By default, this is {@link TextureMinFilter#NEAREST}.
+	 * Sets the minification and magnification filter on the texture.
+	 * By default, this is {@link TextureMinFilter#NEAREST} for both.
 	 * @param minFilter the minification filter to use. 
-	 * @return this builder.
-	 */
-	TextureBuilder setMinFilter(TextureMinFilter minFilter);
-	
-	/**
-	 * Sets the magnification filter on the texture.
-	 * By default, this is {@link TextureMagFilter#NEAREST}.
 	 * @param magFilter the magnification filter to use. 
 	 * @return this builder.
 	 */
-	TextureBuilder setMagFilter(TextureMagFilter magFilter);
+	TextureBuilder setFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter);
 	
 	/**
 	 * Sets the border size on the texture in texels.
@@ -123,12 +116,12 @@ public interface TextureBuilder
 	 * depth dimension (an array of 4 images implies a depth of 4, height of 4 if 1D Array).
 	 * If texture cube, then this expects 6 textures in the order: PX, NX, PY, NY, PZ, NZ.
 	 * <p>
-	 * The first call to this is the topmost level, and each subsequent call is the next lower level.
+	 * The first call to this is the topmost level, and each subsequent call is the next lower mipmap level.
 	 * Every texture past the first one is ignored if mipmap auto-generation is enabled.
 	 * @param images the image to add at this level.
 	 * @return this builder.
 	 */
-	TextureBuilder addTexture(BufferedImage ... images);
+	TextureBuilder addTextureImage(BufferedImage ... images);
 	
 	/**
 	 * Creates this texture.
@@ -184,15 +177,9 @@ public interface TextureBuilder
 		}
 	
 		@Override
-		public TextureBuilder setMinFilter(TextureMinFilter minFilter)
+		public TextureBuilder setFiltering(TextureMinFilter minFilter, TextureMagFilter magFilter)
 		{
 			this.minFilter = minFilter;
-			return this;
-		}
-		
-		@Override
-		public TextureBuilder setMagFilter(TextureMagFilter magFilter)
-		{
 			this.magFilter = magFilter;
 			return this;
 		}
@@ -250,7 +237,7 @@ public interface TextureBuilder
 		}
 	
 		@Override
-		public TextureBuilder addTexture(BufferedImage ... images)
+		public TextureBuilder addTextureImage(BufferedImage ... images)
 		{
 			if (images.length == 0)
 				throw new GraphicsException("Must add at least one image.");
