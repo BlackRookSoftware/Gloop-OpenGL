@@ -310,28 +310,35 @@ public class OGLSystem<G extends OGLGraphics>
 	private void redraw()
 	{
 		redrawing = true;
-		long rendertime = 0L;
-		int polys = 0;
-	
-		graphics.startFrame();
+		try
+		{
+			long rendertime = 0L;
+			int polys = 0;
 		
-	    for (int i = 0; i < nodes.size(); i++)
-	    {
-	    	OGLNode<? super G> node = nodes.get(i);
-    		node.onDisplay(graphics);
-    		rendertime += node.getRenderTimeNanos();
-    		polys += node.getPolygonsRendered();
-	    }
-	    
-	    frameRenderTimeNanos = System.nanoTime() - previousFrameNanos;
-	    previousFrameNanos = System.nanoTime();
-	
-	    renderTimeNanos = rendertime;
-	    polygonCount = polys;
-	    
-	    graphics.endFrame();
-	    window.swapBuffers();
-		redrawing = false;
+			graphics.startFrame();
+			
+		    for (int i = 0; i < nodes.size(); i++)
+		    {
+		    	OGLNode<? super G> node = nodes.get(i);
+	    		node.onDisplay(graphics);
+	    		rendertime += node.getRenderTimeNanos();
+	    		polys += node.getPolygonsRendered();
+		    }
+		    
+		    frameRenderTimeNanos = System.nanoTime() - previousFrameNanos;
+		    previousFrameNanos = System.nanoTime();
+		
+		    renderTimeNanos = rendertime;
+		    polygonCount = polys;
+		    
+		    graphics.endFrame();
+		    window.swapBuffers();
+		} 
+		finally 
+		{
+			// Even if an exception occurs, set this back to false.
+			redrawing = false;
+		}
 	}
 
 	/**
@@ -388,8 +395,7 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 
 	/**
-	 * @return the estimated frames per second in this context
-	 * based on the time to render the visible nodes.
+	 * @return the estimated frames per second in this context based on the time to render the nodes.
 	 */
 	public float getFPS()
 	{
@@ -401,27 +407,31 @@ public class OGLSystem<G extends OGLGraphics>
 	 * Sets the maximum amount of times per second that the rendering thread will 
 	 * attempt to automatically redraw the contents of the window.
 	 * Depending on the heft of what is being drawn, this maximum may not be reached.
-	 * <p> If set to null, no redraws occur. If set to a number that is 0 or less, 
-	 * this will keep redrawing continuously. If greater than 0, it will trigger
-	 * redraws that many times per second and ignore events that want to redraw the
-	 * window passively. 
+	 * <p> If set to null, no redraws occur unless triggered by the application or the windowing system. 
+	 * <p> If set to a number that is 0 or less, this will keep redrawing continuously. 
+	 * If greater than 0, it will trigger redraws that many times per second. 
+	 * Events that want to redraw the window passively are ignored in both circumstances. 
 	 * <p> By default, this is set to null. 
+	 * <p> NOTE: If an exception occurs during the rendering thread's execution, continual redraw 
+	 * is halted via <code>setFPS(null)</code> until it is started again.
 	 * @param fps the new FPS value. Can be null. 
 	 */
-	public void setFPS(Integer fps)
+	public void setFPS(int fps)
 	{
-		setFPS(fps != null ? Long.valueOf(fps) : null);
+		setFPS(Long.valueOf(fps));
 	}
 	
 	/**
 	 * Sets the maximum amount of times per second that the rendering thread will 
 	 * attempt to automatically redraw the contents of the window.
 	 * Depending on the heft of what is being drawn, this maximum may not be reached.
-	 * <p> If set to null, no redraws occur. If set to a number that is 0 or less, 
-	 * this will keep redrawing continuously. If greater than 0, it will trigger
-	 * redraws that many times per second and ignore events that want to redraw the
-	 * window passively. 
-	 * <p> By default, this is set to null. 
+	 * <p> If set to null, no redraws occur unless triggered by the application or the windowing system. 
+	 * <p> If set to a number that is 0 or less, this will keep redrawing continuously. 
+	 * If greater than 0, it will trigger redraws that many times per second. 
+	 * Events that want to redraw the window passively are ignored in both circumstances. 
+	 * <p> By default, this is set to null.
+	 * <p> NOTE: If an exception occurs during the rendering thread's execution, continual redraw 
+	 * is halted via <code>setFPS(null)</code> until it is started again.
 	 * @param fps the new FPS value. Can be null. 
 	 */
 	public void setFPS(Long fps)
@@ -436,7 +446,8 @@ public class OGLSystem<G extends OGLGraphics>
 		{
 			renderingThread.waitMillis = 0L;
 			renderingThread.waitNanos = 0;
-			ignoreRefresh = false;
+			ignoreRefresh = true;
+			display();
 		}
 		else
 		{
@@ -444,8 +455,8 @@ public class OGLSystem<G extends OGLGraphics>
 			renderingThread.waitMillis = npf / 1000000L;
 			renderingThread.waitNanos = (int)(npf % 1000000L);
 			ignoreRefresh = true;
+			display();
 		}
-		display();
 	}
 	
 	// The rendering thread.
@@ -490,6 +501,9 @@ public class OGLSystem<G extends OGLGraphics>
 						redraw();
 					} catch (InterruptedException e) {
 						// Should never be interrupted.
+					} catch (Throwable e) {
+						setFPS(null);
+						throw new GraphicsException("Graphics thread halted due to exception!", e);
 					}
 				}
 			}
