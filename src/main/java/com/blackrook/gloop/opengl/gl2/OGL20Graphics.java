@@ -10,6 +10,7 @@ package com.blackrook.gloop.opengl.gl2;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
@@ -34,6 +35,8 @@ import static org.lwjgl.opengl.GL20.*;
  */
 public class OGL20Graphics extends OGL15Graphics
 {
+	private static final ThreadLocal<Matrix4F> MATRIX = ThreadLocal.withInitial(()->new Matrix4F());
+
 	protected class Info20 extends Info13
 	{
 		protected Info20()
@@ -561,6 +564,19 @@ public class OGL20Graphics extends OGL15Graphics
 	public void setProgramUniformMatrix4(int locationId, Matrix4F matrix)
 	{
 		setProgramUniformMatrix4(locationId, matrix.getArray());
+	}
+
+	/**
+	 * Sets a uniform matrix (mat4) value on the currently-bound program using a matrix in the matrix stack.
+	 * @param locationId the uniform location.
+	 * @param matrixMode the matrix to grab values from.
+	 */
+	public void setProgramUniformMatrix4(int locationId, MatrixMode matrixMode)
+	{
+		checkNonCore();
+		Matrix4F mat4 = MATRIX.get();
+		matrixGet(matrixMode, mat4);
+		setProgramUniformMatrix4(locationId, mat4);
 	}
 
 	/**

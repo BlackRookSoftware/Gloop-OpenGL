@@ -98,6 +98,13 @@ public interface ProgramBuilder
 	ProgramBuilder setShader(ShaderType type, Supplier<String> source);
 
 	/**
+	 * Sets a log listener to listen for builder events.
+	 * @param listener the listener to set.
+	 * @return this builder.
+	 */
+	ProgramBuilder setListener(Listener listener);
+	
+	/**
 	 * Creates the program.
 	 * @return the shader program created.
 	 * @throws GraphicsException if the program could not be created.
@@ -140,36 +147,21 @@ public interface ProgramBuilder
 			return sb.toString();
 		}
 
-		/**
-		 * Binds an attribute name to a specific location index.
-		 * @param attributeName the attribute name.
-		 * @param locationId the location id.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder attributeLocation(String attributeName, int locationId)
 		{
 			attributeLocationBindings.put(attributeName, locationId);
 			return this;
 		}
 		
-		/**
-		 * Binds a fragment output attribute name to a specific output color index.
-		 * @param attributeName the attribute name.
-		 * @param index the index.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder fragmentDataLocation(String attributeName, int index)
 		{
 			fragmentDataBindings.put(attributeName, index);
 			return this;
 		}
 		
-		/**
-		 * Sets a shader program and a shader source. 
-		 * @param type the shader type.
-		 * @param file the source file.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder setShader(ShaderType type, final File file)
 		{
 			return setShader(type, () ->
@@ -189,12 +181,7 @@ public interface ProgramBuilder
 			});
 		}
 		
-		/**
-		 * Sets a shader program and a shader source. 
-		 * @param type the shader type.
-		 * @param in the input stream to read from.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder setShader(ShaderType type, final InputStream in)
 		{
 			return setShader(type, () ->
@@ -214,12 +201,7 @@ public interface ProgramBuilder
 			});
 		}
 		
-		/**
-		 * Sets a shader program and a shader source. 
-		 * @param type the shader type.
-		 * @param reader the reader to read from.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder setShader(ShaderType type, final Reader reader)
 		{
 			return setShader(type, () ->
@@ -239,29 +221,26 @@ public interface ProgramBuilder
 			});
 		}
 		
-		/**
-		 * Sets a shader program and a shader source. 
-		 * @param type the shader type.
-		 * @param source the string that contains the source code.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder setShader(ShaderType type, final String source)
 		{
 			return setShader(type, ()->source);
 		}
 		
-		/**
-		 * Sets a shader program and a shader source. 
-		 * @param type the shader type.
-		 * @param source the source code supplier.
-		 * @return this builder.
-		 */
+		@Override
 		public ProgramBuilder setShader(ShaderType type, Supplier<String> source)
 		{
 			shaderPrograms.put(type, source);
 			return this;
 		}
 
+		@Override
+		public ProgramBuilder setListener(ProgramBuilder.Listener listener)
+		{
+			builderListener = listener;
+			return this;
+		}
+		
 		/**
 		 * Fires a log event to the listener, if attached.
 		 * @param type the shader type.

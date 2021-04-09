@@ -62,7 +62,7 @@ public final class OGLTest
 		
 		oglSystem = OGLSystem.getOpenGL33(window);
 		oglSystem.addNode(new DrawNode());
-		oglSystem.setFPS(60);
+		oglSystem.setFPS(0);
 		
 		mainLoop = GLFWContext.createLoop(window, inputSystem);
 		mainLoop.setShutDownOnExit(true);
@@ -93,6 +93,19 @@ public final class OGLTest
 		private int viewportWidth;
 		private int viewportHeight;
 		
+		public DrawNode()
+		{
+			program = null;
+			geometry = null;
+			texture = null;
+			vstate = null;
+			once = false;
+			
+			viewportChange = false;
+			viewportWidth = 640;
+			viewportHeight = 480;
+		}
+		
 		@Override
 		public void onFramebufferResize(int newWidth, int newHeight)
 		{
@@ -117,14 +130,18 @@ public final class OGLTest
 						.append("in vec4 color;\n")
 						.append("in vec2 texcoord;\n")
 						.append("\n")
+						.append("uniform mat4 modelview;\n")
+						.append("uniform mat4 projection;\n")
+						.append("uniform mat4 textureTransform;\n")
+						.append("\n")
 						.append("out vec4 varyingColor;\n")
 						.append("out vec2 varyingTexcoord;\n")
 						.append("\n")
 						.append("void main()\n")
 						.append("{\n")
 						.append("    varyingColor = color;\n")
-						.append("    varyingTexcoord = texcoord;\n")
-						.append("    gl_Position = vec4(position.xyz, 1.0);\n")
+						.append("    varyingTexcoord = (textureTransform * vec4(texcoord.st, 1.0, 1.0)).st;\n")
+						.append("    gl_Position = projection * modelview * vec4(position.xyz, 1.0);\n") // order matters!
 						.append("}\n")
 					.toString())
 					.setShader(ShaderType.FRAGMENT, (new StringBuilder())
@@ -138,13 +155,16 @@ public final class OGLTest
 						.append("\n")
 						.append("void main()\n")
 						.append("{\n")
-						.append("    outColor = varyingColor * texture2D(texture0, varyingTexcoord);\n")
+						.append("    outColor = varyingColor * texture(texture0, varyingTexcoord);\n")
 						.append("}\n")
 					.toString())
 					.attributeLocation("position", VERTEX)
 					.attributeLocation("color", COLOR)
 					.attributeLocation("texcoord", TEXCOORD)
 					.fragmentDataLocation("outColor", 0)
+					.setListener((type, log) -> {
+						System.out.println(type.name() + " Shader Log:\n" + log);
+					})
 				.create();
 				
 				try (InputStream in = openResource("example/textures/earth.png"))
@@ -198,25 +218,32 @@ public final class OGLTest
 			
 			gl.matrixMode(MatrixMode.TEXTURE);
 			gl.matrixReset();
+			gl.matrixScale(2f, 2f, 2f);
 			gl.matrixMode(MatrixMode.PROJECTION);
 			gl.matrixReset();
 			gl.matrixOrtho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 			gl.matrixMode(MatrixMode.MODELVIEW);
 			gl.matrixReset();
+			gl.matrixRotateZ(gl.currentFrame() % 360f);
 			
+			gl.setProgram(program);
+			gl.setProgramUniformMatrix4(program.getUniform("modelview").getIndex(), MatrixMode.MODELVIEW);
+			gl.setProgramUniformMatrix4(program.getUniform("projection").getIndex(), MatrixMode.PROJECTION);
+			gl.setProgramUniformMatrix4(program.getUniform("textureTransform").getIndex(), MatrixMode.TEXTURE);
+			gl.setProgramUniformInt(program.getUniform("texture0").getIndex(), 0);
+
 			gl.setTextureEnabled(TextureTargetType.TEXTURE_2D, true);
 			gl.setTextureUnit(0);
 			gl.setTexture(TextureTargetType.TEXTURE_2D, texture);
 			
-			gl.setProgram(program);
-			gl.setProgramUniformInt(program.getUniform("texture0").getIndex(), 0);
 			gl.setVertexArrayState(vstate);
 			gl.drawGeometryArray(GeometryType.TRIANGLE_STRIP, 0, 4);
-			gl.unsetVertexArrayState();
-			gl.unsetProgram();
 			
 			gl.unsetTexture(TextureTargetType.TEXTURE_2D);
 			gl.setTextureEnabled(TextureTargetType.TEXTURE_2D, false);
+
+			gl.unsetVertexArrayState();
+			gl.unsetProgram();
 		}
 	}
 	

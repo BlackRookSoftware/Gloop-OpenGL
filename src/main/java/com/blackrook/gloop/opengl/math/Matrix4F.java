@@ -703,7 +703,7 @@ public class Matrix4F
         	bottom = bottom - heightDiff;
         }
 		
-        orthoArray(out, left, right, bottom, top, near, far);	
+        orthoArray(out, left, right, bottom, top, near, far);
 	}
 	
 	// Multiplies two matrices.
