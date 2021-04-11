@@ -14,6 +14,7 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -49,6 +50,7 @@ import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.math.Matrix4F;
+import com.blackrook.gloop.opengl.math.MatrixStack;
 import com.blackrook.gloop.opengl.util.TextureBuilder;
 import com.blackrook.gloop.opengl.util.TextureUtils;
 
@@ -61,7 +63,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class OGL11Graphics extends OGLGraphics
 {
 	private static final ThreadLocal<Matrix4F> MATRIX = ThreadLocal.withInitial(()->new Matrix4F());
-	
+
 	/**
 	 * Information about this context implementation.
 	 */
@@ -75,16 +77,10 @@ public class OGL11Graphics extends OGLGraphics
 			this.vendor = glGetString(GL_VENDOR);
 			this.version = glGetString(GL_VERSION);
 			this.renderer = glGetString(GL_RENDERER);
-
 			this.extensions = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-			
-			// Attempt old way of getting extensions. If not good, a later version will fill it.
-			String extlist;
-			if ((extlist = glGetString(GL_EXTENSIONS)) != null)
-			{
-				extensions.addAll(Arrays.asList(extlist.split("\\s+")));
-				refreshExtensions();
-			}
+
+			addExtensions(this.extensions);
+			refreshExtensionFlags();
 
 			String rend = new String(renderer.toLowerCase());
 			this.isNVidia = rend.contains("nvidia");
@@ -107,9 +103,18 @@ public class OGL11Graphics extends OGLGraphics
 		}
 		
 		/**
+		 * Fetches extensions for this graphics instance.
+		 * @param set the set to add it to.
+		 */
+		protected void addExtensions(Set<String> set)
+		{
+			set.addAll(Arrays.asList(glGetString(GL_EXTENSIONS).split("\\s+")));
+		}
+		
+		/**
 		 * Refreshes the extension-based fields.
 		 */
-		protected void refreshExtensions()
+		protected void refreshExtensionFlags()
 		{
 			this.occlusionQueryExtensionPresent = extensionIsPresent("gl_arb_occlusion_query");
 			this.vertexShaderExtensionPresent = extensionIsPresent("gl_arb_vertex_program");
@@ -230,6 +235,12 @@ public class OGL11Graphics extends OGLGraphics
 		}
 	}
 	
+	/** Current matrix id. */
+	private Integer currentMatrixId;
+	/** Current matrix stack. */
+	private MatrixStack currentMatrixStack;
+	/** Current matrix stacks per mode. */
+	private Map<Integer, MatrixStack> currentMatrixStacks;
 	/** Current bound textures per unit. */
 	private Map<Integer, Map<Integer, OGLTexture>> currentTextures;
 	
@@ -237,9 +248,18 @@ public class OGL11Graphics extends OGLGraphics
 	public OGL11Graphics(boolean core)
 	{
 		super(core);
+		this.currentMatrixId = null;
+		this.currentMatrixStack = null;
+		this.currentMatrixStacks = new TreeMap<>();
 		this.currentTextures = null;
 	}
 	
+	@Override
+	public OGLVersion getVersion()
+	{
+		return OGLVersion.GL11;
+	}
+
 	/**
 	 * Gets the current texture state.
 	 * Uses the current texture unit.
@@ -299,10 +319,59 @@ public class OGL11Graphics extends OGLGraphics
 		// Do nothing.
 	}
 	
-	@Override
-	public OGLVersion getVersion()
+	/**
+	 * @return the current matrix mode index.
+	 */
+	protected Integer getCurrentMatrixId()
 	{
-		return OGLVersion.GL11;
+		return currentMatrixId;
+	}
+	
+	/**
+	 * Sets the current matrix id.
+	 * @param currentMatrixId the new current matrix id.
+	 */
+	protected void setCurrentMatrixId(Integer currentMatrixId)
+	{
+		this.currentMatrixId = currentMatrixId;
+		this.currentMatrixStack = resolveCurrentMatrixStack();
+	}
+	
+	/**
+	 * @return the current matrix stack, or null if no current matrix.
+	 */
+	protected MatrixStack getCurrentMatrixStack()
+	{
+		if (currentMatrixId == null)
+			return null;
+		return getCurrentMatrixStack(currentMatrixId);
+	}
+	
+	/**
+	 * @param id the matrix id.
+	 * @return the current matrix stack, or null if no current matrix.
+	 */
+	protected MatrixStack getCurrentMatrixStack(int id)
+	{
+		if (currentMatrixStacks == null)
+			currentMatrixStacks = new TreeMap<>();
+		
+		MatrixStack stack;
+		if ((stack = currentMatrixStacks.get(id)) == null)
+			currentMatrixStacks.put(id, (stack = new MatrixStack(64)));
+		return stack;
+	}
+	
+	/**
+	 * @return the current matrix stack.
+	 * @throws GraphicsException if no current matrix is set. 
+	 */
+	protected MatrixStack resolveCurrentMatrixStack()
+	{
+		MatrixStack stack;
+		if ((stack = getCurrentMatrixStack()) == null)
+			throw new GraphicsException("No current matrix.");
+		return stack;
 	}
 	
 	@Override
@@ -319,255 +388,22 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Sets the current matrix for matrix operations.
-	 * Note that other commands may change this mode automatically.
-	 * @param mode the matrix mode to set.
+	 * Clears a bunch of the current framebuffers.
+	 * <p> This is the non-core clear function, since it includes the accumulation buffer, optionally.
+	 * @param clearColorBuffer if true, clear the color buffer.
+	 * @param clearDepthBuffer if true, clear the depth buffer.
+	 * @param clearAccumulationBuffer if true, clear the accumulation buffer.
+	 * @param clearStencilBuffer if true, clear the stencil buffer.
 	 */
-	public void matrixMode(MatrixMode mode)
+	public void clear(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearAccumulationBuffer, boolean clearStencilBuffer)
 	{
 		checkNonCore();
-		glMatrixMode(mode.glValue);
-	}
-
-	/**
-	 * Loads the identity matrix into the current selected matrix.
-	 */
-	public void matrixReset()
-	{
-		checkNonCore();
-		glLoadIdentity();
-	}
-
-	/**
-	 * Pushes a copy of the current matrix onto the current selected stack.
-	 */
-	public void matrixPush()
-	{
-		checkNonCore();
-		glPushMatrix();
-	}
-
-	/**
-	 * Pops the current matrix off of the current selected stack.
-	 */
-	public void matrixPop()
-	{
-		checkNonCore();
-		glPopMatrix();
-	}
-
-	/**
-	 * Reads a current matrix into an array.
-	 * @param matrixType the type of matrix to load.
-	 * @param outArray the output array. Must be length 16 or greater.
-	 */
-	public void matrixGet(MatrixMode matrixType, float[] outArray)
-	{
-		checkNonCore();
-		glGetFloatv(matrixType.glReadValue, outArray);
-	}
-
-	/**
-	 * Reads a current matrix into a matrix.
-	 * @param matrixType the type of matrix to load.
-	 * @param matrix the output matrix.
-	 */
-	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
-	{
-		checkNonCore();
-		glGetFloatv(matrixType.glReadValue, matrix.getArray());
-	}
-
-	/**
-	 * Loads a matrix's contents from a column-major array into the current selected matrix.
-	 * @param matrixArray the column-major cells of a matrix.
-	 */
-	public void matrixSet(float[] matrixArray)
-	{
-		checkNonCore();
-		if (matrixArray.length < 16)
-			throw new GraphicsException("The array is less than 16 components.");
-		glLoadMatrixf(matrixArray);
-	}
-
-	/**
-	 * Loads a matrix's contents into the current selected matrix.
-	 * @param matrix the matrix to read from.
-	 */
-	public void matrixSet(Matrix4F matrix)
-	{
-		matrixSet(matrix.getArray());
-	}
-
-	/**
-	 * Multiplies a matrix into the current selected matrix from a column-major array into.
-	 * @param matrixArray the column-major cells of a matrix.
-	 */
-	public void matrixMultiply(float[] matrixArray)
-	{
-		checkNonCore();
-		if (matrixArray.length < 16)
-			throw new GraphicsException("The array is less than 16 components.");
-		glMultMatrixf(matrixArray);
-	}
-
-	/**
-	 * Multiplies a matrix into the current selected matrix.
-	 * @param matrix the matrix to read from.
-	 */
-	public void matrixMultiply(Matrix4F matrix)
-	{
-		matrixMultiply(matrix.getArray());
-	}
-
-	/**
-	 * Translates the current matrix by a set of units.
-	 * This is applied via multiplication with the current matrix.
-	 * @param x the x-axis translation.
-	 * @param y the y-axis translation.
-	 * @param z the z-axis translation.
-	 */
-	public void matrixTranslate(float x, float y, float z)
-	{
-		checkNonCore();
-		glTranslatef(x, y, z);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the X-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateX(float degrees)
-	{
-		checkNonCore();
-		glRotatef(degrees, 1, 0, 0);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the Y-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateY(float degrees)
-	{
-		checkNonCore();
-		glRotatef(degrees, 0, 1, 0);
-	}
-
-	/**
-	 * Rotates the current matrix by an amount of DEGREES around the Z-Axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param degrees the amount of degrees.
-	 */
-	public void matrixRotateZ(float degrees)
-	{
-		checkNonCore();
-		glRotatef(degrees, 0, 0, 1);
-	}
-
-	/**
-	 * Scales the current matrix by a set of scalars that 
-	 * correspond to each axis.
-	 * This is applied via multiplication with the current matrix.
-	 * @param x the x-axis scalar.
-	 * @param y the y-axis scalar.
-	 * @param z the z-axis scalar.
-	 */
-	public void matrixScale(float x, float y, float z)
-	{
-		checkNonCore();
-		glScalef(x, y, z);
-	}
-
-	/**
-	 * Multiplies the current matrix by a symmetric perspective projection matrix.
-	 * @param fov front of view angle in degrees.
-	 * @param aspect the aspect ratio, usually view width over view height.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>fov == 0 || aspect == 0 || near == far</code>.
-	 */
-	public void matrixPerspective(float fov, float aspect, float near, float far)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setPerspective(fov, aspect, near, far);
-		matrixMultiply(matrix);
-		checkError();
-	}
-
-	/**
-	 * Multiplies the current matrix by a frustum projection matrix.
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
-	{
-		checkNonCore();
-		glFrustum(left, right, bottom, top, near, far);
-		checkError();
-	}
-
-	/**
-	 * Multiplies the current matrix by an orthographic projection matrix.
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
-	{
-		checkNonCore();
-		glOrtho(left, right, bottom, top, near, far);
-		checkError();
-	}
-
-	/**
-	 * Multiplies the current matrix by an aspect-adjusted orthographic projection matrix using the canvas dimensions.
-	 * @param targetAspect the target orthographic 
-	 * @param left the left clipping plane on the X-Axis.
-	 * @param right the right clipping plane on the X-Axis.
-	 * @param bottom the bottom clipping plane on the Y-Axis.
-	 * @param top the upper clipping plane on the Y-Axis.
-	 * @param near the near clipping plane on the Z-Axis.
-	 * @param far the far clipping plane on the Z-Axis.
-	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
-	 */
-	public void matrixAspectOrtho(float targetAspect, float left, float right, float bottom, float top, float near, float far)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setAspectOrtho(targetAspect, left, right, bottom, top, near, far);
-		matrixMultiply(matrix);
-		checkError();
-	}
-
-	/**
-	 * Multiplies a "look at" matrix to the current matrix.
-	 * This sets up the matrix to look at a place in the world (if modelview).
-	 * @param eyeX the point to look at, X-coordinate.
-	 * @param eyeY the point to look at, Y-coordinate.
-	 * @param eyeZ the point to look at, Z-coordinate.
-	 * @param centerX the reference point to look from, X-coordinate.
-	 * @param centerY the reference point to look from, Y-coordinate.
-	 * @param centerZ the reference point to look from, Z-coordinate.
-	 * @param upX the up vector of the viewpoint, X-coordinate.
-	 * @param upY the up vector of the viewpoint, Y-coordinate.
-	 * @param upZ the up vector of the viewpoint, Z-coordinate.
-	 */
-	public void matrixLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
-	{
-		Matrix4F matrix = MATRIX.get();
-		matrix.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
-		matrixMultiply(matrix);
-		checkError();
+		glClear(
+			(clearColorBuffer ? GL_COLOR_BUFFER_BIT : 0)
+			| (clearDepthBuffer ? GL_DEPTH_BUFFER_BIT : 0)
+			| (clearAccumulationBuffer ? GL_ACCUM_BUFFER_BIT : 0)
+			| (clearStencilBuffer ? GL_STENCIL_BUFFER_BIT : 0)
+		);
 	}
 
 	/**
@@ -1247,6 +1083,18 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Sets if a texture target is enabled for rendering or not.
+	 * @param target the texture target.
+	 * @param enabled true to enable, false to disable.
+	 */
+	public void setTextureEnabled(TextureTargetType target, boolean enabled)
+	{
+		checkNonCore();
+		checkFeatureVersion(target);
+		setFlag(target.glValue, enabled);
+	}
+	
+	/**
 	 * Sets the texture environment mode to use for texel fragment coloring.
 	 * This is usually REPLACE, by default. Only viable in the fixed pipeline.
 	 * @param mode the texture mode.
@@ -1561,6 +1409,355 @@ public class OGL11Graphics extends OGLGraphics
 	}
 	
 	/* ==================================================================== */
+	/*        VVVVVVVVVVVV Core Re-implementation Below VVVVVVVVVVVV        */
+	/* ==================================================================== */
+
+	/**
+	 * Sets the current matrix for matrix operations.
+	 * @param mode the matrix mode to set.
+	 * @throws NullPointerException if the mode is null.
+	 */
+	public void matrixMode(MatrixMode mode)
+	{
+		Objects.requireNonNull(mode);
+		if (isCore())
+			setCurrentMatrixId(mode.ordinal());
+		else
+			glMatrixMode(mode.glValue);
+	}
+
+	/**
+	 * Loads the identity matrix into the current selected matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 */
+	public void matrixReset()
+	{
+		if (isCore())
+			currentMatrixStack.identity();
+		else
+			glLoadIdentity();
+	}
+
+	/**
+	 * Pushes a copy of the current matrix onto the current selected stack.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 */
+	public void matrixPush()
+	{
+		if (isCore())
+			currentMatrixStack.push();
+		else
+			glPushMatrix();
+	}
+
+	/**
+	 * Pops the current matrix off of the current selected stack.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 */
+	public void matrixPop()
+	{
+		if (isCore())
+			currentMatrixStack.pop();
+		else
+			glPopMatrix();
+	}
+
+	/**
+	 * Reads a current matrix into an array.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrixType the type of matrix to load.
+	 * @param outArray the output array. Must be length 16 or greater.
+	 * @throws ArrayIndexOutOfBoundsException if the array length is less than 16.
+	 */
+	public void matrixGet(MatrixMode matrixType, float[] outArray)
+	{
+		if (isCore())
+			getCurrentMatrixStack(matrixType.ordinal()).peek().getFloats(outArray);
+		else
+			glGetFloatv(matrixType.glReadValue, outArray);
+	}
+
+	/**
+	 * Reads a current matrix into a matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrixType the type of matrix to load.
+	 * @param matrix the output matrix.
+	 */
+	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
+	{
+		if (isCore())
+			matrix.set(getCurrentMatrixStack(matrixType.ordinal()).peek());
+		else
+			glGetFloatv(matrixType.glReadValue, matrix.getArray());
+	}
+
+	/**
+	 * Loads a matrix's contents from a column-major array into the current selected matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrixArray the column-major cells of a matrix.
+	 */
+	public void matrixSet(float[] matrixArray)
+	{
+		if (isCore())
+			currentMatrixStack.set(matrixArray);
+		else
+		{
+			if (matrixArray.length < 16)
+				throw new GraphicsException("The array is less than 16 components.");
+			glLoadMatrixf(matrixArray);
+		}
+	}
+
+	/**
+	 * Loads a matrix's contents into the current selected matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrix the matrix to read from.
+	 */
+	public void matrixSet(Matrix4F matrix)
+	{
+		matrixSet(matrix.getArray());
+	}
+
+	/**
+	 * Multiplies a matrix into the current selected matrix from a column-major array into.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrixArray the column-major cells of a matrix.
+	 */
+	public void matrixMultiply(float[] matrixArray)
+	{
+		if (isCore())
+			currentMatrixStack.multiply(matrixArray);
+		else
+		{
+			if (matrixArray.length < 16)
+				throw new GraphicsException("The array is less than 16 components.");
+			glMultMatrixf(matrixArray);
+		}
+	}
+
+	/**
+	 * Multiplies a matrix into the current selected matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrix the matrix to read from.
+	 */
+	public void matrixMultiply(Matrix4F matrix)
+	{
+		matrixMultiply(matrix.getArray());
+	}
+
+	/**
+	 * Translates the current matrix by a set of units.
+	 * This is applied via multiplication with the current matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param x the x-axis translation.
+	 * @param y the y-axis translation.
+	 * @param z the z-axis translation.
+	 */
+	public void matrixTranslate(float x, float y, float z)
+	{
+		if (isCore())
+			currentMatrixStack.translate(x, y, z);
+		else
+			glTranslatef(x, y, z);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the X-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateX(float degrees)
+	{
+		if (isCore())
+			currentMatrixStack.rotateX(degrees);
+		else
+			glRotatef(degrees, 1, 0, 0);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the Y-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateY(float degrees)
+	{
+		if (isCore())
+			currentMatrixStack.rotateY(degrees);
+		else
+			glRotatef(degrees, 0, 1, 0);
+	}
+
+	/**
+	 * Rotates the current matrix by an amount of DEGREES around the Z-Axis.
+	 * This is applied via multiplication with the current matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param degrees the amount of degrees.
+	 */
+	public void matrixRotateZ(float degrees)
+	{
+		if (isCore())
+			currentMatrixStack.rotateZ(degrees);
+		else
+			glRotatef(degrees, 0, 0, 1);
+	}
+
+	/**
+	 * Scales the current matrix by a set of scalars that 
+	 * correspond to each axis.
+	 * This is applied via multiplication with the current matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param x the x-axis scalar.
+	 * @param y the y-axis scalar.
+	 * @param z the z-axis scalar.
+	 */
+	public void matrixScale(float x, float y, float z)
+	{
+		if (isCore())
+			currentMatrixStack.scale(x, y, z);
+		else
+			glScalef(x, y, z);
+	}
+
+	/**
+	 * Multiplies the current matrix by a symmetric perspective projection matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param fov front of view angle in degrees.
+	 * @param aspect the aspect ratio, usually view width over view height.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>fov == 0 || aspect == 0 || near == far</code>.
+	 */
+	public void matrixPerspective(float fov, float aspect, float near, float far)
+	{
+		if (isCore())
+			currentMatrixStack.perspective(fov, aspect, near, far);
+		else
+		{
+			Matrix4F matrix = MATRIX.get();
+			matrix.setPerspective(fov, aspect, near, far);
+			matrixMultiply(matrix);
+			checkError();
+		}
+	}
+
+	/**
+	 * Multiplies the current matrix by a frustum projection matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixFrustum(float left, float right, float bottom, float top, float near, float far)
+	{
+		if (isCore())
+			currentMatrixStack.frustum(left, right, bottom, top, near, far);
+		else
+		{
+			glFrustum(left, right, bottom, top, near, far);
+			checkError();
+		}
+	}
+
+	/**
+	 * Multiplies the current matrix by an orthographic projection matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixOrtho(float left, float right, float bottom, float top, float near, float far)
+	{
+		if (isCore())
+			currentMatrixStack.ortho(left, right, bottom, top, near, far);
+		else
+		{
+			glOrtho(left, right, bottom, top, near, far);
+			checkError();
+		}
+	}
+
+	/**
+	 * Multiplies the current matrix by an aspect-adjusted orthographic projection matrix using the canvas dimensions.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param targetAspect the target orthographic 
+	 * @param left the left clipping plane on the X-Axis.
+	 * @param right the right clipping plane on the X-Axis.
+	 * @param bottom the bottom clipping plane on the Y-Axis.
+	 * @param top the upper clipping plane on the Y-Axis.
+	 * @param near the near clipping plane on the Z-Axis.
+	 * @param far the far clipping plane on the Z-Axis.
+	 * @throws GraphicsException if <code>left == right || bottom == top || near == far</code>.
+	 */
+	public void matrixAspectOrtho(float targetAspect, float left, float right, float bottom, float top, float near, float far)
+	{
+		if (isCore())
+			currentMatrixStack.aspectOrtho(targetAspect, left, right, bottom, top, near, far);
+		else
+		{
+			Matrix4F matrix = MATRIX.get();
+			matrix.setAspectOrtho(targetAspect, left, right, bottom, top, near, far);
+			matrixMultiply(matrix);
+			checkError();
+		}
+	}
+
+	/**
+	 * Multiplies a "look at" matrix to the current matrix.
+	 * This sets up the matrix to look at a place in the world (if modelview).
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param eyeX the point to look at, X-coordinate.
+	 * @param eyeY the point to look at, Y-coordinate.
+	 * @param eyeZ the point to look at, Z-coordinate.
+	 * @param centerX the reference point to look from, X-coordinate.
+	 * @param centerY the reference point to look from, Y-coordinate.
+	 * @param centerZ the reference point to look from, Z-coordinate.
+	 * @param upX the up vector of the viewpoint, X-coordinate.
+	 * @param upY the up vector of the viewpoint, Y-coordinate.
+	 * @param upZ the up vector of the viewpoint, Z-coordinate.
+	 */
+	public void matrixLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
+	{
+		if (isCore())
+			currentMatrixStack.lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+		else
+		{
+			Matrix4F matrix = MATRIX.get();
+			matrix.setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+			matrixMultiply(matrix);
+			checkError();
+		}
+	}
+
+	/* ==================================================================== */
 	/*                 VVVVVVVVVVVV Core Below VVVVVVVVVVVV                 */
 	/* ==================================================================== */
 	
@@ -1680,18 +1877,16 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Clears a bunch of fixed framebuffers.
+	 * Clears a bunch of current framebuffers.
 	 * @param clearColorBuffer if true, clear the color buffer.
 	 * @param clearDepthBuffer if true, clear the depth buffer.
-	 * @param clearAccumulationBuffer if true, clear the accumulation buffer.
 	 * @param clearStencilBuffer if true, clear the stencil buffer.
 	 */
-	public void clear(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearAccumulationBuffer, boolean clearStencilBuffer)
+	public void clear(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearStencilBuffer)
 	{
 		glClear(
 			(clearColorBuffer ? GL_COLOR_BUFFER_BIT : 0)
 			| (clearDepthBuffer ? GL_DEPTH_BUFFER_BIT : 0)
-			| (clearAccumulationBuffer ? GL_ACCUM_BUFFER_BIT : 0)
 			| (clearStencilBuffer ? GL_STENCIL_BUFFER_BIT : 0)
 		);
 	}
@@ -2008,17 +2203,6 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		checkFeatureVersion(target);
 		return getCurrentActiveTextureState(target.glValue);
-	}
-	
-	/**
-	 * Sets if a texture target is enabled for rendering or not.
-	 * @param target the texture target.
-	 * @param enabled true to enable, false to disable.
-	 */
-	public void setTextureEnabled(TextureTargetType target, boolean enabled)
-	{
-		checkFeatureVersion(target);
-		setFlag(target.glValue, enabled);
 	}
 	
 	/**

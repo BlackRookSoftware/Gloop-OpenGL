@@ -174,19 +174,20 @@ public class OGL13Graphics extends OGL12Graphics
 	}
 	
 	/**
-	 * @return the current "active" texture unit.
-	 * @see #setTextureUnit(int)
+	 * @return the current active texture unit.
+	 * @see #setActiveTextureUnit(int)
 	 */
-	public int getTextureUnit()
+	public int getActiveTextureUnit()
 	{
 		return getCurrentActiveTextureUnitState();
 	}
 	
 	/**
 	 * Sets the current "active" texture unit for texture bindings and texture environment settings.
+	 * This texture unit is the one used for all subsequent calls to texture target binding, until it is changed.
 	 * @param unit the texture unit to switch to.
 	 */
-	public void setTextureUnit(int unit)
+	public void setActiveTextureUnit(int unit)
 	{
 		if (unit < 0 || unit >= getInfo().getMaxTextureUnits())
 			throw new GraphicsException("Unit cannot be greater than " + getInfo().getMaxTextureUnits());

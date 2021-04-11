@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Black Rook Software
+ * Copyright (c) 2019-2021 Black Rook Software
  * This program and the accompanying materials are made available under 
  * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
@@ -659,9 +659,9 @@ public class Matrix4F
 		out[5] = n2 / tmb;
 		out[8] = (right+left) / rml;
 		out[9] = (top+bottom) / tmb;
-		out[10] = (zFar+zNear) / fmn;
+		out[10] = -(zFar+zNear) / fmn;
 		out[11] = -1f;
-		out[14] = (2f*zNear*zFar) / fmn;
+		out[14] = (-2f*zNear*zFar) / fmn;
 		out[15] = 0f;
 	}
 
@@ -676,9 +676,9 @@ public class Matrix4F
 		out[0] = 2f / rml;
 		out[5] = 2f / tmb;
 		out[10] = -2f / fmn;
-		out[12] = (right+left) / rml;
-		out[13] = (top+bottom) / tmb;
-		out[14] = (zFar+zNear) / fmn;
+		out[12] = -((right+left) / rml);
+		out[13] = -((top+bottom) / tmb);
+		out[14] = -((zFar+zNear) / fmn);
 	}
 
 	// Set aspect ortho.

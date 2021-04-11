@@ -21,7 +21,6 @@ import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
 import com.blackrook.gloop.opengl.enums.GeometryType;
-import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.enums.TextureMinFilter;
@@ -52,7 +51,7 @@ public final class OGLTest
 			.setVisible(false)
 			.setResizable(true)
 			.setContextVersion(3, 3)
-			.setOpenGLProfile(OpenGLProfile.COMPAT_PROFILE);
+			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
 		GLFWInputSystem inputSystem = new GLFWInputSystem();
 		window = new GLFWWindow(hints, "Hello World!", 640, 480);
@@ -60,7 +59,7 @@ public final class OGLTest
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = OGLSystem.getOpenGL33(window);
+		oglSystem = OGLSystem.getOpenGL33Core(window);
 		oglSystem.addNode(new DrawNode());
 		oglSystem.setFPS(0);
 		
@@ -117,12 +116,13 @@ public final class OGLTest
 		@Override
 		public void onDisplay(OGL33Graphics gl)
 		{
+			final int VERTEX = 0;
+			final int COLOR = 1;
+			final int TEXCOORD = 2;
+			final int PROJECTION = 3;
+
 			if (!once)
 			{
-				final int VERTEX = 0;
-				final int COLOR = 1;
-				final int TEXCOORD = 2;
-
 				program = gl.createProgramBuilder()
 					.setShader(ShaderType.VERTEX, (new StringBuilder())
 						.append("#version 330\n")
@@ -167,6 +167,8 @@ public final class OGLTest
 					})
 				.create();
 				
+				System.out.println("Shader Link Log:\n" + program.getLog());
+				
 				try (InputStream in = openResource("example/textures/earth.png"))
 				{
 					texture = gl.createTextureBuilder()
@@ -201,7 +203,7 @@ public final class OGLTest
 				vstate = gl.createVertexArrayState(geometry, gbuilder);
 
 				gl.setClearColor(0, 0, 0, 1);
-				gl.setClearDepth(-1);
+				gl.setClearDepth(1);
 				
 				once = true;
 			}
@@ -212,41 +214,52 @@ public final class OGLTest
 				viewportChange = false;
 			}
 			
-			gl.clear(true, true, false, false);
+			gl.clear(true, true, false);
 			gl.setColorMask(true);
 			gl.setDepthTestEnabled(false);
 			
-			gl.matrixMode(MatrixMode.TEXTURE);
+			gl.setProgram(program);
+
+			long frame = gl.currentFrame();
+			
+			gl.matrixId(TEXCOORD);
 			gl.matrixReset();
 			gl.matrixScale(2f, 2f, 2f);
-			gl.matrixMode(MatrixMode.PROJECTION);
+			gl.matrixId(PROJECTION);
 			gl.matrixReset();
-			gl.matrixOrtho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-			gl.matrixMode(MatrixMode.MODELVIEW);
+			gl.matrixAspectOrtho((float)viewportWidth/viewportHeight, -2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+			gl.matrixId(VERTEX);
 			gl.matrixReset();
-			gl.matrixRotateZ(gl.currentFrame() % 360f);
-			
-			gl.setProgram(program);
-			gl.setProgramUniformMatrix4(program.getUniform("modelview").getIndex(), MatrixMode.MODELVIEW);
-			gl.setProgramUniformMatrix4(program.getUniform("projection").getIndex(), MatrixMode.PROJECTION);
-			gl.setProgramUniformMatrix4(program.getUniform("textureTransform").getIndex(), MatrixMode.TEXTURE);
+			gl.matrixTranslate((float)Math.sin(degToRad(frame)), (float)Math.cos(degToRad(frame)), 0f);
+			gl.matrixRotateZ(frame % 360f);
+			gl.setProgramUniformMatrix4(program.getUniform("modelview").getIndex(), VERTEX);
+			gl.setProgramUniformMatrix4(program.getUniform("projection").getIndex(), PROJECTION);
+			gl.setProgramUniformMatrix4(program.getUniform("textureTransform").getIndex(), TEXCOORD);
 			gl.setProgramUniformInt(program.getUniform("texture0").getIndex(), 0);
 
-			gl.setTextureEnabled(TextureTargetType.TEXTURE_2D, true);
-			gl.setTextureUnit(0);
+			gl.setActiveTextureUnit(0);
 			gl.setTexture(TextureTargetType.TEXTURE_2D, texture);
 			
 			gl.setVertexArrayState(vstate);
 			gl.drawGeometryArray(GeometryType.TRIANGLE_STRIP, 0, 4);
 			
 			gl.unsetTexture(TextureTargetType.TEXTURE_2D);
-			gl.setTextureEnabled(TextureTargetType.TEXTURE_2D, false);
 
 			gl.unsetVertexArrayState();
 			gl.unsetProgram();
 		}
 	}
 	
+	/**
+	 * Converts degrees to radians.
+	 * @param degrees the input angle in degrees.
+	 * @return the resultant angle in radians.
+	 */
+	public static double degToRad(double degrees)
+	{
+		return (degrees * Math.PI)/180;
+	}
+
 	public static void main(String[] args)
 	{
 		(new OGLTest()).run();

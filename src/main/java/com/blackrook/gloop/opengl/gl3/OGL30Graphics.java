@@ -10,12 +10,15 @@ package com.blackrook.gloop.opengl.gl3;
 import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
 import com.blackrook.gloop.opengl.gl2.OGLProgramShader;
+import com.blackrook.gloop.opengl.math.Matrix4F;
+import com.blackrook.gloop.opengl.math.MatrixStack;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 import com.blackrook.gloop.opengl.util.ProgramBuilder;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.AttachPoint;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.RenderbufferFormat;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
@@ -31,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.lwjgl.system.MemoryStack;
@@ -43,34 +47,31 @@ import static org.lwjgl.opengl.GL30.*;
  */
 public class OGL30Graphics extends OGL21Graphics
 {
-	public OGL30Graphics(boolean core)
-	{
-		super(core);
-	}
-
 	protected class Info30 extends Info20
 	{
 		protected Info30()
 		{
 			super();
-			
-			String extlist;
-			if ((extlist = glGetString(GL_EXTENSIONS)) != null)
+			this.maxVertexAttribs = getInt(GL_MAX_VERTEX_ATTRIBS);
+			this.maxRenderBufferSize = getInt(GL_MAX_RENDERBUFFER_SIZE);
+			this.maxRenderBufferColorAttachments = getInt(GL_MAX_COLOR_ATTACHMENTS);
+		}
+		
+		@Override
+		protected void addExtensions(Set<String> set)
+		{
+			if (!isCore())
 			{
-				extensions.addAll(Arrays.asList(extlist.split("\\s+")));
+				set.addAll(Arrays.asList(glGetString(GL_EXTENSIONS).split("\\s+")));
 			}
 			else
 			{
 				int extensionCount = glGetInteger(GL_NUM_EXTENSIONS);
 				for (int i = 0; i < extensionCount; i++)
-					extensions.add(glGetStringi(GL_EXTENSIONS, i));
+					set.add(glGetStringi(GL_EXTENSIONS, i));
 			}
-			refreshExtensions();
-			
-			this.maxVertexAttribs = getInt(GL_MAX_VERTEX_ATTRIBS);
-			this.maxRenderBufferSize = getInt(GL_MAX_RENDERBUFFER_SIZE);
-			this.maxRenderBufferColorAttachments = getInt(GL_MAX_COLOR_ATTACHMENTS);
 		}
+		
 	}
 	
 	/**
@@ -121,6 +122,11 @@ public class OGL30Graphics extends OGL21Graphics
 		
 	}
 	
+	public OGL30Graphics(boolean core)
+	{
+		super(core);
+	}
+
 	@Override
 	public OGLVersion getVersion()
 	{
@@ -143,6 +149,42 @@ public class OGL30Graphics extends OGL21Graphics
 	}
 
 	@Override
+	public void matrixMode(MatrixMode mode)
+	{
+		if (isCore())
+			throw new UnsupportedOperationException("Matrix mode is not available in the core implementation.");
+		super.matrixMode(mode);
+	}
+
+	@Override
+	public void matrixGet(MatrixMode matrixType, float[] outArray)
+	{
+		if (isCore())
+			throw new UnsupportedOperationException("Matrix mode is not available in the core implementation.");
+		super.matrixGet(matrixType, outArray);
+	}
+
+	@Override
+	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
+	{
+		if (isCore())
+			throw new UnsupportedOperationException("Matrix mode is not available in the core implementation.");
+		super.matrixGet(matrixType, matrix);
+	}
+
+	/**
+	 * Sets a uniform matrix (mat4) value on the currently-bound program using a matrix in the matrix stack.
+	 * @param locationId the uniform location.
+	 * @param matrixMode the matrix to grab values from.
+	 */
+	public void setProgramUniformMatrix4(int locationId, MatrixMode matrixMode)
+	{
+		if (isCore())
+			throw new UnsupportedOperationException("Matrix mode is not available in the core implementation.");
+		super.setProgramUniformMatrix4(locationId, matrixMode);
+	}
+
+	@Override
 	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, boolean genMipmaps)
 	{
 		setTextureFiltering(target, minFilter, magFilter);
@@ -159,16 +201,6 @@ public class OGL30Graphics extends OGL21Graphics
 	}
 
 	/**
-	 * Generates mipmaps on-demand internally for the current texture bound to the provided target.
-	 * @param target the texture target.
-	 */
-	public void generateMipmaps(TextureTargetType target)
-	{
-		glGenerateMipmap(target.glValue);
-		checkError();
-	}
-
-	/**
 	 * Creates a new program builder.
 	 * <p> This program builder aids in building shader program objects, and its
 	 * {@link ProgramBuilder#create()} method will compile and link all of the shaders and return the new object.
@@ -177,6 +209,70 @@ public class OGL30Graphics extends OGL21Graphics
 	public ProgramBuilder createProgramBuilder()
 	{
 		return new OGL30ProgramBuilder(this);
+	}
+
+	/**
+	 * Sets the current matrix index.
+	 * <p> Use this if you want matrix stack functionality in a core profile.
+	 * @param id the new current matrix id.
+	 * @throws UnsupportedOperationException if this profile is not core OpenGL.
+	 */
+	public void matrixId(int id)
+	{
+		if (!isCore())
+			throw new UnsupportedOperationException("Matrix ids are not available in the non-core implementation.");
+		setCurrentMatrixId(id);
+	}
+
+	/**
+	 * Reads a current matrix into an array.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrixId the matrix id to fetch.
+	 * @param outArray the output array. Must be length 16 or greater.
+	 * @throws ArrayIndexOutOfBoundsException if the array length is less than 16.
+	 */
+	public void matrixGet(int matrixId, float[] outArray)
+	{
+		if (!isCore())
+			throw new UnsupportedOperationException("Matrix ids are not available in the non-core implementation.");
+		getCurrentMatrixStack(matrixId).peek().getFloats(outArray);
+	}
+
+	/**
+	 * Reads a current matrix into a matrix.
+	 * <p>This is technically not available in Core OpenGL, but is instead 
+	 * implemented using {@link MatrixStack} for core implementations.  
+	 * @param matrixId the matrix id to fetch.
+	 * @param matrix the output matrix.
+	 */
+	public void matrixGet(int matrixId, Matrix4F matrix)
+	{
+		if (!isCore())
+			throw new UnsupportedOperationException("Matrix ids are not available in the non-core implementation.");
+		matrix.set(getCurrentMatrixStack(matrixId).peek());
+	}
+
+	/**
+	 * Sets a uniform matrix (mat4) value on the currently-bound program using a matrix in the matrix stack.
+	 * @param locationId the uniform location.
+	 * @param matrixId the matrix stack id.
+	 */
+	public void setProgramUniformMatrix4(int locationId, int matrixId)
+	{
+		if (!isCore())
+			throw new UnsupportedOperationException("Matrix ids are not available in the non-core implementation.");
+		setProgramUniformMatrix4(locationId, getCurrentMatrixStack(matrixId).peek());
+	}
+
+	/**
+	 * Generates mipmaps on-demand internally for the current texture bound to the provided target.
+	 * @param target the texture target.
+	 */
+	public void generateMipmaps(TextureTargetType target)
+	{
+		glGenerateMipmap(target.glValue);
+		checkError();
 	}
 
 	/**

@@ -573,10 +573,14 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformMatrix4(int locationId, MatrixMode matrixMode)
 	{
-		checkNonCore();
-		Matrix4F mat4 = MATRIX.get();
-		matrixGet(matrixMode, mat4);
-		setProgramUniformMatrix4(locationId, mat4);
+		if (isCore())
+			throw new UnsupportedOperationException("Matrix mode is not available in the core implementation.");
+		else
+		{
+			Matrix4F mat4 = MATRIX.get();
+			matrixGet(matrixMode, mat4);
+			setProgramUniformMatrix4(locationId, mat4);
+		}
 	}
 
 	/**
