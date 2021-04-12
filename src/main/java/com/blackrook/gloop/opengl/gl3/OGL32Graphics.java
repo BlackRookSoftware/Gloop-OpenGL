@@ -8,11 +8,9 @@
 package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.math.MatrixStack;
 
 /**
  * OpenGL 3.2 Graphics Implementation.
- * The implementation of the matrix operations are done using a {@link MatrixStack}.
  * @author Matthew Tropiano
  */
 public class OGL32Graphics extends OGL31Graphics

@@ -29,7 +29,7 @@ import com.blackrook.gloop.opengl.node.OGLNode;
  * and spawns a thread that makes it responsible for the rendering the context 
  * (see {@link GLFWContext#makeContextCurrent(GLFWWindow)}). The rendering thread 
  * can either fire refreshes at a steady rate or listen for a trigger via {@link #display()}
- * to kick off a frame draw, either by programmer request or . 
+ * to kick off a frame draw. 
  * @param <G> the graphics object to call.
  * @author Matthew Tropiano
  */
@@ -332,7 +332,8 @@ public class OGLSystem<G extends OGLGraphics>
 		    polygonCount = polys;
 		    
 		    graphics.endFrame();
-		    window.swapBuffers();
+		    if (window.isCreated())
+		    	window.swapBuffers();
 		} 
 		finally 
 		{
@@ -499,8 +500,6 @@ public class OGLSystem<G extends OGLGraphics>
 						else if (waitMillis != 0 || waitNanos != 0)
 							renderLatch.wait(waitMillis, waitNanos);
 						redraw();
-					} catch (InterruptedException e) {
-						// Should never be interrupted.
 					} catch (Throwable e) {
 						setFPS(null);
 						throw new GraphicsException("Graphics thread halted due to exception!", e);

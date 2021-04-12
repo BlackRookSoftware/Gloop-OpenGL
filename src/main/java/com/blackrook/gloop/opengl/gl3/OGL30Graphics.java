@@ -399,7 +399,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 * The following is saved by a vertex array state:
 	 * <ul>
 	 * <li> {@link #setVertexAttribEnabled(int, boolean)}
-	 * <li> {@link #setVertexAttribBufferPointer(int, com.blackrook.gloop.opengl.enums.DataType, boolean, int, int, int)}
+	 * <li> {@link #setVertexAttribBufferPointer(int, DataType, boolean, int, int, int)}
 	 * </ul>
 	 * @param state the state to set.
 	 */
@@ -503,7 +503,8 @@ public class OGL30Graphics extends OGL21Graphics
 
 	/**
 	 * Tests for frame buffer completeness on the bound framebuffer. 
-	 * If incomplete, this throws a GraphicsException with the error message.
+	 * If incomplete, this throws an exception.
+	 * @throws GraphicsException if the framebuffer is incomplete.
 	 */
 	public void checkFramebufferStatus()
 	{
@@ -546,7 +547,6 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public void attachFramebufferTexture2D(AttachPoint attachPoint, OGLTexture texture)
 	{
-		clearError();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, attachPoint.glVal, GL_TEXTURE_2D, texture.getName(), 0);
 		checkError();
 	}
@@ -557,7 +557,6 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public void detachFramebufferTexture2D(AttachPoint attachPoint)
 	{
-		clearError();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, attachPoint.glVal, GL_TEXTURE_2D, 0, 0);
 		checkError();
 	}
@@ -569,7 +568,6 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public void attachFramebufferRenderbuffer(AttachPoint attachPoint, OGLRenderbuffer renderBuffer)
 	{
-		clearError();
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachPoint.glVal, GL_RENDERBUFFER, renderBuffer.getName());
 		checkError();
 	}
@@ -580,14 +578,13 @@ public class OGL30Graphics extends OGL21Graphics
 	 */
 	public void detachFramebufferRenderbuffer(AttachPoint attachPoint)
 	{
-		clearError();
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachPoint.glVal, GL_RENDERBUFFER, 0);
 		checkError();
 	}
 
 	/**
 	 * Unbinds a FrameBuffer for rendering.
-	 * The current buffer will then be the default target buffer.
+	 * The current draw buffer will then be the default target buffer.
 	 */
 	public void unsetFramebuffer()
 	{

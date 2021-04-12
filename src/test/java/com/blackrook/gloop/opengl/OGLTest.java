@@ -125,7 +125,7 @@ public final class OGLTest
 			{
 				program = gl.createProgramBuilder()
 					.setShader(ShaderType.VERTEX, (new StringBuilder())
-						.append("#version 330\n")
+						.append("#version 330 core\n")
 						.append("in vec3 position;\n")
 						.append("in vec4 color;\n")
 						.append("in vec2 texcoord;\n")
@@ -145,7 +145,7 @@ public final class OGLTest
 						.append("}\n")
 					.toString())
 					.setShader(ShaderType.FRAGMENT, (new StringBuilder())
-						.append("#version 330\n")
+						.append("#version 330 core\n")
 						.append("in vec4 varyingColor;\n")
 						.append("in vec2 varyingTexcoord;\n")
 						.append("\n")
@@ -174,9 +174,9 @@ public final class OGLTest
 					texture = gl.createTextureBuilder()
 						.setFiltering(TextureMinFilter.NEAREST, TextureMagFilter.NEAREST)
 						.setTargetType(TextureTargetType.TEXTURE_2D)
+						.setCompressed(true)
 						.addTextureImage(ImageIO.read(in))
-						.create()
-					;
+						.create();
 				} 
 				catch (IOException e) 
 				{
