@@ -52,6 +52,16 @@ public final class TextureUtils
 	}
 
 	/**
+	 * Checks if a texture has power-of-two dimensions.
+	 * @param image the image to check.
+	 * @return true if so, false if not.
+	 */
+	public static boolean hasPowerOfTwoDimensions(BufferedImage image)
+	{
+		return isPowerOfTwo(image.getWidth()) && isPowerOfTwo(image.getHeight());
+	}
+	
+	/**
 	 * Returns the raw size in bytes that this image will need for byte
 	 * buffer/array storage.
 	 * @param image the image to inspect.
