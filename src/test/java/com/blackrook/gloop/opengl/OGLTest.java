@@ -88,10 +88,6 @@ public final class OGLTest
 		private OGLVertexArrayState vstate;
 		private boolean once;
 		
-		private boolean viewportChange;
-		private int viewportWidth;
-		private int viewportHeight;
-		
 		public DrawNode()
 		{
 			program = null;
@@ -99,18 +95,6 @@ public final class OGLTest
 			texture = null;
 			vstate = null;
 			once = false;
-			
-			viewportChange = false;
-			viewportWidth = 640;
-			viewportHeight = 480;
-		}
-		
-		@Override
-		public void onFramebufferResize(int newWidth, int newHeight)
-		{
-			viewportWidth = newWidth;
-			viewportHeight = newHeight;
-			viewportChange = true;
 		}
 		
 		@Override
@@ -208,12 +192,7 @@ public final class OGLTest
 				once = true;
 			}
 			
-			if (viewportChange)
-			{
-				gl.setViewport(0, 0, viewportWidth, viewportHeight);
-				viewportChange = false;
-			}
-			
+			gl.setViewport(0, 0, gl.getCanvasWidth(), gl.getCanvasHeight());
 			gl.clear(true, true, false);
 			gl.setColorMask(true);
 			gl.setDepthTestEnabled(false);
@@ -227,7 +206,7 @@ public final class OGLTest
 			gl.matrixScale(2f, 2f, 2f);
 			gl.matrixId(PROJECTION);
 			gl.matrixReset();
-			gl.matrixAspectOrtho((float)viewportWidth/viewportHeight, -2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+			gl.matrixAspectOrtho(gl.getCanvasAspect(), -2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 			gl.matrixId(VERTEX);
 			gl.matrixReset();
 			gl.matrixTranslate((float)Math.sin(degToRad(frame)), (float)Math.cos(degToRad(frame)), 0f);

@@ -20,7 +20,7 @@
 	<property name="lwjgl.glfw.jar" value="lwjgl-glfw-${lwjgl.lib.version}.jar" />
 	<property name="lwjgl.opengl.jar" value="lwjgl-opengl-${lwjgl.lib.version}.jar" />
 
-	<property name="gloop.glfw.lib.version" value="0.2.0" />
+	<property name="gloop.glfw.lib.version" value="0.3.0" />
 	<property name="gloop.glfw.tag" value="${gloop.glfw.lib.version}-RELEASE" />
 	<property name="gloop.glfw.project" value="blackrook-gloop-glfw-${gloop.glfw.lib.version}" />	
 	<property name="gloop.glfw.jar" value="${gloop.glfw.project}.jar" />

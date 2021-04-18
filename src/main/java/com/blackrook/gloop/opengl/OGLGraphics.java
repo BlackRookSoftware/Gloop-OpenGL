@@ -373,7 +373,6 @@ public abstract class OGLGraphics implements OGLVersioned
 		
 	}
 
-
 	/** The current frame rendered. */
 	private long currentFrame;
 	/** The starting millisecond at creation. */
@@ -386,6 +385,11 @@ public abstract class OGLGraphics implements OGLVersioned
 	private boolean currentBlitBit;
 	/** Time between frames. */
 	private float currentTimeStepMillis;
+
+	/** Canvas width. */
+	private int canvasWidth;
+	/** Canvas height. */
+	private int canvasHeight;
 
 	/** Last frame nanotime. */
 	private long previousTimeNanos;
@@ -442,9 +446,14 @@ public abstract class OGLGraphics implements OGLVersioned
 	
 	/**
 	 * Called at the beginning of each {@link OGLSystem#display()} call for each frame.
+	 * @param width the width of the framebuffer in pixels for this frame.
+	 * @param height the height of the framebuffer in pixels for this frame.
 	 */
-	final void startFrame()
+	final void startFrame(int width, int height)
 	{
+		canvasWidth = width;
+		canvasHeight = height;
+		
 		currentMilliseconds = System.currentTimeMillis();
 		currentNanos = System.nanoTime();
 		
@@ -500,6 +509,30 @@ public abstract class OGLGraphics implements OGLVersioned
 	public boolean isCore()
 	{
 		return core;
+	}
+	
+	/**
+	 * @return the framebuffer width in pixels.
+	 */
+	public int getCanvasWidth()
+	{
+		return canvasWidth;
+	}
+	
+	/**
+	 * @return the framebuffer height in pixels.
+	 */
+	public int getCanvasHeight()
+	{
+		return canvasHeight;
+	}
+
+	/**
+	 * @return the aspect ratio of the framebuffer, width to height.
+	 */
+	public float getCanvasAspect()
+	{
+		return (float)getCanvasWidth() / (float)getCanvasHeight();
 	}
 	
 	/**

@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL;
 
 import com.blackrook.gloop.glfw.GLFWContext;
 import com.blackrook.gloop.glfw.GLFWWindow;
+import com.blackrook.gloop.glfw.GLFWWindow.State;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowAdapter;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
@@ -278,20 +279,6 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 
 	/**
-	 * Triggers a display refresh, telling the rendering thread to draw a frame.
-	 * If a frame is currently being drawn, this will return false, indicating a dropped frame.
-	 * Otherwise, this returns true.
-	 * @return true if redrawing, false if not.
-	 */
-	public boolean display()
-	{
-		if (redrawing)
-			return false;
-		renderingThread.trigger();
-		return true;
-	}
-	
-	/**
 	 * Tells all attached nodes to resize themselves.
 	 * Called from the window listener.
 	 * @param width the new framebuffer width.
@@ -315,7 +302,9 @@ public class OGLSystem<G extends OGLGraphics>
 			long rendertime = 0L;
 			int polys = 0;
 		
-			graphics.startFrame();
+			State state = window.getState();
+			
+			graphics.startFrame(state.getWidth(), state.getHeight());
 			
 		    for (int i = 0; i < nodes.size(); i++)
 		    {
@@ -340,6 +329,20 @@ public class OGLSystem<G extends OGLGraphics>
 			// Even if an exception occurs, set this back to false.
 			redrawing = false;
 		}
+	}
+
+	/**
+	 * Triggers a display refresh, telling the rendering thread to draw a frame.
+	 * If a frame is currently being drawn, this will return false, indicating a dropped frame.
+	 * Otherwise, this returns true.
+	 * @return true if redrawing, false if not.
+	 */
+	public boolean display()
+	{
+		if (redrawing)
+			return false;
+		renderingThread.trigger();
+		return true;
 	}
 
 	/**
