@@ -172,6 +172,23 @@ public final class TextureUtils
 	    return out;
 	}
 
+	/**
+	 * Converts color byte data to a BufferedImage.
+	 * @param imageBGRAData the input BGRA byte data.
+	 * @param width the width of the resultant image.
+	 * @param height the height of the resultant image.
+	 * @return a new direct {@link ByteBuffer} of the image's byte data.
+	 */
+	public static BufferedImage setImageData(ByteBuffer imageBGRAData, int width, int height)
+	{
+		IntBuffer imageData = imageBGRAData.asIntBuffer();
+		BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+	    int[] data = new int[imageData.capacity()];
+	    imageData.get(data);
+	    out.setRGB(0, 0, width, height, data, 0, width);
+	    return out;
+	}
+
 	// Puts image data into an IntBuffer.
 	private static void convertImageData(BufferedImage image, IntBuffer intout)
 	{
