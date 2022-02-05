@@ -251,7 +251,7 @@ public class OGL20Graphics extends OGL15Graphics
 	
 	/**
 	 * Gets the currently bound program. 
-	 * @return the texture, or null if no bound texture.
+	 * @return the program, or null if no bound program.
 	 */
 	public OGLProgram getProgram()
 	{
