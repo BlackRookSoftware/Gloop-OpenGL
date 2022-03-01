@@ -13,7 +13,7 @@ import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
  * Node that clears one or more buffers.
  * @author Matthew Tropiano
  */
-public class OGLClearNode extends OGLNodeAdapter<OGL11Graphics>
+public class OGLClearNode implements OGLNode<OGL11Graphics>
 {
 	/** The clear color to use for clearing - red component. */
 	private float clearRed;

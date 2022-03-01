@@ -27,22 +27,32 @@ public interface OGLNode<GL extends OGLGraphics>
 	 * so it is safe to call all {@link OGLGraphics} functions here. 
 	 * @param gl the graphics object used for issuing commands to OpenGL.
 	 */
-	public void onDisplay(GL gl);
+	default void onDisplay(GL gl)
+	{
+		// Do nothing.
+	}
 	
 	/**
 	 * Called when the system canvas gets resized, or once this node gets added to the system.
 	 * @param newWidth the new framebuffer width. 
 	 * @param newHeight	the new framebuffer height.
 	 */
-	public void onFramebufferResize(int newWidth, int newHeight);
-	
+	default void onFramebufferResize(int newWidth, int newHeight)
+	{
+		// Do nothing.
+	}
+
 	/**
 	 * Returns the length of time it took to render this node, in nanoseconds.
 	 * Results of this call should not be considered accurate until the node 
 	 * has had {@link #onDisplay(OGLGraphics)} called on it.
 	 * @return the length of time it took to render this node, in nanoseconds.
 	 */
-	public long getRenderTimeNanos();
+	default long getRenderTimeNanos()
+	{
+		// Do nothing.
+		return 0L;
+	}
 
 	/**
 	 * Gets the number of polygonal objects rendered in this layer.
@@ -51,6 +61,10 @@ public interface OGLNode<GL extends OGLGraphics>
 	 * node has had {@link #onDisplay(OGLGraphics)} called on it.
 	 * @return the number of polygonal objects rendered in this layer.
 	 */
-	public int getPolygonsRendered();
+	default int getPolygonsRendered()
+	{
+		// Do nothing.
+		return 0;
+	}
 
 }

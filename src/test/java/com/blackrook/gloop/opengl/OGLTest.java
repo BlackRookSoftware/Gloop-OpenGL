@@ -31,7 +31,7 @@ import com.blackrook.gloop.opengl.gl1.OGLTexture;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl3.OGLVertexArrayState;
-import com.blackrook.gloop.opengl.node.OGLNodeAdapter;
+import com.blackrook.gloop.opengl.node.OGLNode;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
 public final class OGLTest 
@@ -80,7 +80,7 @@ public final class OGLTest
 		}
 	}
 	
-	public static class DrawNode extends OGLNodeAdapter<OGL33Graphics>
+	public static class DrawNode implements OGLNode<OGL33Graphics>
 	{
 		private OGLProgram program;
 		private OGLBuffer geometry;

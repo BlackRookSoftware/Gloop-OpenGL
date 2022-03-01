@@ -54,7 +54,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	}
 	
 	@Override
-	public void doTriggeredFunction(OGL11Graphics gl)
+	public void doTriggeredDisplay(OGL11Graphics gl)
 	{
 		gl.setHint(HintType.POINT_SMOOTHING, pointSmoothHint);
 		gl.setHint(HintType.LINE_SMOOTHING, lineSmoothHint);

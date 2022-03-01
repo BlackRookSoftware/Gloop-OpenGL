@@ -15,7 +15,7 @@ import com.blackrook.gloop.opengl.OGLGraphics;
  * @author Matthew Tropiano
  * @param <GL> the graphics object to call.
  */
-public abstract class OGLTriggeredNode<GL extends OGLGraphics> extends OGLNodeAdapter<GL>
+public abstract class OGLTriggeredNode<GL extends OGLGraphics> implements OGLNode<GL>
 {
 	/** If true, the triggered function is called. */
 	protected boolean trigger;
@@ -46,7 +46,7 @@ public abstract class OGLTriggeredNode<GL extends OGLGraphics> extends OGLNodeAd
 		if (trigger)
 		{
 			trigger = false;
-			doTriggeredFunction(gl);
+			doTriggeredDisplay(gl);
 		}
 	}
 
@@ -63,6 +63,6 @@ public abstract class OGLTriggeredNode<GL extends OGLGraphics> extends OGLNodeAd
 	 * for when the triggered method needs to run.
 	 * @param gl the OGLGraphics context. 
 	 */
-	public abstract void doTriggeredFunction(GL gl);
+	public abstract void doTriggeredDisplay(GL gl);
 
 }
