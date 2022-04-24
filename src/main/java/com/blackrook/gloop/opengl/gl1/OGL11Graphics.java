@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Black Rook Software
+ * Copyright (c) 2021-2022 Black Rook Software
  * This program and the accompanying materials are made available under the 
  * terms of the GNU Lesser Public License v2.1 which accompanies this 
  * distribution, and is available at 
@@ -22,6 +22,7 @@ import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLGraphics;
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.AccumOperation;
 import com.blackrook.gloop.opengl.enums.AttribType;
 import com.blackrook.gloop.opengl.enums.BlendArg;
 import com.blackrook.gloop.opengl.enums.BlendFunc;
@@ -2153,6 +2154,20 @@ public class OGL11Graphics extends OGLGraphics
 		setBlendingFunc(func.argsrc, func.argdst);
 	}
 
+	/**
+	 * Performs an accumulation buffer operation.
+	 * What happens with accum buffer contents differs based on the 
+	 * current color buffers for reading and writing, and the desired operation.
+	 * @param operation the accum buffer operation.
+	 * @param value the value scalar for the operation.
+	 * @see AccumOperation
+	 */
+	public void accumulate(AccumOperation operation, float value)
+	{
+		checkNonCore();
+		glAccum(operation.glValue, value);
+	}
+	
 	/**
 	 * Sets if face culling is enabled. 
 	 * @param enabled true to enable, false to disable.

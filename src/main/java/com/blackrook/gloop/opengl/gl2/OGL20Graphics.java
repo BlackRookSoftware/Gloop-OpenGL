@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Black Rook Software
+ * Copyright (c) 2021-2022 Black Rook Software
  * This program and the accompanying materials are made available under the 
  * terms of the GNU Lesser Public License v2.1 which accompanies this 
  * distribution, and is available at 
@@ -10,6 +10,7 @@ package com.blackrook.gloop.opengl.gl2;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.FrameBufferType;
 import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
@@ -153,6 +154,24 @@ public class OGL20Graphics extends OGL15Graphics
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, toGLBool(enabled));
 	}
 
+	/**
+	 * Sets the multiple buffers to write to for pixel drawing/rasterizing operations.
+	 * By default, this is just the BACK buffer in double-buffered contexts.
+	 * @param types the buffers to write to from now on, made available to shader programs.
+	 * @throws GraphicsException if one of the types is NONE, LEFT, RIGHT, FRONT, BACK, or FRONT_AND_BACK.
+	 */
+	public void setFrameBufferWrite(FrameBufferType ... types)
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer buf = stack.mallocInt(types.length);
+			for (int i = 0 ; i < types.length; i++)
+				buf.put(i, types[i].glValue);
+			glDrawBuffers(buf);
+			checkError();
+		}
+	}
+	
 	/**
 	 * Creates a new program builder.
 	 * <p> This program builder aids in building shader program objects, and its

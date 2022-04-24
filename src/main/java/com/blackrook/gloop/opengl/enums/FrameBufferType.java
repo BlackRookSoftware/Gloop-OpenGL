@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Black Rook Software
+ * Copyright (c) 2021-2022 Black Rook Software
  * This program and the accompanying materials are made available under the 
  * terms of the GNU Lesser Public License v2.1 which accompanies this 
  * distribution, and is available at 
@@ -16,14 +16,14 @@ import static org.lwjgl.opengl.GL11.*;
 public enum FrameBufferType
 {
 	NONE(GL_NONE),
-	FRONT(GL_FRONT),
-	BACK(GL_BACK),
-	LEFT(GL_LEFT),
-	RIGHT(GL_RIGHT),
 	FRONT_LEFT(GL_FRONT_LEFT),
 	FRONT_RIGHT(GL_FRONT_RIGHT),
 	BACK_LEFT(GL_BACK_LEFT),
 	BACK_RIGHT(GL_BACK_RIGHT),
+	FRONT(GL_FRONT),
+	BACK(GL_BACK),
+	LEFT(GL_LEFT),
+	RIGHT(GL_RIGHT),
 	FRONT_AND_BACK(GL_FRONT_AND_BACK),
 	AUX0(GL_AUX0),
 	AUX1(GL_AUX1),
