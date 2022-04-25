@@ -80,7 +80,7 @@ public abstract class OGLObject
 	 * Destroys this object.
 	 * @throws GraphicsException if an error occurred destroying the object.
 	 */
-	public void destroy() 
+	void destroy() 
 	{
 		if (allocated)
 		{

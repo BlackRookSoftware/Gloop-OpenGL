@@ -91,7 +91,7 @@ public final class TextureUtils
 		ByteBuffer out = BufferUtils.allocDirectByteBuffer(getRawSize(image));
 		out.order(ByteOrder.LITTLE_ENDIAN);
 		convertImageData(image, out.asIntBuffer());
-	    return out;
+		return out;
 	}
 
 	/**
@@ -111,7 +111,7 @@ public final class TextureUtils
 		IntBuffer ibuf = out.asIntBuffer();
 		for (int i = 0; i < image.length; i++)
 			convertImageData(image[i], ibuf);
-	    return out;
+		return out;
 	}
 
 	/**
@@ -124,7 +124,7 @@ public final class TextureUtils
 		ByteBuffer out = BufferUtils.allocDirectByteBuffer(getRawSize(image));
 		out.order(ByteOrder.BIG_ENDIAN);
 		convertImageData(image, out.asIntBuffer());
-	    return out;
+		return out;
 	}
 
 	/**
@@ -144,7 +144,7 @@ public final class TextureUtils
 		IntBuffer ibuf = out.asIntBuffer();
 		for (int i = 0; i < image.length; i++)
 			convertImageData(image[i], ibuf);
-	    return out;
+		return out;
 	}
 
 	/**
@@ -157,7 +157,7 @@ public final class TextureUtils
 		ByteBuffer out = BufferUtils.allocDirectByteBuffer(getRawSize(image));
 		out.order(ByteOrder.BIG_ENDIAN);
 		convertRGBAImageData(image, out.asIntBuffer());
-	    return out;
+		return out;
 	}
 
 	/**
@@ -176,7 +176,7 @@ public final class TextureUtils
 		IntBuffer ibuf = out.asIntBuffer();
 		for (int i = 0; i < image.length; i++)
 			convertRGBAImageData(image[i], ibuf);
-	    return out;
+		return out;
 	}
 
 	/**
@@ -190,10 +190,10 @@ public final class TextureUtils
 	{
 		IntBuffer imageData = imageBGRAData.asIntBuffer();
 		BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-	    int[] data = new int[imageData.capacity()];
-	    imageData.get(data);
-	    out.setRGB(0, 0, width, height, data, 0, width);
-	    return out;
+		int[] data = new int[imageData.capacity()];
+		imageData.get(data);
+		out.setRGB(0, 0, width, height, data, 0, width);
+		return out;
 	}
 
 	// Puts image data into an IntBuffer.
@@ -201,8 +201,8 @@ public final class TextureUtils
 	{
 		int imageWidth = image.getWidth();
 		int imageHeight = image.getHeight();
-	    int[] data = new int[imageWidth * imageHeight];
-	    image.getRGB(0, 0, imageWidth, imageHeight, data, 0, imageWidth);
+		int[] data = new int[imageWidth * imageHeight];
+		image.getRGB(0, 0, imageWidth, imageHeight, data, 0, imageWidth);
 		intout.put(data);
 	}
 
@@ -211,10 +211,10 @@ public final class TextureUtils
 	{
 		int imageWidth = image.getWidth();
 		int imageHeight = image.getHeight();
-	    int[] data = new int[imageWidth * imageHeight];
-	    image.getRGB(0, 0, imageWidth, imageHeight, data, 0, imageWidth);
-	    for (int i = 0; i < data.length; i++)
-	    	data[i] = (data[i] << 8) | (((data[i] & 0xff000000) >> 24) & 0x0ff);
+		int[] data = new int[imageWidth * imageHeight];
+		image.getRGB(0, 0, imageWidth, imageHeight, data, 0, imageWidth);
+		for (int i = 0; i < data.length; i++)
+			data[i] = (data[i] << 8) | (((data[i] & 0xff000000) >> 24) & 0x0ff);
 		intout.put(data);
 	}
 

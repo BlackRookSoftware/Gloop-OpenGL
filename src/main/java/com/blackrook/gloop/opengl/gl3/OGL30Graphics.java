@@ -18,7 +18,11 @@ import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.AttachPoint;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.FeedbackBufferType;
+import com.blackrook.gloop.opengl.enums.GeometryType;
 import com.blackrook.gloop.opengl.enums.MatrixMode;
+import com.blackrook.gloop.opengl.enums.PrimitiveMode;
+import com.blackrook.gloop.opengl.enums.QueryWaitType;
 import com.blackrook.gloop.opengl.enums.RenderbufferFormat;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
@@ -26,6 +30,7 @@ import com.blackrook.gloop.opengl.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.enums.TextureTargetType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGLBuffer;
+import com.blackrook.gloop.opengl.gl1.OGLQuery;
 import com.blackrook.gloop.opengl.gl1.OGLTexture;
 
 import java.nio.IntBuffer;
@@ -100,7 +105,8 @@ public class OGL30Graphics extends OGL21Graphics
 						gl.attachProgramShaders(out, ps);
 						list.add(ps);
 					} catch (Exception e) {
-						if (ps != null) ps.destroy();
+						if (ps != null) 
+							gl.destroyProgramShader(ps);
 					}
 				}
 				
@@ -112,9 +118,9 @@ public class OGL30Graphics extends OGL21Graphics
 				gl.linkProgram(out);
 				
 			} catch (Exception e) {
-				out.destroy();
+				gl.destroyProgram(out);
 				for (OGLProgramShader ps : list)
-					ps.destroy();
+					gl.destroyProgramShader(ps);
 				throw e;
 			}
 			return out;
@@ -122,9 +128,14 @@ public class OGL30Graphics extends OGL21Graphics
 		
 	}
 	
+	private boolean conditionalRenderActive;
+	private boolean transformFeedbackActive;
+	
 	public OGL30Graphics(boolean core)
 	{
 		super(core);
+		conditionalRenderActive = false;
+		transformFeedbackActive = false;
 	}
 
 	@Override
@@ -142,10 +153,10 @@ public class OGL30Graphics extends OGL21Graphics
 	@Override
 	protected void endFrame()
 	{
-	    // Clean up abandoned objects.
-	    OGLRenderbuffer.destroyUndeleted();
-	    OGLFramebuffer.destroyUndeleted();
-	    super.endFrame();
+		// Clean up abandoned objects.
+		OGLRenderbuffer.destroyUndeleted();
+		OGLFramebuffer.destroyUndeleted();
+		super.endFrame();
 	}
 
 	@Override
@@ -176,6 +187,7 @@ public class OGL30Graphics extends OGL21Graphics
 	 * Sets a uniform matrix (mat4) value on the currently-bound program using a matrix in the matrix stack.
 	 * @param locationId the uniform location.
 	 * @param matrixMode the matrix to grab values from.
+	 * @throws UnsupportedOperationException if matrix modes are unavailable in this version (core implementation).
 	 */
 	public void setProgramUniformMatrix4(int locationId, MatrixMode matrixMode)
 	{
@@ -251,6 +263,23 @@ public class OGL30Graphics extends OGL21Graphics
 		if (!isCore())
 			throw new UnsupportedOperationException("Matrix ids are not available in the non-core implementation.");
 		matrix.set(getCurrentMatrixStack(matrixId).peek());
+	}
+
+	/**
+	 * Sets the transform feedback varying variables for the bound shader program.
+	 * Must be called before {@link #linkProgram(OGLProgram)} for the provided program.
+	 * @param program the program to set the variables for.
+	 * @param type the feedback output type.
+	 * @param variableNames the names of the variables.
+	 * @throws IllegalStateException if the provided program was already linked.
+	 */
+	public void setTransformFeedbackVaryings(OGLProgram program, FeedbackBufferType type, String ... variableNames)
+	{
+		if (program.isLinked())
+			throw new IllegalStateException("Program was already linked.");
+		
+		glTransformFeedbackVaryings(program.getName(), variableNames, type.glValue);
+		checkError();
 	}
 
 	/**
@@ -394,6 +423,16 @@ public class OGL30Graphics extends OGL21Graphics
 	}
 	
 	/**
+	 * Destroys a vertex array state.
+	 * @param arrayState the vertex array state to destroy.
+	 */
+	public void destroyVertexArrayState(OGLVertexArrayState arrayState)
+	{
+		destroyObject(arrayState);
+		checkError();
+	}
+	
+	/**
 	 * Sets the current vertex array state, which also restores all of the
 	 * vertex attribute pointer and buffer target bindings associated with it.
 	 * The following is saved by a vertex array state:
@@ -447,6 +486,16 @@ public class OGL30Graphics extends OGL21Graphics
 	}
 
 	/**
+	 * Destroys a render buffer.
+	 * @param renderBuffer the render buffer to destroy.
+	 */
+	public void destroyRenderbuffer(OGLRenderbuffer renderBuffer)
+	{
+		destroyObject(renderBuffer);
+		checkError();
+	}
+	
+	/**
 	 * Binds a FrameRenderBuffer to the current context.
 	 * @param renderbuffer the render buffer to bind to the current render buffer.
 	 */
@@ -490,6 +539,16 @@ public class OGL30Graphics extends OGL21Graphics
 		return new OGLFramebuffer();
 	}
 
+	/**
+	 * Destroys a framebuffer.
+	 * @param frameBuffer the framebuffer to destroy.
+	 */
+	public void destroyFramebuffer(OGLFramebuffer frameBuffer)
+	{
+		destroyObject(frameBuffer);
+		checkError();
+	}
+	
 	/**
 	 * Binds a FrameBuffer for rendering.
 	 * @param framebuffer the framebuffer to set as the current one.
@@ -592,4 +651,68 @@ public class OGL30Graphics extends OGL21Graphics
 		checkError();
 	}
 
+	/**
+	 * Starts a conditional render.
+	 * @param query the query object to use.
+	 * @param waitType the wait type for query results.
+	 * @throws IllegalStateException if a conditional render is already active.
+	 */
+	public void startConditionalRender(OGLQuery query, QueryWaitType waitType)
+	{
+		if (conditionalRenderActive)
+			throw new IllegalStateException("A conditional render is already active.");
+		
+		glBeginConditionalRender(query.getName(), waitType.glValue);
+		conditionalRenderActive = true;
+		checkError();
+	}
+	
+	/**
+	 * Ends a conditional render.
+	 * @throws IllegalStateException if a conditional render is not active.
+	 */
+	public void endConditionalRender()
+	{
+		if (!conditionalRenderActive)
+			throw new IllegalStateException("A conditional render is not active.");
+		
+		glEndConditionalRender();
+		conditionalRenderActive = false;
+		checkError();
+	}
+	
+	/**
+	 * Starts a transform feedback.
+	 * Requires batch calling for draw, an attached geometry program, 
+	 * and a bound {@link BufferTargetType#TRANSFORM_FEEDBACK} buffer for the results.
+	 * @param primitiveMode the primitive draw mode.
+	 * @see #attachProgramShaders(OGLProgram, OGLProgramShader...)
+	 * @see #setProgram(OGLProgram)
+	 * @see #drawGeometryArray(GeometryType, int, int)
+	 * @see #drawGeometryElements(GeometryType, DataType, int, int)
+	 * @see #setBuffer(BufferTargetType, OGLBuffer)
+	 */
+	public void startTransformFeedback(PrimitiveMode primitiveMode)
+	{
+		if (transformFeedbackActive)
+			throw new IllegalStateException("A transform feedback is already active.");
+		
+		glBeginTransformFeedback(primitiveMode.glValue);
+		checkError();
+		transformFeedbackActive = true;
+	}
+	
+	/**
+	 * Ends a transform feedback.
+	 */
+	public void endTransformFeedback()
+	{
+		if (!transformFeedbackActive)
+			throw new IllegalStateException("A transform feedback is not active.");
+		
+		glEndTransformFeedback();
+		checkError();
+		transformFeedbackActive = false;
+	}
+	
 }

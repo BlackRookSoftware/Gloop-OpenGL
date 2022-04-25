@@ -7,7 +7,8 @@
  ******************************************************************************/
 package com.blackrook.gloop.opengl.enums;
 
-import static org.lwjgl.opengl.GL11.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL32;
 
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.OGLVersioned;
@@ -18,7 +19,7 @@ import com.blackrook.gloop.opengl.OGLVersioned;
  */
 public enum GeometryType implements OGLVersioned
 {
-	POINTS(GL_POINTS, true)
+	POINTS(GL11.GL_POINTS, true, OGLVersion.GL11, true)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
@@ -27,25 +28,16 @@ public enum GeometryType implements OGLVersioned
 		}
 	},
 	
-	LINES(GL_LINES, true)
+	LINES(GL11.GL_LINES, true, OGLVersion.GL11, true)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
 		{
-			return elementCount/2;
+			return elementCount / 2;
 		}
 	},
 	
-	LINE_STRIP(GL_LINE_STRIP, false)
-	{
-		@Override
-		public int calculatePolygonCount(int elementCount)
-		{
-			return 1;
-		}
-	},
-	
-	LINE_LOOP(GL_LINE_LOOP, false)
+	LINE_STRIP(GL11.GL_LINE_STRIP, false, OGLVersion.GL11, true)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
@@ -54,7 +46,34 @@ public enum GeometryType implements OGLVersioned
 		}
 	},
 	
-	TRIANGLES(GL_TRIANGLES, true)
+	LINE_LOOP(GL11.GL_LINE_LOOP, false, OGLVersion.GL11, true)
+	{
+		@Override
+		public int calculatePolygonCount(int elementCount)
+		{
+			return 1;
+		}
+	},
+	
+	LINES_ADJACENCY(GL32.GL_LINES_ADJACENCY, true, OGLVersion.GL32, true)
+	{
+		@Override
+		public int calculatePolygonCount(int elementCount)
+		{
+			return elementCount / 2;
+		}
+	},
+	
+	LINE_STRIP_ADJACENCY(GL32.GL_LINE_STRIP_ADJACENCY, false, OGLVersion.GL32, true)
+	{
+		@Override
+		public int calculatePolygonCount(int elementCount)
+		{
+			return 1;
+		}
+	},
+	
+	TRIANGLES(GL11.GL_TRIANGLES, true, OGLVersion.GL11, true)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
@@ -63,7 +82,7 @@ public enum GeometryType implements OGLVersioned
 		}
 	},
 	
-	TRIANGLE_STRIP(GL_TRIANGLE_STRIP, false)
+	TRIANGLE_STRIP(GL11.GL_TRIANGLE_STRIP, false, OGLVersion.GL11, true)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
@@ -72,7 +91,7 @@ public enum GeometryType implements OGLVersioned
 		}
 	},
 	
-	TRIANGLE_FAN(GL_TRIANGLE_FAN, false)
+	TRIANGLE_FAN(GL11.GL_TRIANGLE_FAN, false, OGLVersion.GL11, true)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
@@ -81,57 +100,64 @@ public enum GeometryType implements OGLVersioned
 		}
 	},
 	
-	QUADS(GL_QUADS, true)
+	TRIANGLES_ADJACENCY(GL32.GL_TRIANGLES_ADJACENCY, true, OGLVersion.GL32, true)
+	{
+		@Override
+		public int calculatePolygonCount(int elementCount)
+		{
+			return elementCount / 3;
+		}
+	},
+	
+	TRIANGLE_STRIP_ADJACENCY(GL32.GL_TRIANGLE_STRIP_ADJACENCY, false, OGLVersion.GL32, true)
+	{
+		@Override
+		public int calculatePolygonCount(int elementCount)
+		{
+			return elementCount - 2;
+		}
+	},
+	
+	QUADS(GL11.GL_QUADS, true, OGLVersion.GL11, false)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
 		{
 			return elementCount / 4;
 		}
-		
-		@Override
-		public boolean isCore()
-		{
-			return false;
-		}
-		
 	},
 	
-	QUAD_STRIP(GL_QUAD_STRIP, false)
+	QUAD_STRIP(GL11.GL_QUAD_STRIP, false, OGLVersion.GL11, false)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
 		{
 			return (elementCount - 2) / 2;
 		}
-
-		@Override
-		public boolean isCore()
-		{
-			return false;
-		}
-		
 	},
 	
-	POLYGON(GL_POLYGON, false)
+	POLYGON(GL11.GL_POLYGON, false, OGLVersion.GL11, false)
 	{
 		@Override
 		public int calculatePolygonCount(int elementCount)
 		{
 			return 1;
 		}
-
-		@Override
-		public boolean isCore()
-		{
-			return false;
-		}
-		
 	};
 	
 	public final int glValue;
+	
 	private final boolean batchable; 
-	private GeometryType(int gltype, boolean batchable) {glValue = gltype; this.batchable = batchable;}
+	private final OGLVersion version; 
+	private final boolean core; 
+	
+	private GeometryType(int gltype, boolean batchable, OGLVersion version, boolean core) 
+	{
+		this.glValue = gltype; 
+		this.batchable = batchable;
+		this.version = version;
+		this.core = core;
+	}
 
 	/**
 	 * Is this geometry type able to be put together in 
@@ -146,13 +172,13 @@ public enum GeometryType implements OGLVersioned
 	@Override
 	public OGLVersion getVersion()
 	{
-		return OGLVersion.GL11;
+		return version;
 	}
 	
 	@Override
 	public boolean isCore()
 	{
-		return true;
+		return core;
 	}
 	
 	/**

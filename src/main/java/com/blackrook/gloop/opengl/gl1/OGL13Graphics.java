@@ -115,7 +115,7 @@ public class OGL13Graphics extends OGL12Graphics
 				}
 				
 			} catch (Exception e) {
-				out.destroy();
+				gl.destroyTexture(out);
 				throw e;
 			} finally {
 				gl.unsetTexture(targetType);
@@ -207,6 +207,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
 	 * @param border the texel border to add, if any.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if no current cube texture.
 	 */
 	public void setTextureData(TextureCubeFace cubeFace, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
@@ -248,6 +249,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 * @param height the texture height in texels.
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
+	 * @throws UnsupportedOperationException if the provided format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if no current cube texture.
 	 */
 	public void setTextureSubData(TextureCubeFace cubeFace, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)

@@ -104,7 +104,7 @@ public class OGLWorkerNode<GL extends OGLGraphics, J extends Consumer<GL>> imple
 	/**
 	 * Called by {@link #onDisplay(OGLGraphics)} for determining if there's
 	 * work available for processing. 
-	 * <P> By default, this just checks if the work queue is not empty.
+	 * <P> By default, this just checks if the work queue is not empty via {@link #isQueueEmpty()}.
 	 * <p> If this returns false, this node completes, else a job is dequeued and executed.
 	 * <p> Do NOT call this method outside of the main context thread.
 	 * @return true if work is available, false if not.

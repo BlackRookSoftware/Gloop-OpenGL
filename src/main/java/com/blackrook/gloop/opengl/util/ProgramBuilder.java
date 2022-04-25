@@ -61,14 +61,18 @@ public interface ProgramBuilder
 	 * @param attributeName the attribute name.
 	 * @param index the index.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if binding locations is unavailable in this version.
 	 */
 	ProgramBuilder fragmentDataLocation(String attributeName, int index);
+	
+	// TODO: Add transform feedback varyings.
 	
 	/**
 	 * Sets a shader program and a shader source. 
 	 * @param type the shader type.
 	 * @param file the source file.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the shader type is unavailable in this version.
 	 */
 	ProgramBuilder setShader(ShaderType type, final File file);
 	
@@ -77,6 +81,7 @@ public interface ProgramBuilder
 	 * @param type the shader type.
 	 * @param in the input stream to read from.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
 	 */
 	ProgramBuilder setShader(ShaderType type, final InputStream in);
 	
@@ -85,6 +90,7 @@ public interface ProgramBuilder
 	 * @param type the shader type.
 	 * @param reader the reader to read from.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
 	 */
 	ProgramBuilder setShader(ShaderType type, final Reader reader);
 	
@@ -93,6 +99,7 @@ public interface ProgramBuilder
 	 * @param type the shader type.
 	 * @param source the string that contains the source code.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
 	 */
 	ProgramBuilder setShader(ShaderType type, final String source);
 	
@@ -101,6 +108,7 @@ public interface ProgramBuilder
 	 * @param type the shader type.
 	 * @param source the source code supplier.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
 	 */
 	ProgramBuilder setShader(ShaderType type, Supplier<String> source);
 
@@ -171,6 +179,7 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final File file)
 		{
+			gl.checkFeatureVersion(type);
 			return setShader(type, () ->
 			{
 				try (Reader reader = new InputStreamReader(new FileInputStream(file)))
@@ -191,6 +200,7 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final InputStream in)
 		{
+			gl.checkFeatureVersion(type);
 			return setShader(type, () ->
 			{
 				try (Reader reader = new InputStreamReader(in))
@@ -211,6 +221,7 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final Reader reader)
 		{
+			gl.checkFeatureVersion(type);
 			return setShader(type, () ->
 			{
 				try
@@ -231,12 +242,14 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final String source)
 		{
+			gl.checkFeatureVersion(type);
 			return setShader(type, ()->source);
 		}
 		
 		@Override
 		public ProgramBuilder setShader(ShaderType type, Supplier<String> source)
 		{
+			gl.checkFeatureVersion(type);
 			shaderPrograms.put(type, source);
 			return this;
 		}

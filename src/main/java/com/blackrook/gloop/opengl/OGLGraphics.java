@@ -484,14 +484,14 @@ public abstract class OGLGraphics implements OGLVersioned
 	 * and if the object is from a later version, throw an exception.
 	 * This will also throw an exception if this version is core and the provided object is not.
 	 * @param versioned the versioned element to check against.
-	 * @throws GraphicsException if the versioned object is a later version than this one, or is not core if this graphics instance is.
+	 * @throws UnsupportedOperationException if the versioned object is a later version than this one, or is not core if this graphics instance is.
 	 */
-	protected void checkFeatureVersion(OGLVersioned versioned)
+	public void checkFeatureVersion(OGLVersioned versioned)
 	{
 		if (getVersion().compareTo(versioned.getVersion()) < 0)
-			throw new GraphicsException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
+			throw new UnsupportedOperationException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
 		if (isCore() && !versioned.isCore())
-			throw new GraphicsException("Using " + versioned.getClass().getSimpleName() + " requires it being part of the core spec, and it isn't.");
+			throw new UnsupportedOperationException("Using " + versioned.getClass().getSimpleName() + " requires it being part of the core spec, and it isn't.");
 	}
 	
 	/**
@@ -499,7 +499,7 @@ public abstract class OGLGraphics implements OGLVersioned
 	 * is non-core, and if it is, it throws an exception.
 	 * @throws UnsupportedOperationException if this graphics instance is a core implementation.
 	 */
-	protected void checkNonCore()
+	public void checkNonCore()
 	{
 		if (isCore())
 			throw new UnsupportedOperationException("This is unavailable in a core implementation.");
@@ -758,4 +758,13 @@ public abstract class OGLGraphics implements OGLVersioned
 		this.errorChecking = errorChecking;
 	}
 
+	/**
+	 * Destroys an object, presumably created by this graphics object.
+	 * @param object the object to destroy.
+	 */
+	protected void destroyObject(OGLObject object)
+	{
+		object.destroy();
+	}
+	
 }

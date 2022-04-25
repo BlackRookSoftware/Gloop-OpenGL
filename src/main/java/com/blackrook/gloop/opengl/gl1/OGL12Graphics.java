@@ -111,7 +111,7 @@ public class OGL12Graphics extends OGL11Graphics
 				}
 				
 			} catch (Exception e) {
-				out.destroy();
+				gl.destroyTexture(out);
 				throw e;
 			} finally {
 				gl.unsetTexture(targetType);
@@ -152,6 +152,7 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param wrapS the wrapping mode, S-axis.
 	 * @param wrapT the wrapping mode, T-axis.
 	 * @param wrapR the wrapping mode, R-axis.
+	 * @throws UnsupportedOperationException if any provided type is unavailable in this version.
 	 * @throws GraphicsException if the target is not a three-dimensionally-sampled target.
 	 */
 	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
@@ -177,6 +178,7 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param height the texture height in texels.
 	 * @param depth the texture depth in texels.
 	 * @param border the texel border to add, if any.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored three-dimensionally.
 	 */
 	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int depth, int border)
@@ -220,6 +222,7 @@ public class OGL12Graphics extends OGL11Graphics
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
 	 * @param zoffs the texel offset.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored three-dimensionally.
 	 */
 	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int depth, int xoffs, int yoffs, int zoffs)

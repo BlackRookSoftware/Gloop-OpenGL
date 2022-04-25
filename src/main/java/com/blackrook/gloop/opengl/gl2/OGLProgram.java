@@ -350,11 +350,11 @@ public class OGLProgram extends OGLObject
 		{
 			// link programs.
 			glLinkProgram(getName());
-		    this.log = glGetProgramInfoLog(getName());
-		    if (glGetProgrami(getName(), GL_LINK_STATUS) == 0)
-		    	throw new GraphicsException("Failed to link together program " + getName() + ".\n"+log);
-		    refreshUniformsAndAttribs();
-		    this.linked = true;
+			this.log = glGetProgramInfoLog(getName());
+			if (glGetProgrami(getName(), GL_LINK_STATUS) == 0)
+				throw new GraphicsException("Failed to link together program " + getName() + ".\n"+log);
+			refreshUniformsAndAttribs();
+			this.linked = true;
 		}
 	}
 	

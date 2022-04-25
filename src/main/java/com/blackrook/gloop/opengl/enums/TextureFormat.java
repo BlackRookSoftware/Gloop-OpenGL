@@ -38,15 +38,15 @@ public enum TextureFormat implements OGLVersioned
 	/** Compressed Alpha Only. */
 	COMPRESSED_ALPHA(OGLVersion.GL13, false, GL13.GL_COMPRESSED_ALPHA, true, 1f),
 	/** Compressed Luminance Only. */
-    COMPRESSED_LUMINANCE(OGLVersion.GL13, false, GL13.GL_COMPRESSED_LUMINANCE, true, 1f),
+	COMPRESSED_LUMINANCE(OGLVersion.GL13, false, GL13.GL_COMPRESSED_LUMINANCE, true, 1f),
 	/** Compressed Luminance Alpha Only. */
-    COMPRESSED_LUMINANCE_ALPHA(OGLVersion.GL13, false, GL13.GL_COMPRESSED_LUMINANCE_ALPHA, true, 2f),
+	COMPRESSED_LUMINANCE_ALPHA(OGLVersion.GL13, false, GL13.GL_COMPRESSED_LUMINANCE_ALPHA, true, 2f),
 	/** Compressed Intensity Only. */
-    COMPRESSED_INTENSITY(OGLVersion.GL13, false, GL13.GL_COMPRESSED_INTENSITY, true, 1f),
+	COMPRESSED_INTENSITY(OGLVersion.GL13, false, GL13.GL_COMPRESSED_INTENSITY, true, 1f),
 	/** Compressed RGB Only. */
-    COMPRESSED_RGB(OGLVersion.GL13, true, GL13.GL_COMPRESSED_RGB, true, 3f),
+	COMPRESSED_RGB(OGLVersion.GL13, true, GL13.GL_COMPRESSED_RGB, true, 3f),
 	/** Compressed RGBA Only. */
-    COMPRESSED_RGBA(OGLVersion.GL13, true, GL13.GL_COMPRESSED_RGBA, true, 4f);
+	COMPRESSED_RGBA(OGLVersion.GL13, true, GL13.GL_COMPRESSED_RGBA, true, 4f);
 
 	private OGLVersion version;
 	private boolean core;

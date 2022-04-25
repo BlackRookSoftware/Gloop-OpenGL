@@ -13,6 +13,7 @@ import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.CachingHint;
 import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.FogCoordinateType;
+import com.blackrook.gloop.opengl.enums.QueryType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
@@ -100,10 +101,10 @@ public class OGL15Graphics extends OGL14Graphics
 	@Override
 	protected void endFrame()
 	{
-	    // Clean up abandoned objects.
-	    OGLQuery.destroyUndeleted();
-	    OGLBuffer.destroyUndeleted();
-	    super.endFrame();
+		// Clean up abandoned objects.
+		OGLQuery.destroyUndeleted();
+		OGLBuffer.destroyUndeleted();
+		super.endFrame();
 	}
 
 	/**
@@ -118,13 +119,26 @@ public class OGL15Graphics extends OGL14Graphics
 	}
 
 	/**
-	 * Creates a new sample query.
+	 * Creates a new query.
+	 * @param queryType the query type.
 	 * @return a new sample query object.
+	 * @throws UnsupportedOperationException if the provided type is unavailable in this version.
 	 * @throws GraphicsException if the object could not be created.
 	 */
-	public OGLQuery createSampleQuery()
+	public OGLQuery createQuery(QueryType queryType)
 	{
-		return new OGLQuery(GL_SAMPLES_PASSED);
+		checkFeatureVersion(queryType);
+		return new OGLQuery(queryType.glValue);
+	}
+	
+	/**
+	 * Destroys a query object.
+	 * @param query the query to destroy.
+	 */
+	public void destroyQuery(OGLQuery query)
+	{
+		destroyObject(query);
+		checkError();
 	}
 
 	/**
@@ -159,6 +173,16 @@ public class OGL15Graphics extends OGL14Graphics
 	}
 
 	/**
+	 * Destroys a buffer object.
+	 * @param buffer the buffer to destroy.
+	 */
+	public void destroyBuffer(OGLBuffer buffer)
+	{
+		destroyObject(buffer);
+		checkError();
+	}
+	
+	/**
 	 * Gets the currently bound buffer for a binding target. 
 	 * @param type the buffer binding target.
 	 * @return the currently bound buffer, or null if no bound buffer to that target.
@@ -172,6 +196,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * Binds a buffer to the current context.
 	 * @param type the buffer type to bind.
 	 * @param buffer the buffer to bind. Null unbinds the currently bound buffer type.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBuffer(BufferTargetType type, OGLBuffer buffer)
 	{
@@ -188,6 +213,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param dataType the data type.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param elements the amount of elements of the data type.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferCapacity(BufferTargetType type, DataType dataType, CachingHint cachingHint, int elements)
 	{
@@ -202,6 +228,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferData(BufferTargetType type, CachingHint cachingHint, ByteBuffer data)
 	{
@@ -218,6 +245,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferData(BufferTargetType type, CachingHint cachingHint, ShortBuffer data)
 	{
@@ -234,6 +262,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferData(BufferTargetType type, CachingHint cachingHint, IntBuffer data)
 	{
@@ -250,6 +279,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferData(BufferTargetType type, CachingHint cachingHint, FloatBuffer data)
 	{
@@ -266,6 +296,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferData(BufferTargetType type, CachingHint cachingHint, LongBuffer data)
 	{
@@ -282,6 +313,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param cachingHint the caching hint on this buffer's data.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferData(BufferTargetType type, CachingHint cachingHint, DoubleBuffer data)
 	{
@@ -298,6 +330,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferSubData(BufferTargetType type, int offset, ByteBuffer data)
 	{
@@ -314,6 +347,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferSubData(BufferTargetType type, int offset, ShortBuffer data)
 	{
@@ -330,6 +364,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferSubData(BufferTargetType type, int offset, IntBuffer data)
 	{
@@ -346,6 +381,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferSubData(BufferTargetType type, int offset, FloatBuffer data)
 	{
@@ -362,6 +398,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferSubData(BufferTargetType type, int offset, LongBuffer data)
 	{
@@ -378,6 +415,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the buffer type binding.
 	 * @param offset the offset into the buffer to copy.
 	 * @param data the data to send.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void setBufferSubData(BufferTargetType type, int offset, DoubleBuffer data)
 	{
@@ -399,6 +437,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public ByteBuffer mapByteBuffer(BufferTargetType type, AccessType accessType)
 	{
@@ -416,6 +455,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public ShortBuffer mapShortBuffer(BufferTargetType type, AccessType accessType)
 	{
@@ -433,6 +473,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public IntBuffer mapIntBuffer(BufferTargetType type, AccessType accessType)
 	{
@@ -450,6 +491,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public LongBuffer mapLongBuffer(BufferTargetType type, AccessType accessType)
 	{
@@ -467,6 +509,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public FloatBuffer mapFloatBuffer(BufferTargetType type, AccessType accessType)
 	{
@@ -484,6 +527,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * @param type the binding target type.
 	 * @param accessType an access hint for the returned buffer.
 	 * @return a buffer suitable for application use.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public DoubleBuffer mapDoubleBuffer(BufferTargetType type, AccessType accessType)
 	{
@@ -497,6 +541,7 @@ public class OGL15Graphics extends OGL14Graphics
 	 * will be completely invalidated upon unmapping it.
 	 * @param type the binding target type.
 	 * @return true if unmap successful, false if data corruption occurred on unmap.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public boolean unmapBuffer(BufferTargetType type)
 	{
@@ -507,6 +552,7 @@ public class OGL15Graphics extends OGL14Graphics
 	/**
 	 * Unbinds the current buffer from a target.
 	 * @param type the binding target type.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	public void unsetBuffer(BufferTargetType type)
 	{

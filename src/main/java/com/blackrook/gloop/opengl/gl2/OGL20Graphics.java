@@ -81,7 +81,8 @@ public class OGL20Graphics extends OGL15Graphics
 						gl.attachProgramShaders(out, ps);
 						list.add(ps);
 					} catch (Exception e) {
-						if (ps != null) ps.destroy();
+						if (ps != null) 
+							gl.destroyProgramShader(ps);
 					}
 				}
 				
@@ -91,9 +92,9 @@ public class OGL20Graphics extends OGL15Graphics
 				gl.linkProgram(out);
 				
 			} catch (Exception e) {
-				out.destroy();
+				gl.destroyProgram(out);
 				for (OGLProgramShader ps : list)
-					ps.destroy();
+					gl.destroyProgramShader(ps);
 				throw e;
 			}
 			return out;
@@ -125,10 +126,10 @@ public class OGL20Graphics extends OGL15Graphics
 	@Override
 	protected void endFrame()
 	{
-	    // Clean up abandoned objects.
-	    OGLProgram.destroyUndeleted();
-	    OGLProgramShader.destroyUndeleted();
-	    super.endFrame();
+		// Clean up abandoned objects.
+		OGLProgram.destroyUndeleted();
+		OGLProgramShader.destroyUndeleted();
+		super.endFrame();
 	}
 
 	/**
@@ -190,7 +191,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 * @param streamName the name of the originating stream (can appear in exceptions).
 	 * @param sourceCode the code to compile.
 	 * @return the instantiated shader.
-	 * @throws NullPointerException if string is null.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
+	 * @throws NullPointerException if either string is null.
 	 */
 	public OGLProgramShader createProgramShader(ShaderType type, String streamName, final String sourceCode)
 	{
@@ -205,7 +207,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 * @param streamName the name of the originating stream (can appear in exceptions).
 	 * @param sourceSupplier the supplier function for the source code.
 	 * @return the instantiated shader.
-	 * @throws NullPointerException if string is null.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
+	 * @throws NullPointerException if either string is null.
 	 */
 	public OGLProgramShader createProgramShader(ShaderType type, String streamName, Supplier<String> sourceSupplier)
 	{
@@ -216,6 +219,16 @@ public class OGL20Graphics extends OGL15Graphics
 		return new OGLProgramShader(type, streamName, sourceSupplier.get());
 	}
 
+	/**
+	 * Destroys a program shader.
+	 * @param shader the shader to destroy.
+	 */
+	public void destroyProgramShader(OGLProgramShader shader)
+	{
+		destroyObject(shader);
+		checkError();
+	}
+	
 	/**
 	 * Creates a new program object.
 	 * @return a new program object.
@@ -228,6 +241,16 @@ public class OGL20Graphics extends OGL15Graphics
 		return out;
 	}
 
+	/**
+	 * Destroys a program.
+	 * @param program the program to destroy.
+	 */
+	public void destroyProgram(OGLProgram program)
+	{
+		destroyObject(program);
+		checkError();
+	}
+	
 	/**
 	 * Attaches a shader to a program.
 	 * Throws an error if this program was already linked, or if a program of the same type was already attached.
@@ -589,6 +612,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 * Sets a uniform matrix (mat4) value on the currently-bound program using a matrix in the matrix stack.
 	 * @param locationId the uniform location.
 	 * @param matrixMode the matrix to grab values from.
+	 * @throws UnsupportedOperationException if matrix modes are unavailable in this version (core implementation).
 	 */
 	public void setProgramUniformMatrix4(int locationId, MatrixMode matrixMode)
 	{

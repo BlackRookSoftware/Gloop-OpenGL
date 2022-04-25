@@ -102,7 +102,7 @@ public class OGL14Graphics extends OGL13Graphics
 				}
 				
 			} catch (Exception e) {
-				out.destroy();
+				gl.destroyTexture(out);
 				throw e;
 			} finally {
 				gl.unsetTexture(targetType);

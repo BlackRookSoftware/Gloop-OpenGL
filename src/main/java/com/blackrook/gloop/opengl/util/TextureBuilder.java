@@ -46,6 +46,7 @@ public interface TextureBuilder
 	 * By default, this is {@link TextureTargetType#TEXTURE_2D}.
 	 * @param targetType the target type to use.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided target type is unavailable in this version.
 	 */
 	TextureBuilder setTargetType(TextureTargetType targetType);
 
@@ -71,6 +72,7 @@ public interface TextureBuilder
 	 * By default, all wrapping is {@link TextureWrapType#TILE}.
 	 * @param wrapS the S-coordinate wrap type. 
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided type is unavailable in this version.
 	 */
 	TextureBuilder setWrapping(TextureWrapType wrapS);
 	
@@ -80,6 +82,7 @@ public interface TextureBuilder
 	 * @param wrapS the S-coordinate wrap type. 
 	 * @param wrapT the T-coordinate wrap type. 
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if any of the provided types are unavailable in this version.
 	 */
 	TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT);
 	
@@ -90,6 +93,7 @@ public interface TextureBuilder
 	 * @param wrapT the T-coordinate wrap type. 
 	 * @param wrapR the R-coordinate wrap type. 
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if any of the provided types are unavailable in this version.
 	 */
 	TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR);
 	
@@ -98,6 +102,7 @@ public interface TextureBuilder
 	 * By default, this is <code>false</code>.
 	 * @param enabled true to enable, false if disabled.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if this feature is unavailable in this version.
 	 */
 	TextureBuilder setCompressed(boolean enabled);
 	
@@ -106,6 +111,7 @@ public interface TextureBuilder
 	 * By default, this is <code>false</code>.
 	 * @param autoGenerateMipMaps true to auto-generate mipmaps for this texture.
 	 * @return this builder.
+	 * @throws UnsupportedOperationException if this feature is unavailable in this version.
 	 */
 	TextureBuilder setAutoGenerateMipMaps(boolean autoGenerateMipMaps);
 	
@@ -127,6 +133,7 @@ public interface TextureBuilder
 	 * Every texture past the first one is ignored if mipmap auto-generation is enabled.
 	 * @param images the image to add at this level.
 	 * @return this builder.
+	 * @throws GraphicsException if images is length 0, or no images were provided.
 	 */
 	TextureBuilder addTextureImage(BufferedImage ... images);
 	
@@ -179,6 +186,7 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setTargetType(TextureTargetType targetType)
 		{
+			gl.checkFeatureVersion(targetType);
 			this.targetType = targetType;
 			return this;
 		}
@@ -201,6 +209,7 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setWrapping(TextureWrapType wrapS)
 		{
+			gl.checkFeatureVersion(wrapS);
 			this.wrapS = wrapS;
 			return this;
 		}
@@ -208,6 +217,8 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
 		{
+			gl.checkFeatureVersion(wrapS);
+			gl.checkFeatureVersion(wrapT);
 			this.wrapS = wrapS;
 			this.wrapT = wrapT;
 			return this;
@@ -216,6 +227,9 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 		{
+			gl.checkFeatureVersion(wrapS);
+			gl.checkFeatureVersion(wrapT);
+			gl.checkFeatureVersion(wrapR);
 			this.wrapS = wrapS;
 			this.wrapT = wrapT;
 			this.wrapR = wrapR;

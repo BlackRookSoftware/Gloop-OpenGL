@@ -12,7 +12,7 @@ import com.blackrook.gloop.opengl.OGLSystem;
 
 /**
  * A significant entry point whose methods that get executed upon the
- * graphics system requesting a framebuffer redraw or upon receiving input.
+ * graphics system requesting a framebuffer redraw or resize.
  * <p>
  * Nodes are added to a {@link OGLSystem}, and drawn in the order in which they were added.
  * They may also receive other events.

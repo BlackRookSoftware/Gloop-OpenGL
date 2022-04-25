@@ -226,7 +226,7 @@ public class OGL11Graphics extends OGLGraphics
 				}
 				
 			} catch (Exception e) {
-				out.destroy();
+				gl.destroyTexture(out);
 				throw e;
 			} finally {
 				gl.unsetTexture(targetType);
@@ -384,8 +384,8 @@ public class OGL11Graphics extends OGLGraphics
 	@Override
 	protected void endFrame()
 	{
-	    // Clean up abandoned objects.
-	    OGLTexture.destroyUndeleted();
+		// Clean up abandoned objects.
+		OGLTexture.destroyUndeleted();
 	}
 
 	/**
@@ -1277,6 +1277,20 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
+	 * Performs an accumulation buffer operation.
+	 * What happens with accum buffer contents differs based on the 
+	 * current color buffers for reading and writing, and the desired operation.
+	 * @param operation the accum buffer operation.
+	 * @param value the value scalar for the operation.
+	 * @see AccumOperation
+	 */
+	public void accumulate(AccumOperation operation, float value)
+	{
+		checkNonCore();
+		glAccum(operation.glValue, value);
+	}
+
+	/**
 	 * Sets the next raster position for drawing bitmaps.
 	 * Remember, (0,0) is the lower left edge of the window.
 	 * @param x	the screen x-coordinate.
@@ -1416,6 +1430,7 @@ public class OGL11Graphics extends OGLGraphics
 	/**
 	 * Sets the current matrix for matrix operations.
 	 * @param mode the matrix mode to set.
+	 * @throws UnsupportedOperationException if matrix modes are unavailable in this version (core implementation).
 	 * @throws NullPointerException if the mode is null.
 	 */
 	public void matrixMode(MatrixMode mode)
@@ -1473,6 +1488,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param matrixType the type of matrix to load.
 	 * @param outArray the output array. Must be length 16 or greater.
 	 * @throws ArrayIndexOutOfBoundsException if the array length is less than 16.
+	 * @throws UnsupportedOperationException if matrix modes are unavailable in this version (core implementation).
 	 */
 	public void matrixGet(MatrixMode matrixType, float[] outArray)
 	{
@@ -1488,6 +1504,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * implemented using {@link MatrixStack} for core implementations.  
 	 * @param matrixType the type of matrix to load.
 	 * @param matrix the output matrix.
+	 * @throws UnsupportedOperationException if matrix modes are unavailable in this version (core implementation).
 	 */
 	public void matrixGet(MatrixMode matrixType, Matrix4F matrix)
 	{
@@ -1775,9 +1792,9 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Tells the OpenGL implementation to finish all pending commands.
+	 * Tells the OpenGL implementation to finish all pending commands, and waits for it to do so.
 	 * OpenGL commands are usually pipelined for performance reasons. This ensures
-	 * that OpenGL finishes all pending commands so that what you expect in the framebuffer
+	 * that OpenGL finishes all pending commands so that what you expect in the target writable buffers
 	 * is the last command executed, then resumes this thread.
 	 * <p> NOTE: This best called right before a screenshot is taken.
 	 */
@@ -2155,20 +2172,6 @@ public class OGL11Graphics extends OGLGraphics
 	}
 
 	/**
-	 * Performs an accumulation buffer operation.
-	 * What happens with accum buffer contents differs based on the 
-	 * current color buffers for reading and writing, and the desired operation.
-	 * @param operation the accum buffer operation.
-	 * @param value the value scalar for the operation.
-	 * @see AccumOperation
-	 */
-	public void accumulate(AccumOperation operation, float value)
-	{
-		checkNonCore();
-		glAccum(operation.glValue, value);
-	}
-	
-	/**
 	 * Sets if face culling is enabled. 
 	 * @param enabled true to enable, false to disable.
 	 */
@@ -2210,9 +2213,20 @@ public class OGL11Graphics extends OGLGraphics
 	}
 	
 	/**
+	 * Destroys a texture object.
+	 * @param texture the texture to destroy.
+	 */
+	public void destroyTexture(OGLTexture texture)
+	{
+		destroyObject(texture);
+		checkError();
+	}
+	
+	/**
 	 * Gets a texture currently bound to a target. 
 	 * @param target the texture target.
 	 * @return the texture, or null if no bound texture.
+	 * @throws UnsupportedOperationException if the target type is unavailable in this version.
 	 */
 	public OGLTexture getTexture(TextureTargetType target)
 	{
@@ -2226,6 +2240,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * is bound to any other target type, an exception will be thrown.
 	 * @param target the texture target.
 	 * @param texture the texture to bind.
+	 * @throws UnsupportedOperationException if the target type is unavailable in this version.
 	 * @throws GraphicsException if the provided texture was previously bound to a different target.
 	 */
 	public void setTexture(TextureTargetType target, OGLTexture texture)
@@ -2251,10 +2266,12 @@ public class OGL11Graphics extends OGLGraphics
 
 	/**
 	 * Sets the filtering for the current texture bound to the specified target.
+	 * If anisotropic filtering is unsupported, the anisotropy filtering constant is ignored.
 	 * @param target the texture target.
 	 * @param minFilter the minification filter.
 	 * @param magFilter the magnification filter.
 	 * @param anisotropy the anisotropic filtering (2.0 or greater to enable, 1.0 is "off").
+	 * @throws UnsupportedOperationException if the target type is unavailable in this version.
 	 */
 	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
 	{
@@ -2273,6 +2290,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * Sets the current wrapping for the current texture bound to the specified target.
 	 * @param target the texture target.
 	 * @param wrapS the wrapping mode, S-axis.
+	 * @throws UnsupportedOperationException if either provided type is unavailable in this version.
 	 * @throws GraphicsException if the target is not a one-dimensionally-sampled target.
 	 */
 	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS)
@@ -2288,6 +2306,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param target the texture target.
 	 * @param wrapS the wrapping mode, S-axis.
 	 * @param wrapT the wrapping mode, T-axis.
+	 * @throws UnsupportedOperationException if any provided type is unavailable in this version.
 	 * @throws GraphicsException if the target is not a two-dimensionally-sampled target.
 	 */
 	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS, TextureWrapType wrapT)
@@ -2309,6 +2328,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
 	 * @param width the texture width in texels.
 	 * @param border the texel border to add, if any.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored one-dimensionally.
 	 */
 	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
@@ -2348,6 +2368,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width the texture width in texels.
 	 * @param height the texture height in texels.
 	 * @param border the texel border to add, if any.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored two-dimensionally.
 	 */
 	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
@@ -2386,6 +2407,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param texlevel the mipmapping level to copy this into (0 is topmost).
 	 * @param width the texture width in texels.
 	 * @param xoffs the texel offset.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored one-dimensionally.
 	 */
 	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
@@ -2420,6 +2442,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param height the texture height in texels.
 	 * @param xoffs the texel offset.
 	 * @param yoffs the texel offset.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the buffer provided is not direct, or if the target is not stored two-dimensionally.
 	 */
 	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
@@ -2455,6 +2478,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width	the width of the screen in pixels to grab.
 	 * @param border the texel border to add, if any.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the target is not stored one-dimensionally.
 	 */
 	public void setTextureDataFromReadBuffer(TextureTargetType target, TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
@@ -2475,6 +2499,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param width the width of the screen in pixels to grab.
 	 * @param height the height of the screen in pixels to grab.
 	 * @param border the texel border to add, if any.
+	 * @throws UnsupportedOperationException if any provided type or format is unavailable in this version.
 	 * @throws GraphicsException if the target is not stored two-dimensionally.
 	 */
 	public void setTextureDataFromReadBuffer(TextureTargetType target, TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
@@ -2493,6 +2518,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcX the screen-aligned x-coordinate of what to grab from the buffer (0 is the left side of the screen).
 	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width the width of the screen in pixels to grab.
+	 * @throws UnsupportedOperationException if the target type is unavailable in this version.
 	 * @throws GraphicsException if the target is not stored one-dimensionally.
 	 */
 	public void setTextureSubDataFromReadBuffer(TextureTargetType target, int texlevel, int xoffset, int srcX, int srcY, int width)
@@ -2512,6 +2538,7 @@ public class OGL11Graphics extends OGLGraphics
 	 * @param srcY the screen-aligned y-coordinate of what to grab from the buffer (0 is the bottom of the screen).
 	 * @param width the width of the screen in pixels to grab.
 	 * @param height the height of the screen in pixels to grab.
+	 * @throws UnsupportedOperationException if the target type is unavailable in this version.
 	 * @throws GraphicsException if the target is not stored two-dimensionally.
 	 */
 	public void setTextureSubDataFromReadBuffer(TextureTargetType target, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
@@ -2524,6 +2551,7 @@ public class OGL11Graphics extends OGLGraphics
 	/**
 	 * Unbinds a texture currently bound to a target.
 	 * @param target the texture target.
+	 * @throws UnsupportedOperationException if the target type is unavailable in this version.
 	 */
 	public void unsetTexture(TextureTargetType target)
 	{

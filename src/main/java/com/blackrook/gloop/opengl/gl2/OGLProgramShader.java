@@ -48,10 +48,10 @@ public class OGLProgramShader extends OGLObject
 		
 		this.type = type;
 		glShaderSource(getName(), sourceCode);
-        glCompileShader(getName());
-        this.log = glGetShaderInfoLog(getName());
-        if (glGetShaderi(getName(), GL_COMPILE_STATUS) == 0)
-        	throw new GraphicsException("Failed to compile \"" + streamName + "\"\n" + log);
+		glCompileShader(getName());
+		this.log = glGetShaderInfoLog(getName());
+		if (glGetShaderi(getName(), GL_COMPILE_STATUS) == 0)
+			throw new GraphicsException("Failed to compile \"" + streamName + "\"\n" + log);
 	}
 
 	@Override

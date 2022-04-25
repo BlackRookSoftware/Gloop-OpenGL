@@ -63,9 +63,9 @@ public class OGLSystem<G extends OGLGraphics>
 	private int polygonCount;
 
 	/** Whether or not to ignore window refresh events. */
-	private boolean ignoreRefresh;
+	private volatile boolean ignoreRefresh;
 	/** Is this redrawing? */
-	private boolean redrawing;
+	private volatile boolean redrawing;
 	
 	/**
 	 * Creates an OpenGL 1.1 implementation system.
@@ -293,8 +293,8 @@ public class OGLSystem<G extends OGLGraphics>
 	 */
 	private void resize(int width, int height)
 	{
-	    for (OGLNode<?> node : nodes)
-	    	node.onFramebufferResize(width, height);
+		for (OGLNode<?> node : nodes)
+			node.onFramebufferResize(width, height);
 	}
 
 	/**
@@ -313,23 +313,23 @@ public class OGLSystem<G extends OGLGraphics>
 			
 			graphics.startFrame(state.getWidth(), state.getHeight());
 			
-		    for (int i = 0; i < nodes.size(); i++)
-		    {
-		    	OGLNode<? super G> node = nodes.get(i);
-	    		node.onDisplay(graphics);
-	    		rendertime += node.getRenderTimeNanos();
-	    		polys += node.getPolygonsRendered();
-		    }
-		    
-		    frameRenderTimeNanos = System.nanoTime() - previousFrameNanos;
-		    previousFrameNanos = System.nanoTime();
+			for (int i = 0; i < nodes.size(); i++)
+			{
+				OGLNode<? super G> node = nodes.get(i);
+				node.onDisplay(graphics);
+				rendertime += node.getRenderTimeNanos();
+				polys += node.getPolygonsRendered();
+			}
+			
+			frameRenderTimeNanos = System.nanoTime() - previousFrameNanos;
+			previousFrameNanos = System.nanoTime();
 		
-		    renderTimeNanos = rendertime;
-		    polygonCount = polys;
-		    
-		    graphics.endFrame();
-		    if (window.isCreated())
-		    	window.swapBuffers();
+			renderTimeNanos = rendertime;
+			polygonCount = polys;
+			
+			graphics.endFrame();
+			if (window.isCreated())
+				window.swapBuffers();
 		} 
 		finally 
 		{
@@ -499,7 +499,7 @@ public class OGLSystem<G extends OGLGraphics>
 		public void run()
 		{
 			GLFWContext.makeContextCurrent(window);
-	        GL.createCapabilities();
+			GL.createCapabilities();
 			while (true)
 			{
 				synchronized (renderLatch)
