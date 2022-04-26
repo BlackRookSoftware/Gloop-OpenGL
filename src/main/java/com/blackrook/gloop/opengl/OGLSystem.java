@@ -17,18 +17,6 @@ import com.blackrook.gloop.glfw.GLFWWindow;
 import com.blackrook.gloop.glfw.GLFWWindow.State;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowAdapter;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
-import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
-import com.blackrook.gloop.opengl.gl1.OGL12Graphics;
-import com.blackrook.gloop.opengl.gl1.OGL13Graphics;
-import com.blackrook.gloop.opengl.gl1.OGL14Graphics;
-import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
-import com.blackrook.gloop.opengl.gl2.OGL20Graphics;
-import com.blackrook.gloop.opengl.gl2.OGL21Graphics;
-import com.blackrook.gloop.opengl.gl3.OGL30Graphics;
-import com.blackrook.gloop.opengl.gl3.OGL31Graphics;
-import com.blackrook.gloop.opengl.gl3.OGL32Graphics;
-import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
-import com.blackrook.gloop.opengl.gl4.OGL40Graphics;
 import com.blackrook.gloop.opengl.node.OGLNode;
 
 /**
@@ -67,195 +55,8 @@ public class OGLSystem<G extends OGLGraphics>
 	/** Is this redrawing? */
 	private volatile boolean redrawing;
 	
-	/**
-	 * Creates an OpenGL 1.1 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL11Graphics> getOpenGL11(GLFWWindow window)
-	{
-		return new OGLSystem<OGL11Graphics>(new OGL11Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 1.2 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL12Graphics> getOpenGL12(GLFWWindow window)
-	{
-		return new OGLSystem<OGL12Graphics>(new OGL12Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 1.3 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL13Graphics> getOpenGL13(GLFWWindow window)
-	{
-		return new OGLSystem<OGL13Graphics>(new OGL13Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 1.4 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL14Graphics> getOpenGL14(GLFWWindow window)
-	{
-		return new OGLSystem<OGL14Graphics>(new OGL14Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 1.5 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL15Graphics> getOpenGL15(GLFWWindow window)
-	{
-		return new OGLSystem<OGL15Graphics>(new OGL15Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 2.0 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL20Graphics> getOpenGL20(GLFWWindow window)
-	{
-		return new OGLSystem<OGL20Graphics>(new OGL20Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 2.1 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL21Graphics> getOpenGL21(GLFWWindow window)
-	{
-		return new OGLSystem<OGL21Graphics>(new OGL21Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.0 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL30Graphics> getOpenGL30(GLFWWindow window)
-	{
-		return new OGLSystem<OGL30Graphics>(new OGL30Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.0 Core implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL30Graphics> getOpenGL30Core(GLFWWindow window)
-	{
-		return new OGLSystem<OGL30Graphics>(new OGL30Graphics(true), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.1 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL31Graphics> getOpenGL31(GLFWWindow window)
-	{
-		return new OGLSystem<OGL31Graphics>(new OGL31Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.1 Core implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL31Graphics> getOpenGL31Core(GLFWWindow window)
-	{
-		return new OGLSystem<OGL31Graphics>(new OGL31Graphics(true), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.2 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL32Graphics> getOpenGL32(GLFWWindow window)
-	{
-		return new OGLSystem<OGL32Graphics>(new OGL32Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.2 Core implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL32Graphics> getOpenGL32Core(GLFWWindow window)
-	{
-		return new OGLSystem<OGL32Graphics>(new OGL32Graphics(true), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.3 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL33Graphics> getOpenGL33(GLFWWindow window)
-	{
-		return new OGLSystem<OGL33Graphics>(new OGL33Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 3.3 Core implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL33Graphics> getOpenGL33Core(GLFWWindow window)
-	{
-		return new OGLSystem<OGL33Graphics>(new OGL33Graphics(true), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 4.0 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL40Graphics> getOpenGL40(GLFWWindow window)
-	{
-		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(false), window);
-	}
-	
-	/**
-	 * Creates an OpenGL 4.0 Core implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL40Graphics> getOpenGL40Core(GLFWWindow window)
-	{
-		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(true), window);
-	}
-	
 	// Creates the system.
-	private OGLSystem(G graphics, GLFWWindow window)
+	OGLSystem(G graphics, GLFWWindow window)
 	{
 		this.window = window;
 		this.renderingThread = new RenderingThread();
@@ -468,6 +269,30 @@ public class OGLSystem<G extends OGLGraphics>
 			ignoreRefresh = true;
 			display();
 		}
+	}
+	
+	/**
+	 * An options class for changing runtime behavior for a created system.
+	 */
+	public interface Options
+	{
+		/**
+		 * Gets whether or not the error checking functions used to detect
+		 * OpenGL runtime errors should do anything on call. Turning this off
+		 * stops all {@link OGLGraphics#checkError()} calls from going through to OpenGL, saving calls.
+		 * <p> It would be unwise to turn this off while developing.
+		 * @return true to perform error checking, false to not.
+		 */
+		boolean performErrorChecking();
+		
+		/**
+		 * Gets whether or not the version checking functions used to detect
+		 * mismatched features should do anything on call. Turning this off
+		 * turns all internal version checking and verification off.
+		 * <p> It would be unwise to turn this off while developing.
+		 * @return true to perform feature version checking, false to not.
+		 */
+		boolean performVersionChecking();
 	}
 	
 	// The rendering thread.

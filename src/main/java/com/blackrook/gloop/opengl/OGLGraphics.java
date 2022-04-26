@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL45;
 
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 
 /**
@@ -99,6 +100,8 @@ public abstract class OGLGraphics implements OGLVersioned
 		protected Integer maxVertexAttribs;
 		/** Maximum renderbuffer color attachments. */
 		protected Integer maxRenderBufferColorAttachments;
+		/** Maximum multisample samples. */
+		protected Integer maxSamples;
 
 		protected Info() {}
 		
@@ -211,6 +214,14 @@ public abstract class OGLGraphics implements OGLVersioned
 			return maxTextureAnisotropy;
 		}
 
+		/**
+		 * @return the maximum amount of samples for multisampling. Null if not available.
+		 */
+		public Integer getMaxSamples()
+		{
+			return maxSamples;
+		}
+		
 		/** 
 		 * @return the rendering device of this GL system. Null if not available. 
 		 */
@@ -396,21 +407,20 @@ public abstract class OGLGraphics implements OGLVersioned
 	/** Time between frames. */
 	private long currentTimeStepNanos;
 	
-	/** Check errors? */
-	private boolean errorChecking;
-	
 	/** Core profile. */
 	private boolean core;
+	/** System options. */
+	private Options options;
 	/** Graphics info. */
 	private Info info;
 
 	/**
 	 * Initializes this graphics.
+	 * @param options system options.
 	 * @param core true if this is a core implementation, false if not.
 	 */
-	protected OGLGraphics(boolean core)
+	protected OGLGraphics(Options options, boolean core)
 	{
-		this.core = core;
 		this.currentFrame = 0L;
 		this.startMilliseconds = System.currentTimeMillis();
 		this.currentMilliseconds = -1L;
@@ -420,8 +430,9 @@ public abstract class OGLGraphics implements OGLVersioned
 
 		this.previousTimeNanos = -1L;
 		this.currentTimeStepNanos = -1L;
-		this.errorChecking = true;
 
+		this.core = core;
+		this.options = options;
 		this.info = null;
 	}
 	
@@ -481,13 +492,33 @@ public abstract class OGLGraphics implements OGLVersioned
 
 	/**
 	 * Checks the version of this graphics implementation against a versioned object,
+	 * and if the object is from a later version, return false.
+	 * @param versioned the versioned element to check against.
+	 * @return true if the object is supported by this graphics implementation's version, 
+	 *     or false if if the versioned object is a later version than this one, or is not core if this graphics instance is.
+	 */
+	public boolean supports(OGLVersioned versioned)
+	{
+		if (getVersion().compareTo(versioned.getVersion()) < 0)
+			return false;
+		if (isCore() && !versioned.isCore())
+			return false;
+		
+		return true;
+	}
+	
+	/**
+	 * Checks the version of this graphics implementation against a versioned object,
 	 * and if the object is from a later version, throw an exception.
 	 * This will also throw an exception if this version is core and the provided object is not.
 	 * @param versioned the versioned element to check against.
 	 * @throws UnsupportedOperationException if the versioned object is a later version than this one, or is not core if this graphics instance is.
 	 */
-	public void checkFeatureVersion(OGLVersioned versioned)
+	public void verifyFeatureSupport(OGLVersioned versioned)
 	{
+		if (!options.performVersionChecking())
+			return;
+			
 		if (getVersion().compareTo(versioned.getVersion()) < 0)
 			throw new UnsupportedOperationException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
 		if (isCore() && !versioned.isCore())
@@ -499,8 +530,10 @@ public abstract class OGLGraphics implements OGLVersioned
 	 * is non-core, and if it is, it throws an exception.
 	 * @throws UnsupportedOperationException if this graphics instance is a core implementation.
 	 */
-	public void checkNonCore()
+	public void verifyNonCore()
 	{
+		if (!options.performVersionChecking())
+			return;
 		if (isCore())
 			throw new UnsupportedOperationException("This is unavailable in a core implementation.");
 	}
@@ -659,7 +692,7 @@ public abstract class OGLGraphics implements OGLVersioned
 	 */
 	public void setClientFlag(int glEnum, boolean flag)
 	{
-		checkNonCore();
+		verifyNonCore();
 		if (flag)
 			GL11.glEnableClientState(glEnum);
 		else
@@ -681,7 +714,7 @@ public abstract class OGLGraphics implements OGLVersioned
 	 */
 	public void clearError()
 	{
-		if (errorChecking)
+		if (options.performErrorChecking())
 			while (GL11.glGetError() != GL11.GL_NO_ERROR) {}
 	}
 
@@ -689,11 +722,11 @@ public abstract class OGLGraphics implements OGLVersioned
 	 * Tests for an OpenGL error via glGetError(), but only if error checking is enabled.
 	 * If one is raised, this throws a GraphicsException with the error message.
 	 * @throws GraphicsException if an error is raised. 
-	 * @see #setErrorChecking(boolean)
+	 * @see Options#performErrorChecking()
 	 */
 	public void checkError()
 	{
-		if (!errorChecking)
+		if (!options.performErrorChecking())
 			return;
 		
 		int error = GL11.glGetError();
@@ -735,27 +768,6 @@ public abstract class OGLGraphics implements OGLVersioned
 			}
 			throw new GraphicsException("OpenGL raised error code " + error + ": " + errorName);
 		}
-	}
-
-	/**
-	 * Checks if OpenGL error detection is enabled.
-	 * If true, this could be reducing the amount of OpenGL calls this makes.
-	 * @return true if so, false if not.
-	 * @see #setErrorChecking(boolean)
-	 */
-	public boolean isErrorChecking() 
-	{
-		return errorChecking;
-	}
-
-	/**
-	 * Sets if OpenGL error detection is enabled.
-	 * If false, this could reduce the amount of OpenGL calls this makes.
-	 * @param errorChecking if true, {@link #clearError()} and {@link #checkError()} do nothing. Else, they do stuff.
-	 */
-	public void setErrorChecking(boolean errorChecking)
-	{
-		this.errorChecking = errorChecking;
 	}
 
 	/**

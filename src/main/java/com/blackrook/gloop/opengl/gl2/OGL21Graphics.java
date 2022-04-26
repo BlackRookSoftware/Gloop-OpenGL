@@ -12,6 +12,7 @@ import java.nio.FloatBuffer;
 import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 import static org.lwjgl.opengl.GL21.*;
 
@@ -21,9 +22,9 @@ import static org.lwjgl.opengl.GL21.*;
  */
 public class OGL21Graphics extends OGL20Graphics
 {
-	public OGL21Graphics(boolean core)
+	public OGL21Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 	}
 
 	@Override

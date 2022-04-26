@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 /**
  * OpenGL 3.3 Graphics Implementation.
@@ -15,9 +16,9 @@ import com.blackrook.gloop.opengl.OGLVersion;
  */
 public class OGL33Graphics extends OGL32Graphics
 {
-	public OGL33Graphics(boolean core)
+	public OGL33Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 	}
 
 	@Override

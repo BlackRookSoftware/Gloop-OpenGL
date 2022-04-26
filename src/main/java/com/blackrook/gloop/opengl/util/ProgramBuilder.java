@@ -179,7 +179,7 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final File file)
 		{
-			gl.checkFeatureVersion(type);
+			gl.verifyFeatureSupport(type);
 			return setShader(type, () ->
 			{
 				try (Reader reader = new InputStreamReader(new FileInputStream(file)))
@@ -200,7 +200,7 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final InputStream in)
 		{
-			gl.checkFeatureVersion(type);
+			gl.verifyFeatureSupport(type);
 			return setShader(type, () ->
 			{
 				try (Reader reader = new InputStreamReader(in))
@@ -221,7 +221,7 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final Reader reader)
 		{
-			gl.checkFeatureVersion(type);
+			gl.verifyFeatureSupport(type);
 			return setShader(type, () ->
 			{
 				try
@@ -242,14 +242,14 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final String source)
 		{
-			gl.checkFeatureVersion(type);
+			gl.verifyFeatureSupport(type);
 			return setShader(type, ()->source);
 		}
 		
 		@Override
 		public ProgramBuilder setShader(ShaderType type, Supplier<String> source)
 		{
-			gl.checkFeatureVersion(type);
+			gl.verifyFeatureSupport(type);
 			shaderPrograms.put(type, source);
 			return this;
 		}

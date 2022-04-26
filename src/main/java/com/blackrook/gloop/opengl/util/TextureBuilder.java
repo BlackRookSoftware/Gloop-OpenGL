@@ -186,7 +186,7 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setTargetType(TextureTargetType targetType)
 		{
-			gl.checkFeatureVersion(targetType);
+			gl.verifyFeatureSupport(targetType);
 			this.targetType = targetType;
 			return this;
 		}
@@ -209,7 +209,7 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setWrapping(TextureWrapType wrapS)
 		{
-			gl.checkFeatureVersion(wrapS);
+			gl.verifyFeatureSupport(wrapS);
 			this.wrapS = wrapS;
 			return this;
 		}
@@ -217,8 +217,8 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT)
 		{
-			gl.checkFeatureVersion(wrapS);
-			gl.checkFeatureVersion(wrapT);
+			gl.verifyFeatureSupport(wrapS);
+			gl.verifyFeatureSupport(wrapT);
 			this.wrapS = wrapS;
 			this.wrapT = wrapT;
 			return this;
@@ -227,9 +227,9 @@ public interface TextureBuilder
 		@Override
 		public TextureBuilder setWrapping(TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 		{
-			gl.checkFeatureVersion(wrapS);
-			gl.checkFeatureVersion(wrapT);
-			gl.checkFeatureVersion(wrapR);
+			gl.verifyFeatureSupport(wrapS);
+			gl.verifyFeatureSupport(wrapT);
+			gl.verifyFeatureSupport(wrapR);
 			this.wrapS = wrapS;
 			this.wrapT = wrapT;
 			this.wrapR = wrapR;

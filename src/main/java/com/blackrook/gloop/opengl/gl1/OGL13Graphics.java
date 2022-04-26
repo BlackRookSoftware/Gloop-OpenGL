@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.ColorFormat;
 import com.blackrook.gloop.opengl.enums.TextureCubeFace;
 import com.blackrook.gloop.opengl.enums.TextureFormat;
@@ -129,9 +130,9 @@ public class OGL13Graphics extends OGL12Graphics
 	private int currentActiveTexture;
 
 	// Create OpenGL 1.3 context.
-	public OGL13Graphics(boolean core)
+	public OGL13Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 		this.currentActiveTexture = 0;
 	}
 	
@@ -215,8 +216,8 @@ public class OGL13Graphics extends OGL12Graphics
 		if (getCurrentActiveTextureState(GL_TEXTURE_CUBE_MAP) == null)
 			throw new GraphicsException("A Texture Cube target is not currently bound.");
 		
-		checkFeatureVersion(colorFormat);
-		checkFeatureVersion(format);
+		verifyFeatureSupport(colorFormat);
+		verifyFeatureSupport(format);
 	
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
 			throw new GraphicsException("Texture is too large. Maximum size is " + getInfo().getMaxTextureSize() + " pixels.");
@@ -257,12 +258,12 @@ public class OGL13Graphics extends OGL12Graphics
 		if (getCurrentActiveTextureState(GL_TEXTURE_CUBE_MAP) == null)
 			throw new GraphicsException("A Texture Cube target is not currently bound.");
 		
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(colorFormat);
 	
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(colorFormat);
 	
 		clearError();
 		glTexSubImage2D(
@@ -285,7 +286,7 @@ public class OGL13Graphics extends OGL12Graphics
 	 */
 	public void setCurrentActiveTextureCoordArray(int unit)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glClientActiveTexture(GL_TEXTURE0 + unit);
 	}
 

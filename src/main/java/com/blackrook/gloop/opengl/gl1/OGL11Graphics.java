@@ -22,6 +22,7 @@ import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLGraphics;
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.AccumOperation;
 import com.blackrook.gloop.opengl.enums.AttribType;
 import com.blackrook.gloop.opengl.enums.BlendArg;
@@ -246,9 +247,9 @@ public class OGL11Graphics extends OGLGraphics
 	private Map<Integer, Map<Integer, OGLTexture>> currentTextures;
 	
 	// Create OpenGL 1.1 context.
-	public OGL11Graphics(boolean core)
+	public OGL11Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 		this.currentMatrixId = null;
 		this.currentMatrixStack = null;
 		this.currentMatrixStacks = new TreeMap<>();
@@ -398,7 +399,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void clear(boolean clearColorBuffer, boolean clearDepthBuffer, boolean clearAccumulationBuffer, boolean clearStencilBuffer)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glClear(
 			(clearColorBuffer ? GL_COLOR_BUFFER_BIT : 0)
 			| (clearDepthBuffer ? GL_DEPTH_BUFFER_BIT : 0)
@@ -425,7 +426,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setColor(float red, float green, float blue, float alpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glColor4f(red, green, blue, alpha);
 	}
 
@@ -435,7 +436,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setColorARGB(int argb)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glColor4ub(
 			(byte)((argb >>> 16) & 0x0ff),
 			(byte)((argb >>> 8) & 0x0ff),
@@ -450,7 +451,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setLightingEnabled(boolean enable)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_LIGHTING, enable);
 	}
 
@@ -460,7 +461,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setLightShadeType(LightShadeType shade)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glShadeModel(shade.glValue);
 	}
 
@@ -471,7 +472,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	protected void checkLightId(int sourceId)
 	{
-		checkNonCore();
+		verifyNonCore();
 		if (sourceId < 0 || getInfo().getMaxLights() >= sourceId)
 			throw new IllegalArgumentException("Light id is invalid: Must be " + 0 + " to " + getInfo().getMaxLights());
 	}
@@ -769,7 +770,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialAmbientColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -817,7 +818,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialDiffuseColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -865,7 +866,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialSpecularColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -913,7 +914,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialEmissionColor(FaceSide faceside, float red, float green, float blue, float alpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -934,7 +935,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setMaterialShininessFactor(FaceSide faceside, float f)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glMaterialf(faceside.glValue, GL_SHININESS, f);		
 	}
 
@@ -944,7 +945,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogEnabled(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_FOG, enabled);
 	}
 
@@ -1027,7 +1028,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogColor(float red, float green, float blue, float alpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1046,7 +1047,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogFormula(FogFormulaType formula)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glFogi(GL_FOG_MODE, formula.glValue);
 	}
 
@@ -1057,7 +1058,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogDensity(float density)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glFogf(GL_FOG_DENSITY, density);
 	}
 
@@ -1068,7 +1069,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogStart(float start)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glFogf(GL_FOG_START, start);
 	}
 
@@ -1079,7 +1080,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFogEnd(float end)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glFogf(GL_FOG_END, end);
 	}
 
@@ -1090,8 +1091,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureEnabled(TextureTargetType target, boolean enabled)
 	{
-		checkNonCore();
-		checkFeatureVersion(target);
+		verifyNonCore();
+		verifyFeatureSupport(target);
 		setFlag(target.glValue, enabled);
 	}
 	
@@ -1102,7 +1103,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureEnvironment(TextureMode mode)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode.glValue);
 	}
 
@@ -1113,7 +1114,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenSEnabled(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_TEXTURE_GEN_S, enabled);
 	}
 
@@ -1124,7 +1125,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenTEnabled(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_TEXTURE_GEN_T, enabled);
 	}
 
@@ -1135,7 +1136,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenREnabled(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_TEXTURE_GEN_R, enabled);
 	}
 
@@ -1146,7 +1147,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenQEnabled(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_TEXTURE_GEN_Q, enabled);
 	}
 
@@ -1157,7 +1158,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenMode(TextureCoordType coord, TextureGenMode mode)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glTexGeni(coord.glValue, GL_TEXTURE_GEN_MODE, mode.glValue);
 	}
 
@@ -1171,7 +1172,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenEyePlane(TextureCoordType coord, float a, float b, float c, float d)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1194,7 +1195,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexGenObjectPlane(TextureCoordType coord, float a, float b, float c, float d)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			FloatBuffer fbuf = stack.mallocFloat(4);
@@ -1214,7 +1215,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setAutoNormalGen(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_AUTO_NORMAL, enabled);
 	}
 
@@ -1224,7 +1225,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void attribPush(AttribType ... attribs)
 	{
-		checkNonCore();
+		verifyNonCore();
 		int bits = 0;
 		for (AttribType at : attribs)
 			bits |= at.glValue;
@@ -1236,7 +1237,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void attribPop()
 	{
-		checkNonCore();
+		verifyNonCore();
 		glPopAttrib();
 	}
 
@@ -1246,7 +1247,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void clientAttribPush(ClientAttribType ... attribs)
 	{
-		checkNonCore();
+		verifyNonCore();
 		int bits = 0;
 		for (ClientAttribType cat : attribs)
 			bits |= cat.glValue;
@@ -1258,7 +1259,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void clientAttribPop()
 	{
-		checkNonCore();
+		verifyNonCore();
 		glPopClientAttrib();
 	}
 
@@ -1272,7 +1273,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setClearAccum(float clearRed, float clearGreen, float clearBlue, float clearAlpha)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glClearAccum(clearRed, clearGreen, clearBlue, clearAlpha);
 	}
 
@@ -1286,7 +1287,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void accumulate(AccumOperation operation, float value)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glAccum(operation.glValue, value);
 	}
 
@@ -1299,7 +1300,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setRasterPosition(int x, int y, float z)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glRasterPos3f(x, y, z);
 	}
 
@@ -1313,7 +1314,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void drawBitmap(OGLBitmap b, float offsetX, float offsetY, float incX, float incY)
 	{
-		checkNonCore();
+		verifyNonCore();
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
 			byte[] bytes = b.getBytes();
@@ -1344,7 +1345,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setVertexArrayPointer(DataType dataType, int width, int stride, int offset)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glVertexPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
 		checkError();
 	}
@@ -1369,7 +1370,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureCoordinateArrayPointer(DataType dataType, int width, int stride, int offset)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glTexCoordPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
 		checkError();
 	}
@@ -1394,7 +1395,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setColorArrayPointer(DataType dataType, int width, int stride, int offset)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glColorPointer(width, dataType.glValue, stride * dataType.size, offset * dataType.size);
 		checkError();
 	}
@@ -1418,7 +1419,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setNormalArrayPointer(DataType dataType, int stride, int offset)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glNormalPointer(dataType.glValue, stride * dataType.size, offset * dataType.size);
 		checkError();
 	}
@@ -2007,7 +2008,7 @@ public class OGL11Graphics extends OGLGraphics
 	{
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer.");
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(colorFormat);
 		glReadPixels(x, y, width, height, colorFormat.glValue, GL_UNSIGNED_BYTE, imageData);
 	}
 
@@ -2230,7 +2231,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public OGLTexture getTexture(TextureTargetType target)
 	{
-		checkFeatureVersion(target);
+		verifyFeatureSupport(target);
 		return getCurrentActiveTextureState(target.glValue);
 	}
 	
@@ -2245,7 +2246,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTexture(TextureTargetType target, OGLTexture texture)
 	{
-		checkFeatureVersion(target);
+		verifyFeatureSupport(target);
 		Objects.requireNonNull(texture);
 		texture.setUsedTarget(target);
 		glBindTexture(target.glValue, texture.getName());
@@ -2275,7 +2276,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureFiltering(TextureTargetType target, TextureMinFilter minFilter, TextureMagFilter magFilter, float anisotropy)
 	{
-		checkFeatureVersion(target);
+		verifyFeatureSupport(target);
 		glTexParameteri(target.glValue, GL_TEXTURE_MAG_FILTER, magFilter.glid);
 		glTexParameteri(target.glValue, GL_TEXTURE_MIN_FILTER, minFilter.glid);
 		
@@ -2295,8 +2296,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(wrapS);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(wrapS);
 		target.checkSampleDimensions(1);
 		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_S, wrapS.glValue);
 	}
@@ -2311,9 +2312,9 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS, TextureWrapType wrapT)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(wrapS);
-		checkFeatureVersion(wrapT);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(wrapS);
+		verifyFeatureSupport(wrapT);
 		target.checkSampleDimensions(2);
 		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_T, wrapT.glValue);
@@ -2333,9 +2334,9 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int border)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(colorFormat);
-		checkFeatureVersion(format);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(colorFormat);
+		verifyFeatureSupport(format);
 		target.checkStorageDimensions(1);
 
 		if (width > getInfo().getMaxTextureSize())
@@ -2373,9 +2374,9 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int border)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(colorFormat);
-		checkFeatureVersion(format);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(colorFormat);
+		verifyFeatureSupport(format);
 		target.checkStorageDimensions(2);
 
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize())
@@ -2412,8 +2413,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int xoffs)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(colorFormat);
 		target.checkStorageDimensions(1);
 		
 		if (!imageData.isDirect())
@@ -2447,8 +2448,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int xoffs, int yoffs)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(colorFormat);
 		target.checkStorageDimensions(2);
 		
 		if (!imageData.isDirect())
@@ -2483,8 +2484,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureDataFromReadBuffer(TextureTargetType target, TextureFormat format, int texlevel, int srcX, int srcY, int width, int border)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(format);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(format);
 		target.checkStorageDimensions(1);
 		glCopyTexImage1D(target.glValue, texlevel, format.glValue, srcX, srcY, width, border);
 	}
@@ -2504,8 +2505,8 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureDataFromReadBuffer(TextureTargetType target, TextureFormat format, int texlevel, int srcX, int srcY, int width, int height, int border)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(format);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(format);
 		target.checkStorageDimensions(2);
 		glCopyTexImage2D(target.glValue, texlevel, format.glValue, srcX, srcY, width, height, border);
 	}
@@ -2523,7 +2524,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureSubDataFromReadBuffer(TextureTargetType target, int texlevel, int xoffset, int srcX, int srcY, int width)
 	{
-		checkFeatureVersion(target);
+		verifyFeatureSupport(target);
 		target.checkStorageDimensions(1);
 		glCopyTexSubImage1D(target.glValue, texlevel, xoffset, srcX, srcY, width);
 	}
@@ -2543,7 +2544,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setTextureSubDataFromReadBuffer(TextureTargetType target, int texlevel, int xoffset, int yoffset, int srcX, int srcY, int width, int height)
 	{
-		checkFeatureVersion(target);
+		verifyFeatureSupport(target);
 		target.checkStorageDimensions(2);
 		glCopyTexSubImage2D(target.glValue, texlevel, xoffset, yoffset, srcX, srcY, width, height);
 	}
@@ -2555,7 +2556,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void unsetTexture(TextureTargetType target)
 	{
-		checkFeatureVersion(target);
+		verifyFeatureSupport(target);
 		glBindTexture(target.glValue, 0);
 		setCurrentActiveTextureState(target.glValue, null);
 	}

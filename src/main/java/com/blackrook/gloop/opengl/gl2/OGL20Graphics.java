@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl2;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.FrameBufferType;
@@ -105,9 +106,9 @@ public class OGL20Graphics extends OGL15Graphics
 	/** Current program. */
 	private OGLProgram currentProgram;
 
-	public OGL20Graphics(boolean core)
+	public OGL20Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 		this.currentProgram = null;
 	}
 	
@@ -140,7 +141,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setPointSpritesEnabled(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		setFlag(GL_POINT_SPRITE, enabled);
 	}
 
@@ -151,7 +152,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setPointSpriteTexCoordGeneration(boolean enabled)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, toGLBool(enabled));
 	}
 
@@ -196,7 +197,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public OGLProgramShader createProgramShader(ShaderType type, String streamName, final String sourceCode)
 	{
-		checkFeatureVersion(type);
+		verifyFeatureSupport(type);
 		Objects.requireNonNull(sourceCode);
 		return createProgramShader(type, streamName, ()->sourceCode);
 	}
@@ -212,7 +213,7 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public OGLProgramShader createProgramShader(ShaderType type, String streamName, Supplier<String> sourceSupplier)
 	{
-		checkFeatureVersion(type);
+		verifyFeatureSupport(type);
 		Objects.requireNonNull(type);
 		Objects.requireNonNull(streamName);
 		Objects.requireNonNull(sourceSupplier);

@@ -59,7 +59,7 @@ public final class OGLTest
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = OGLSystem.getOpenGL33Core(window);
+		oglSystem = OGLSystemFactory.getOpenGL33Core(window);
 		oglSystem.addNode(new DrawNode());
 		oglSystem.setFPS(0);
 		

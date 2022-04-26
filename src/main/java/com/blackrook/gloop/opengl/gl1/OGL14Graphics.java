@@ -16,6 +16,7 @@ import java.util.function.Function;
 import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.ColorFormat;
 import com.blackrook.gloop.opengl.enums.TextureFormat;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
@@ -112,9 +113,9 @@ public class OGL14Graphics extends OGL13Graphics
 		}
 	}
 
-	public OGL14Graphics(boolean core)
+	public OGL14Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 	}
 
 	@Override
@@ -181,7 +182,7 @@ public class OGL14Graphics extends OGL13Graphics
 	 */
 	public void setTextureLODBias(float bias)
 	{
-		checkNonCore();
+		verifyNonCore();
 		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, bias);
 	}
 

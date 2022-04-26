@@ -15,6 +15,7 @@ import com.blackrook.gloop.opengl.math.MatrixStack;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 import com.blackrook.gloop.opengl.util.ProgramBuilder;
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.AttachPoint;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
@@ -57,6 +58,7 @@ public class OGL30Graphics extends OGL21Graphics
 		protected Info30()
 		{
 			super();
+			this.maxSamples = getInt(GL_MAX_SAMPLES);
 			this.maxVertexAttribs = getInt(GL_MAX_VERTEX_ATTRIBS);
 			this.maxRenderBufferSize = getInt(GL_MAX_RENDERBUFFER_SIZE);
 			this.maxRenderBufferColorAttachments = getInt(GL_MAX_COLOR_ATTACHMENTS);
@@ -131,9 +133,9 @@ public class OGL30Graphics extends OGL21Graphics
 	private boolean conditionalRenderActive;
 	private boolean transformFeedbackActive;
 	
-	public OGL30Graphics(boolean core)
+	public OGL30Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 		conditionalRenderActive = false;
 		transformFeedbackActive = false;
 	}

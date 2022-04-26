@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.ColorFormat;
 import com.blackrook.gloop.opengl.enums.DataType;
@@ -122,9 +123,9 @@ public class OGL12Graphics extends OGL11Graphics
 	}
 	
 	// Create OpenGL 1.2 context.
-	public OGL12Graphics(boolean core)
+	public OGL12Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 	}
 
 	@Override
@@ -157,10 +158,10 @@ public class OGL12Graphics extends OGL11Graphics
 	 */
 	public void setTextureWrapping(TextureTargetType target, TextureWrapType wrapS, TextureWrapType wrapT, TextureWrapType wrapR)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(wrapS);
-		checkFeatureVersion(wrapT);
-		checkFeatureVersion(wrapR);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(wrapS);
+		verifyFeatureSupport(wrapT);
+		verifyFeatureSupport(wrapR);
 		target.checkSampleDimensions(3);
 		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_S, wrapS.glValue);
 		glTexParameteri(target.glValue, GL_TEXTURE_WRAP_T, wrapT.glValue);
@@ -183,9 +184,9 @@ public class OGL12Graphics extends OGL11Graphics
 	 */
 	public void setTextureData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, TextureFormat format, int texlevel, int width, int height, int depth, int border)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(colorFormat);
-		checkFeatureVersion(format);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(colorFormat);
+		verifyFeatureSupport(format);
 		target.checkStorageDimensions(3);
 
 		if (width > getInfo().getMaxTextureSize() || height > getInfo().getMaxTextureSize() || depth > getInfo().getMaxTextureSize())
@@ -227,14 +228,14 @@ public class OGL12Graphics extends OGL11Graphics
 	 */
 	public void setTextureSubData(TextureTargetType target, ByteBuffer imageData, ColorFormat colorFormat, int texlevel, int width, int height, int depth, int xoffs, int yoffs, int zoffs)
 	{
-		checkFeatureVersion(target);
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(target);
+		verifyFeatureSupport(colorFormat);
 		target.checkStorageDimensions(3);
 
 		if (!imageData.isDirect())
 			throw new GraphicsException("Data must be a direct buffer."); 
 	
-		checkFeatureVersion(colorFormat);
+		verifyFeatureSupport(colorFormat);
 
 		clearError();
 		glTexSubImage3D(

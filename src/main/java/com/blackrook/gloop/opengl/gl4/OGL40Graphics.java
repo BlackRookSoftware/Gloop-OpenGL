@@ -8,6 +8,7 @@
 package com.blackrook.gloop.opengl.gl4;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 
 import static org.lwjgl.opengl.GL40.*;
@@ -22,9 +23,9 @@ import org.lwjgl.system.MemoryStack;
  */
 public class OGL40Graphics extends OGL33Graphics
 {
-	public OGL40Graphics(boolean core)
+	public OGL40Graphics(Options options, boolean core)
 	{
-		super(core);
+		super(options, core);
 	}
 
 	@Override
