@@ -11,6 +11,7 @@ import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.FeedbackBufferType;
 import com.blackrook.gloop.opengl.enums.FrameBufferType;
 import com.blackrook.gloop.opengl.enums.MatrixMode;
 import com.blackrook.gloop.opengl.enums.ShaderType;
@@ -64,6 +65,12 @@ public class OGL20Graphics extends OGL15Graphics
 		public ProgramBuilder fragmentDataLocation(String attributeName, int index)
 		{
 			throw new UnsupportedOperationException("Cannot bind fragment locations in this implementation.");
+		}
+
+		@Override
+		public ProgramBuilder transformFeedbackVaryingNames(FeedbackBufferType type, String... variableNames) 
+		{
+			throw new UnsupportedOperationException("Cannot set transform feedback information in this implementation.");
 		}
 		
 		@Override

@@ -27,13 +27,13 @@ import com.blackrook.gloop.opengl.OGLGraphics;
  * <li>{@link #isWorkAvailable()}</li>
  * <li>{@link #beforeExecute(Consumer)}</li>
  * <li>{@link Consumer#accept(Object)}</li>
- * <li>{@link #afterExecute(Consumer)}</li>
+ * <li>{@link #afterExecute(Consumer, Throwable)}</li>
  * </ul>
  * @param <GL> the graphics object to call.
  * @param <J> the "job" type. Must be of type Consumer<GL>.
  * @author Matthew Tropiano
  */
-public class OGLWorkerNode<GL extends OGLGraphics, J extends Consumer<GL>> implements OGLNode<GL>
+public class OGLWorkerNode<GL extends OGLGraphics, J extends Consumer<? super GL>> implements OGLNode<GL>
 {
 	/** The work queue. */
 	private Deque<J> workQueue;
@@ -64,8 +64,13 @@ public class OGLWorkerNode<GL extends OGLGraphics, J extends Consumer<GL>> imple
 			if (job != null)
 			{
 				beforeExecute(job);
-				job.accept(gl);
-				afterExecute(job);
+				Throwable thrown = null;
+				try {
+					job.accept(gl);
+				} catch (Throwable t) {
+					thrown = t; 
+				}
+				afterExecute(job, thrown);
 			}
 		}
 		renderTimeNanos = System.nanoTime() - startNanos;
@@ -129,8 +134,9 @@ public class OGLWorkerNode<GL extends OGLGraphics, J extends Consumer<GL>> imple
 	 * Called by {@link #onDisplay(OGLGraphics)} after the job is executed.
 	 * <p> Do NOT call this method outside of the main context thread.
 	 * @param job the executed job.
+	 * @param thrown an uncaught Throwable that may have occurred in the job, if any. If not, this is null.
 	 */
-	protected void afterExecute(J job)
+	protected void afterExecute(J job, Throwable thrown)
 	{
 		// Do nothing by default.
 	}

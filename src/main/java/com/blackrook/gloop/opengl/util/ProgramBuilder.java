@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import com.blackrook.gloop.opengl.OGLGraphics;
+import com.blackrook.gloop.opengl.enums.FeedbackBufferType;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
@@ -64,8 +65,17 @@ public interface ProgramBuilder
 	 * @throws UnsupportedOperationException if binding locations is unavailable in this version.
 	 */
 	ProgramBuilder fragmentDataLocation(String attributeName, int index);
-	
-	// TODO: Add transform feedback varyings.
+
+	/**
+	 * Sets the transform feedback varying variables for the bound shader program, assuming
+	 * that what is being built is a "transform feedback"-viable shader program, which entails
+	 * a vertex shader 
+	 * @param type the feedback output type.
+	 * @param variableNames the names of the varying variables.
+	 * @return this builder.
+	 * @throws UnsupportedOperationException if binding varyings for transform is unavailable in this version.
+	 */
+	ProgramBuilder transformFeedbackVaryingNames(FeedbackBufferType type, String ... variableNames);
 	
 	/**
 	 * Sets a shader program and a shader source. 
@@ -135,6 +145,8 @@ public interface ProgramBuilder
 		protected GL gl;
 		protected Map<String, Integer> attributeLocationBindings;
 		protected Map<String, Integer> fragmentDataBindings;
+		protected FeedbackBufferType feedbackBufferType;
+		protected String[] feedbackVaryingNames;
 		protected Map<ShaderType, Supplier<String>> shaderPrograms;
 		protected ProgramBuilder.Listener builderListener;
 
@@ -176,6 +188,15 @@ public interface ProgramBuilder
 			return this;
 		}
 		
+		@Override
+		public ProgramBuilder transformFeedbackVaryingNames(FeedbackBufferType type, String... variableNames)
+		{
+			feedbackBufferType = type;
+			feedbackVaryingNames = new String[variableNames.length];
+			System.arraycopy(variableNames, 0, feedbackVaryingNames, 0, feedbackVaryingNames.length);
+			return this;
+		}
+
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final File file)
 		{
@@ -271,7 +292,7 @@ public interface ProgramBuilder
 			if (builderListener != null)
 				builderListener.onShaderLog(type, log);
 		}
-		
+
 	}
 	
 }

@@ -116,6 +116,8 @@ public class OGL30Graphics extends OGL21Graphics
 					gl.setProgramVertexAttribLocation(out, entry.getKey(), entry.getValue());
 				for (Map.Entry<String, Integer> entry : fragmentDataBindings.entrySet())
 					gl.setProgramFragmentDataLocation(out, entry.getKey(), entry.getValue());
+				if (feedbackBufferType != null && feedbackVaryingNames != null)
+					gl.setTransformFeedbackVaryingNames(out, feedbackBufferType, feedbackVaryingNames);
 				
 				gl.linkProgram(out);
 				
@@ -272,10 +274,10 @@ public class OGL30Graphics extends OGL21Graphics
 	 * Must be called before {@link #linkProgram(OGLProgram)} for the provided program.
 	 * @param program the program to set the variables for.
 	 * @param type the feedback output type.
-	 * @param variableNames the names of the variables.
+	 * @param variableNames the names of the varying variables.
 	 * @throws IllegalStateException if the provided program was already linked.
 	 */
-	public void setTransformFeedbackVaryings(OGLProgram program, FeedbackBufferType type, String ... variableNames)
+	public void setTransformFeedbackVaryingNames(OGLProgram program, FeedbackBufferType type, String ... variableNames)
 	{
 		if (program.isLinked())
 			throw new IllegalStateException("Program was already linked.");

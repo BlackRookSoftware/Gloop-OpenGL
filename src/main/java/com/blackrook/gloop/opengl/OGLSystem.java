@@ -155,6 +155,7 @@ public class OGLSystem<G extends OGLGraphics>
 
 	/**
 	 * Adds a node to this system.
+	 * <p> Compatible nodes must use an implementation of GL with a version equivalent to this one or earlier.
 	 * @param node the node to add.
 	 */
 	public void addNode(OGLNode<? super G> node)
@@ -164,6 +165,7 @@ public class OGLSystem<G extends OGLGraphics>
 
 	/**
 	 * Removes a node from this system.
+	 * <p> Compatible nodes must use an implementation of GL with a version equivalent to this one or earlier.
 	 * @param node the node to remove.
 	 * @return true if removed, false if not (wasn't added).
 	 */
@@ -187,10 +189,9 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 
 	/**
-	 * The results of this call should not be considered accurate until the node 
-	 * has had {@link #display()} called on it.
-	 * @return the length of time it took to render each individual node
-	 * in nanoseconds, accumulated from the displayed nodes.
+	 * Gets the length of time it took to render each individual node in nanoseconds, accumulated from the executed nodes.
+	 * The results of this call should not be considered accurate until the node has had {@link #display()} called on it.
+	 * @return the length of time it took to render each individual node in nanoseconds.
 	 */
 	public long getRenderTimeNanos()
 	{
@@ -198,8 +199,9 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 
 	/**
-	 * @return the number of polygonal objects rendered in this canvas, 
-	 * gathered from the visible nodes.
+	 * Gets the number of polygonal objects rendered in this canvas, gathered from the executed nodes.
+	 * The results of this call should not be considered accurate until the node has had {@link #display()} called on it.
+	 * @return the number of polygonal objects rendered in this canvas.
 	 */
 	public int getPolygonsRendered()
 	{
