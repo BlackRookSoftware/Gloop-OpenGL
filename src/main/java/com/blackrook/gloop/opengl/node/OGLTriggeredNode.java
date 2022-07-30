@@ -18,7 +18,7 @@ import com.blackrook.gloop.opengl.OGLGraphics;
 public abstract class OGLTriggeredNode<GL extends OGLGraphics> implements OGLNode<GL>
 {
 	/** If true, the triggered function is called. */
-	protected boolean trigger;
+	private volatile boolean trigger;
 	
 	/**
 	 * Creates a new triggered node where the trigger starts set.

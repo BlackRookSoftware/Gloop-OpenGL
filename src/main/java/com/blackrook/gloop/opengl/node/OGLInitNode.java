@@ -129,6 +129,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setPointSmoothHint(HintValue value)
 	{
 		this.pointSmoothHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -138,6 +139,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setLineSmoothHint(HintValue value)
 	{
 		this.lineSmoothHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -147,6 +149,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setPolygonSmoothHint(HintValue value)
 	{
 		this.polygonSmoothHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -156,6 +159,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setFogCalculationHint(HintValue value)
 	{
 		this.fogCalculationHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -165,6 +169,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setGenerateMipmapHint(HintValue value)
 	{
 		this.generateMipmapHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -174,6 +179,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setPerspectiveCorrectionHint(HintValue value)
 	{
 		this.perspectiveCorrectionHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -183,6 +189,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setTextureCompressionHint(HintValue value)
 	{
 		this.textureCompressionHint = value;
+		setTrigger();
 	}
 
 	/**
@@ -207,6 +214,7 @@ public class OGLInitNode extends OGLTriggeredNode<OGL11Graphics>
 	public void setFillMode(FillMode fillMode)
 	{
 		this.fillMode = fillMode;
+		setTrigger();
 	}
 	
 	/**
