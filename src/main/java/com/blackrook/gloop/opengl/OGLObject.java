@@ -20,6 +20,8 @@ public abstract class OGLObject
 {
 	/** This object's GLId. */
 	private int glId;
+	/** This object's long GLId. */
+	private long longGLId;
 	/** Was this object allocated? */
 	private boolean allocated;
 
@@ -28,11 +30,12 @@ public abstract class OGLObject
 	 */
 	protected OGLObject()
 	{
-		// Must orverride.
+		// Must override.
 	}
 	
 	/**
 	 * Sets this object's OpenGL name/id.
+	 * Set either this or the longer one.
 	 * @param glId the new id.
 	 * @throws GraphicsException if the id is zero.
 	 */
@@ -45,11 +48,33 @@ public abstract class OGLObject
 	}
 	
 	/**
+	 * Sets this object's long OpenGL name/id.
+	 * Set either this or the shorter one.
+	 * @param glId the new id.
+	 * @throws GraphicsException if the id is zero.
+	 */
+	protected void setLongName(long glId)
+	{
+		if (glId == 0)
+			throw new GraphicsException("Object could not be created.");
+		this.longGLId = glId;
+		this.allocated = true; 
+	}
+	
+	/**
 	 * @return this OGLObject OpenGL object id.
 	 */
 	public final int getName()
 	{
 		return glId;
+	}
+
+	/**
+	 * @return this OGLObject OpenGL object id.
+	 */
+	public final long getLongName()
+	{
+		return longGLId;
 	}
 
 	@Override
@@ -73,7 +98,7 @@ public abstract class OGLObject
 	 */
 	public boolean equals(OGLObject obj) 
 	{
-		return getClass().equals(obj.getClass()) && glId == obj.glId;
+		return getClass().equals(obj.getClass()) && glId == obj.glId && longGLId == obj.longGLId;
 	}
 
 	/**
@@ -86,6 +111,7 @@ public abstract class OGLObject
 		{
 			free();
 			glId = 0;
+			longGLId = 0L;
 		}
 		allocated = false;
 	}
@@ -117,6 +143,24 @@ public abstract class OGLObject
 		if (input.length < targetLength)
 		{
 			int[] newarr = new int[targetLength];
+			System.arraycopy(input, 0, newarr, 0, input.length);
+			input = newarr;
+		}
+		return input;
+	}
+	
+	/**
+	 * Utility function to expand the "undeleted" GL name pool if it is below a certain length.
+	 * @param input the input array.
+	 * @param targetLength the target length.
+	 * @return the array itself (<code>input</code>) if no expansion needed, or a new array with the contents copied if
+	 * <code>input.length &lt; targetLength</code>. 
+	 */
+	protected static long[] expand(long[] input, int targetLength)
+	{
+		if (input.length < targetLength)
+		{
+			long[] newarr = new long[targetLength];
 			System.arraycopy(input, 0, newarr, 0, input.length);
 			input = newarr;
 		}
