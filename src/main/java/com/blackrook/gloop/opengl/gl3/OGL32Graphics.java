@@ -60,6 +60,15 @@ public class OGL32Graphics extends OGL31Graphics
 	}
 	
 	/**
+	 * Destroys a sync object.
+	 * @param sync the object to destroy.
+	 */
+	public void destroySync(OGLSync sync)
+	{
+		destroyObject(sync);
+	}
+	
+	/**
 	 * Awaits signal from the GL server that a sync object is signaled.
 	 * @param sync the sync object.
 	 */

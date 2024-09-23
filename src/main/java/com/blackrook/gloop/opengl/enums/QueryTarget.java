@@ -19,20 +19,20 @@ import com.blackrook.gloop.opengl.OGLVersioned;
  * Query type.
  * @author Matthew Tropiano
  */
-public enum QueryType implements OGLVersioned
+public enum QueryTarget implements OGLVersioned
 {
-	SAMPLES_PASSED                           (OGLVersion.GL15, GL15.GL_SAMPLES_PASSED),
-	GL_PRIMITIVES_GENERATED                  (OGLVersion.GL30, GL30.GL_PRIMITIVES_GENERATED),
-	GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN (OGLVersion.GL30, GL30.GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN),
-	GL_ANY_SAMPLES_PASSED                    (OGLVersion.GL33, GL33.GL_ANY_SAMPLES_PASSED),
-	GL_TIME_ELAPSED                          (OGLVersion.GL33, GL33.GL_TIME_ELAPSED),
-	GL_ANY_SAMPLES_PASSED_CONSERVATIVE       (OGLVersion.GL43, GL43.GL_ANY_SAMPLES_PASSED_CONSERVATIVE),
+	SAMPLES_PASSED                        (OGLVersion.GL15, GL15.GL_SAMPLES_PASSED),
+	PRIMITIVES_GENERATED                  (OGLVersion.GL30, GL30.GL_PRIMITIVES_GENERATED),
+	TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN (OGLVersion.GL30, GL30.GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN),
+	ANY_SAMPLES_PASSED                    (OGLVersion.GL33, GL33.GL_ANY_SAMPLES_PASSED),
+	TIME_ELAPSED                          (OGLVersion.GL33, GL33.GL_TIME_ELAPSED),
+	ANY_SAMPLES_PASSED_CONSERVATIVE       (OGLVersion.GL43, GL43.GL_ANY_SAMPLES_PASSED_CONSERVATIVE),
 	;
 	
 	private final OGLVersion version;
 	public final int glValue;
 	
-	private QueryType(OGLVersion version, int glValue) 
+	private QueryTarget(OGLVersion version, int glValue) 
 	{
 		this.version = version;
 		this.glValue = glValue;

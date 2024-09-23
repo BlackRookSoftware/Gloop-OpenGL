@@ -9,8 +9,6 @@ package com.blackrook.gloop.opengl.gl1;
 
 import com.blackrook.gloop.opengl.OGLObject;
 
-import org.lwjgl.opengl.GL33;
-
 import static org.lwjgl.opengl.GL15.*;
 
 /**
@@ -30,88 +28,18 @@ public class OGLQuery extends OGLObject
 		UNDELETED_LENGTH = 0;
 	}
 	
-	private int glQueryType;
-	
 	/**
 	 * Creates a new Occlusion Query object handle.
-	 * @param glQueryType the query type (OpenGL enum).
 	 */
-	OGLQuery(int glQueryType)
+	OGLQuery()
 	{
 		setName(glGenQueries());
-		this.glQueryType = glQueryType;
 	}
 
 	@Override
 	protected void free()
 	{
 		glDeleteQueries(getName());
-	}
-	
-	/**
-	 * Starts this query.
-	 */
-	public void start()
-	{
-		glBeginQuery(glQueryType, getName());
-	}
-
-	/**
-	 * Ends this query.
-	 * The query is NOT FREED, and its results should be 
-	 * fetched after verifying that it is complete, later.
-	 */
-	public void end()
-	{
-		glEndQuery(glQueryType);
-	}
-
-	/**
-	 * @return true if this query's results are available, false otherwise.
-	 */
-	public boolean isReady()
-	{
-		return glGetQueryi(getName(), GL_QUERY_RESULT_AVAILABLE) == GL_TRUE;
-	}
-	
-	/**
-	 * Gets the result of the query as a long integer.
-	 * If {@link #isReady()} is not checked beforehand, this will hold the thread until
-	 * the query is finished.
-	 * Depending on your OpenGL version, a 64-bit precision value may not be available.
-	 * @return the long value of the result.
-	 */
-	public long getResult()
-	{
-		int bits = glGetQueryi(getName(), GL_QUERY_COUNTER_BITS);
-		if (bits <= 32)
-		{
-			int result = glGetQueryi(getName(), GL_QUERY_RESULT);
-			return 0x0ffffffffL & result;
-		}
-		else
-		{
-			return GL33.glGetQueryObjecti64(getName(), GL_QUERY_RESULT);
-		}
-	}
-
-	/**
-	 * Gets the result of the query as a boolean.
-	 * If {@link #isReady()} is not checked beforehand, this will hold the thread until
-	 * the query is finished.
-	 * @return the boolean value of the result.
-	 */
-	public boolean getBooleanResult()
-	{
-		return glGetQueryi(getName(), GL_QUERY_RESULT) != GL_FALSE;
-	}
-
-	/**
-	 * @return the query type as an OpenGL enum.
-	 */
-	public int getGLQueryType()
-	{
-		return glQueryType;
 	}
 	
 	/**

@@ -8,6 +8,8 @@
 package com.blackrook.gloop.opengl.gl4;
 
 import com.blackrook.gloop.opengl.OGLVersion;
+import com.blackrook.gloop.opengl.enums.QueryTarget;
+import com.blackrook.gloop.opengl.gl1.OGLQuery;
 import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 
@@ -70,4 +72,30 @@ public class OGL40Graphics extends OGL33Graphics
 		}
 	}
 
+	/**
+	 * Starts an indexed query.
+	 * The index corresponds to a query target-driven maximum.
+	 * @param queryTarget the query target. 
+	 * @param index the corresponding index for the target.
+	 * @param query the query object to attach results to.
+	 */
+	public void startQueryIndexed(QueryTarget queryTarget, int index, OGLQuery query)
+	{
+		verifyFeatureSupport(queryTarget);
+		glBeginQueryIndexed(queryTarget.glValue, index, query.getName());
+		checkError();
+	}
+	
+	/**
+	 * Ends an indexed query.
+	 * The index corresponds to a query target-driven maximum.
+	 * @param queryTarget the query target. 
+	 * @param index the corresponding index for the target.
+	 */
+	public void endQueryIndexed(QueryTarget queryTarget, int index)
+	{
+		glEndQueryIndexed(queryTarget.glValue, index);
+		checkError();
+	}
+	
 }

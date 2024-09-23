@@ -11,9 +11,11 @@ import com.blackrook.gloop.opengl.OGLVersion;
 
 import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.LogicFunc;
+import com.blackrook.gloop.opengl.enums.QueryTarget;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
 import com.blackrook.gloop.opengl.enums.TextureMinFilter;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
+import com.blackrook.gloop.opengl.gl1.OGLQuery;
 
 import java.nio.FloatBuffer;
 
@@ -45,6 +47,31 @@ public class OGL33Graphics extends OGL32Graphics
 		// Clean up abandoned objects.
 		OGLSampler.destroyUndeleted();
 		super.endFrame();
+	}
+
+	/**
+	 * Sets the GL timestamp on this query.
+	 * Can only be used within queries where the target is {@link QueryTarget#TIME_ELAPSED}.
+	 * @param query the query to use.
+	 */
+	public void setQueryCounter(OGLQuery query)
+	{
+		glQueryCounter(query.getName(), GL_TIMESTAMP);
+	}
+
+	@Override
+	public long getQueryResult(OGLQuery query) 
+	{
+		int bits = glGetQueryi(query.getName(), GL_QUERY_COUNTER_BITS);
+		if (bits <= 32)
+		{
+			int result = glGetQueryi(query.getName(), GL_QUERY_RESULT);
+			return 0x0ffffffffL & result;
+		}
+		else
+		{
+			return glGetQueryObjecti64(query.getName(), GL_QUERY_RESULT);
+		}
 	}
 	
 	/**

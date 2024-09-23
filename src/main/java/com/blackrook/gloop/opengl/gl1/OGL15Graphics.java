@@ -14,7 +14,7 @@ import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.CachingHint;
 import com.blackrook.gloop.opengl.enums.DataType;
 import com.blackrook.gloop.opengl.enums.FogCoordinateType;
-import com.blackrook.gloop.opengl.enums.QueryType;
+import com.blackrook.gloop.opengl.enums.QueryTarget;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 import static org.lwjgl.opengl.GL15.*;
+
 
 /**
  * OpenGL 1.5 Graphics Implementation.
@@ -121,15 +122,12 @@ public class OGL15Graphics extends OGL14Graphics
 
 	/**
 	 * Creates a new query.
-	 * @param queryType the query type.
 	 * @return a new sample query object.
-	 * @throws UnsupportedOperationException if the provided type is unavailable in this version.
 	 * @throws GraphicsException if the object could not be created.
 	 */
-	public OGLQuery createQuery(QueryType queryType)
+	public OGLQuery createQuery()
 	{
-		verifyFeatureSupport(queryType);
-		return new OGLQuery(queryType.glValue);
+		return new OGLQuery();
 	}
 	
 	/**
@@ -140,6 +138,68 @@ public class OGL15Graphics extends OGL14Graphics
 	{
 		destroyObject(query);
 		checkError();
+	}
+
+	/**
+	 * Starts a new query.
+	 * @param queryTarget the query target. 
+	 * @param query the query object to attach results to.
+	 * @throws UnsupportedOperationException if the provided type is unavailable in this version.
+	 */
+	public void startQuery(QueryTarget queryTarget, OGLQuery query)
+	{
+		verifyFeatureSupport(queryTarget);
+		glBeginQuery(queryTarget.glValue, query.getName());
+		checkError();
+	}
+
+	/**
+	 * Ends a query. 
+	 * Must be a started query of the same type.
+	 * The query's results should be fetched after verifying that it is complete, later.
+	 * @param queryTarget the query target.
+	 * @throws GraphicsException if the query type provided waqs not started.
+	 */
+	public void endQuery(QueryTarget queryTarget)
+	{
+		glEndQuery(queryTarget.glValue);
+		checkError();
+	}
+
+	/**
+	 * Checks if a query's results are ready.
+	 * @param query the query to check.
+	 * @return true if this query's results are available, false otherwise.
+	 */
+	public boolean isQueryReady(OGLQuery query)
+	{
+		return glGetQueryi(query.getName(), GL_QUERY_RESULT_AVAILABLE) == GL_TRUE;
+	}
+	
+	/**
+	 * Gets the result of the query as a long integer.
+	 * If {@link #isQueryReady(OGLQuery)} is not checked beforehand, this will hold the thread until
+	 * the query is finished.
+	 * Depending on your OpenGL version, a 64-bit precision value may not be available.
+	 * @param query the query to get the results for.
+	 * @return the long value of the result.
+	 */
+	public long getQueryResult(OGLQuery query)
+	{
+		int result = glGetQueryi(query.getName(), GL_QUERY_RESULT);
+		return 0x0ffffffffL & result;
+	}
+
+	/**
+	 * Gets the result of the query as a boolean.
+	 * If {@link #isQueryReady(OGLQuery)} is not checked beforehand, this will hold the thread until
+	 * the query is finished.
+	 * @param query the query to get the results for.
+	 * @return the boolean value of the result.
+	 */
+	public boolean getQueryBooleanResult(OGLQuery query)
+	{
+		return glGetQueryi(query.getName(), GL_QUERY_RESULT) != GL_FALSE;
 	}
 
 	/**

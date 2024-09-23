@@ -170,7 +170,7 @@ public abstract class OGLObject
 	@Override
 	public String toString()
 	{
-		return getClass().getSimpleName() + ' ' + getName();
+		return getClass().getSimpleName() + ' ' + (getName() == 0 ? getLongName() : getName());
 	}
 
 }
