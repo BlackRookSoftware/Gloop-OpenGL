@@ -15,11 +15,10 @@ import com.blackrook.gloop.glfw.GLFWWindow.WindowHints;
 import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
+import com.blackrook.gloop.opengl.OGLGraphics.Info;
 import com.blackrook.gloop.opengl.enums.SyncResultType;
 import com.blackrook.gloop.opengl.enums.TextureWrapType;
-import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
-import com.blackrook.gloop.opengl.gl3.OGLSampler;
-import com.blackrook.gloop.opengl.gl3.OGLSync;
+import com.blackrook.gloop.opengl.gl4.OGL40Graphics;
 import com.blackrook.gloop.opengl.node.OGLNode;
 import com.blackrook.gloop.opengl.node.OGLTriggeredNode;
 
@@ -27,7 +26,7 @@ import com.blackrook.gloop.opengl.node.OGLTriggeredNode;
 public final class OGLTest2 
 {
 	private GLFWWindow window;
-	private OGLSystem<OGL33Graphics> oglSystem;
+	private OGLSystem<OGL40Graphics> oglSystem;
 	private GLFWContext.MainLoop mainLoop;
 	
 	public void run() 
@@ -40,7 +39,7 @@ public final class OGLTest2
 		WindowHints hints = (new WindowHints())
 			.setVisible(false)
 			.setResizable(true)
-			.setContextVersion(3, 3)
+			.setContextVersion(4, 0)
 			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
 		GLFWInputSystem inputSystem = new GLFWInputSystem();
@@ -49,7 +48,7 @@ public final class OGLTest2
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = OGLSystemFactory.getOpenGL33Core(window);
+		oglSystem = OGLSystemFactory.getOpenGL40Core(window);
 		oglSystem.addNode(new DrawNode());
 		oglSystem.setFPS(null);
 		
@@ -70,15 +69,12 @@ public final class OGLTest2
 		}
 	}
 	
-	public static class DrawNode implements OGLNode<OGL33Graphics>
+	public static class DrawNode implements OGLNode<OGL40Graphics>
 	{
 		@Override
-		public void onDisplay(OGL33Graphics gl)
+		public void onDisplay(OGL40Graphics gl)
 		{
-			OGLSampler sampler = gl.createSampler();
-			gl.setSamplerWrapS(sampler, TextureWrapType.CLAMP_TO_EDGE);
-			gl.setSamplerWrapT(sampler, TextureWrapType.CLAMP_TO_EDGE);
-			gl.destroySampler(sampler);
+			Info info = gl.getInfo();
 		}
 	}
 	

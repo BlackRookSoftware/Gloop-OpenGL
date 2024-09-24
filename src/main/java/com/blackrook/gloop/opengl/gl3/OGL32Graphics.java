@@ -20,6 +20,18 @@ import static org.lwjgl.opengl.GL32.*;
  */
 public class OGL32Graphics extends OGL31Graphics
 {
+	protected class Info32 extends Info31
+	{
+		protected Info32()
+		{
+			super();
+	        this.maxVertexOutputComponents = getInt(GL_MAX_VERTEX_OUTPUT_COMPONENTS);
+	        this.maxGeometryInputComponents = getInt(GL_MAX_GEOMETRY_INPUT_COMPONENTS);
+	        this.maxGeometryOutputComponents = getInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS);
+	        this.maxFragmentInputComponents = getInt(GL_MAX_FRAGMENT_INPUT_COMPONENTS);
+		}
+	}
+	
 	public OGL32Graphics(Options options, boolean core)
 	{
 		super(options, core);
@@ -31,6 +43,12 @@ public class OGL32Graphics extends OGL31Graphics
 		return OGLVersion.GL32;
 	}
 
+	@Override
+	protected Info createInfo()
+	{
+		return new Info32();
+	}
+	
 	@Override
 	protected void endFrame() 
 	{

@@ -102,6 +102,50 @@ public abstract class OGLGraphics implements OGLVersioned
 		protected Integer maxRenderBufferColorAttachments;
 		/** Maximum multisample samples. */
 		protected Integer maxSamples;
+		
+        /* GL 3.1 */
+
+		protected Integer maxTextureBufferSize;
+        protected Integer maxVertexUniformBlocks;
+        protected Integer maxGeometryUniformBlocks;
+        protected Integer maxFragmentUniformBlocks;
+        protected Integer maxCombinedUniformBlocks;
+        protected Integer maxUniformBufferBindings;
+        protected Integer maxUniformBlockSize;
+        protected Integer maxCombinedVertexUniformComponents;
+        protected Integer maxCombinedGeometryUniformComponents;
+        protected Integer maxCombinedFragmentUniformComponents;
+
+        /* GL 3.2 */
+        
+        protected Integer maxVertexOutputComponents;
+        protected Integer maxGeometryInputComponents;
+        protected Integer maxGeometryOutputComponents;
+        protected Integer maxFragmentInputComponents;
+
+        /* GL 4.0 */
+        
+		protected Integer maxGeometryShaderInvocations;
+		protected Integer minFragmentInterpolationOffset;
+		protected Integer maxFragmentInterpolationOffset;
+		protected Integer maxSubroutines;
+		protected Integer maxSubroutineUniformLocations;
+		protected Integer maxPatchVertices;
+		protected Integer maxTesselationGenLevel;
+		protected Integer maxTesselationControlUniformComponents;
+		protected Integer maxTesselationEvaluationUniformComponents;
+		protected Integer maxTesselationControlTextureImageUnits;
+		protected Integer maxTesselationEvaluationTextureImageUnits;
+		protected Integer maxTesselationControlOutputComponents;
+		protected Integer maxTesselationPatchComponents;
+		protected Integer maxTesselationControlTotalOutputComponents;
+		protected Integer maxTesselationEvaluationOutputComponents;
+		protected Integer maxTesselationControlUniformBlocks;
+		protected Integer maxTesselationEvaluationUniformBlocks;
+		protected Integer maxTesselationControlInputComponents;
+		protected Integer maxTesselationEvaluationInputComponents;
+		protected Integer maxCombinedTesselationControlUniformComponents;
+		protected Integer maxCombinedTesselationEvaluationUniformComponents;
 
 		protected Info() {}
 		
@@ -254,6 +298,181 @@ public abstract class OGLGraphics implements OGLVersioned
 			return shaderVersion;
 		}
 		
+		public Integer getMaxTextureBufferSize()
+		{
+			return maxTextureBufferSize;
+		}
+
+		public Integer getMaxVertexUniformBlocks()
+		{
+			return maxVertexUniformBlocks;
+		}
+
+		public Integer getMaxGeometryUniformBlocks()
+		{
+			return maxGeometryUniformBlocks;
+		}
+
+		public Integer getMaxFragmentUniformBlocks()
+		{
+			return maxFragmentUniformBlocks;
+		}
+
+		public Integer getMaxCombinedUniformBlocks() 
+		{
+			return maxCombinedUniformBlocks;
+		}
+
+		public Integer getMaxUniformBufferBindings()
+		{
+			return maxUniformBufferBindings;
+		}
+
+		public Integer getMaxUniformBlockSize()
+		{
+			return maxUniformBlockSize;
+		}
+
+		public Integer getMaxCombinedVertexUniformComponents() 
+		{
+			return maxCombinedVertexUniformComponents;
+		}
+
+		public Integer getMaxCombinedGeometryUniformComponents()
+		{
+			return maxCombinedGeometryUniformComponents;
+		}
+
+		public Integer getMaxCombinedFragmentUniformComponents()
+		{
+			return maxCombinedFragmentUniformComponents;
+		}
+
+		public Integer getMaxVertexOutputComponents()
+		{
+			return maxVertexOutputComponents;
+		}
+
+		public Integer getMaxGeometryInputComponents()
+		{
+			return maxGeometryInputComponents;
+		}
+
+		public Integer getMaxGeometryOutputComponents()
+		{
+			return maxGeometryOutputComponents;
+		}
+
+		public Integer getMaxFragmentInputComponents() 
+		{
+			return maxFragmentInputComponents;
+		}
+
+		public Integer getMaxGeometryShaderInvocations()
+		{
+			return maxGeometryShaderInvocations;
+		}
+
+		public Integer getMinFragmentInterpolationOffset()
+		{
+			return minFragmentInterpolationOffset;
+		}
+
+		public Integer getMaxFragmentInterpolationOffset()
+		{
+			return maxFragmentInterpolationOffset;
+		}
+
+		public Integer getMaxSubroutines()
+		{
+			return maxSubroutines;
+		}
+
+		public Integer getMaxSubroutineUniformLocations()
+		{
+			return maxSubroutineUniformLocations;
+		}
+
+		public Integer getMaxPatchVertices()
+		{
+			return maxPatchVertices;
+		}
+
+		public Integer getMaxTesselationGenLevel()
+		{
+			return maxTesselationGenLevel;
+		}
+
+		public Integer getMaxTesselationControlUniformComponents()
+		{
+			return maxTesselationControlUniformComponents;
+		}
+
+		public Integer getMaxTesselationEvaluationUniformComponents()
+		{
+			return maxTesselationEvaluationUniformComponents;
+		}
+
+		public Integer getMaxTesselationControlTextureImageUnits()
+		{
+			return maxTesselationControlTextureImageUnits;
+		}
+
+		public Integer getMaxTesselationEvaluationTextureImageUnits()
+		{
+			return maxTesselationEvaluationTextureImageUnits;
+		}
+
+		public Integer getMaxTesselationControlOutputComponents()
+		{
+			return maxTesselationControlOutputComponents;
+		}
+
+		public Integer getMaxTesselationPatchComponents()
+		{
+			return maxTesselationPatchComponents;
+		}
+
+		public Integer getMaxTesselationControlTotalOutputComponents() 
+		{
+			return maxTesselationControlTotalOutputComponents;
+		}
+
+		public Integer getMaxTesselationEvaluationOutputComponents()
+		{
+			return maxTesselationEvaluationOutputComponents;
+		}
+
+		public Integer getMaxTesselationControlUniformBlocks() 
+		{
+			return maxTesselationControlUniformBlocks;
+		}
+
+		public Integer getMaxTesselationEvaluationUniformBlocks()
+		{
+			return maxTesselationEvaluationUniformBlocks;
+		}
+
+		public Integer getMaxTesselationControlInputComponents() 
+		{
+			return maxTesselationControlInputComponents;
+		}
+
+		public Integer getMaxTesselationEvaluationInputComponents() 
+		{
+			return maxTesselationEvaluationInputComponents;
+		}
+
+		public Integer getMaxCombinedTesselationControlUniformComponents()
+		{
+			return maxCombinedTesselationControlUniformComponents;
+		}
+
+		public Integer getMaxCombinedTesselationEvaluationUniformComponents()
+		{
+			return maxCombinedTesselationEvaluationUniformComponents;
+		}
+
 		/**
 		 * @return true if occlusion query extensions are present for the video device, false otherwise.
 		 */

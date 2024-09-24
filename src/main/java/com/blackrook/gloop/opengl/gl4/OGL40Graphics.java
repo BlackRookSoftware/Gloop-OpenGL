@@ -13,11 +13,12 @@ import com.blackrook.gloop.opengl.gl1.OGLQuery;
 import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 
-import static org.lwjgl.opengl.GL40.*;
-
 import java.nio.FloatBuffer;
 
 import org.lwjgl.system.MemoryStack;
+
+import static org.lwjgl.opengl.GL40.*;
+
 
 /**
  * OpenGL 4.0 Graphics Implementation.
@@ -25,6 +26,35 @@ import org.lwjgl.system.MemoryStack;
  */
 public class OGL40Graphics extends OGL33Graphics
 {
+	protected class Info40 extends Info32
+	{
+		protected Info40()
+		{
+			super();
+			this.maxGeometryShaderInvocations = getInt(GL_MAX_GEOMETRY_SHADER_INVOCATIONS);
+			this.minFragmentInterpolationOffset = getInt(GL_MIN_FRAGMENT_INTERPOLATION_OFFSET);
+			this.maxFragmentInterpolationOffset = getInt(GL_MAX_FRAGMENT_INTERPOLATION_OFFSET);
+			this.maxSubroutines = getInt(GL_MAX_SUBROUTINES);
+			this.maxSubroutineUniformLocations = getInt(GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS);
+			this.maxPatchVertices = getInt(GL_MAX_PATCH_VERTICES);
+			this.maxTesselationGenLevel = getInt(GL_MAX_TESS_GEN_LEVEL);
+			this.maxTesselationControlUniformComponents = getInt(GL_MAX_TESS_CONTROL_UNIFORM_COMPONENTS);
+			this.maxTesselationEvaluationUniformComponents = getInt(GL_MAX_TESS_EVALUATION_UNIFORM_COMPONENTS);
+			this.maxTesselationControlTextureImageUnits = getInt(GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS);
+			this.maxTesselationEvaluationTextureImageUnits = getInt(GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS);
+			this.maxTesselationControlOutputComponents = getInt(GL_MAX_TESS_CONTROL_OUTPUT_COMPONENTS);
+			this.maxTesselationPatchComponents = getInt(GL_MAX_TESS_PATCH_COMPONENTS);
+			this.maxTesselationControlTotalOutputComponents = getInt(GL_MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS);
+			this.maxTesselationEvaluationOutputComponents = getInt(GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS);
+			this.maxTesselationControlUniformBlocks = getInt(GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS);
+			this.maxTesselationEvaluationUniformBlocks = getInt(GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS);
+			this.maxTesselationControlInputComponents = getInt(GL_MAX_TESS_CONTROL_INPUT_COMPONENTS);
+			this.maxTesselationEvaluationInputComponents = getInt(GL_MAX_TESS_EVALUATION_INPUT_COMPONENTS);
+			this.maxCombinedTesselationControlUniformComponents = getInt(GL_MAX_COMBINED_TESS_CONTROL_UNIFORM_COMPONENTS);
+			this.maxCombinedTesselationEvaluationUniformComponents = getInt(GL_MAX_COMBINED_TESS_EVALUATION_UNIFORM_COMPONENTS);
+		}
+	}
+	
 	public OGL40Graphics(Options options, boolean core)
 	{
 		super(options, core);
@@ -36,6 +66,12 @@ public class OGL40Graphics extends OGL33Graphics
 		return OGLVersion.GL40;
 	}
 
+	@Override
+	protected Info createInfo()
+	{
+		return new Info40();
+	}
+	
 	/**
 	 * Sets the tessellation patch inner levels for tessellation shaders.
 	 * @param level1 the first level.

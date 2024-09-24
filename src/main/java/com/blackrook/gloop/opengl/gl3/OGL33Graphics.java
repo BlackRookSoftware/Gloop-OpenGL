@@ -104,6 +104,15 @@ public class OGL33Graphics extends OGL32Graphics
 	}
 
 	/**
+	 * Removes the current sampler from a given texture unit.
+	 * @param textureUnit the texture unit to unbind from. 
+	 */
+	public void unsetSampler(int textureUnit)
+	{
+		glBindSampler(textureUnit, 0);
+	}
+	
+	/**
 	 * Sets the S-coordinate wrapping for a sampler.
 	 * @param sampler the sampler to set the parameter on.
 	 * @param wrapType the new wrapping type.
