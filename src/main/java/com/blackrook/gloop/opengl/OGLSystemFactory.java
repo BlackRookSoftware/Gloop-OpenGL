@@ -14,6 +14,12 @@ import com.blackrook.gloop.opengl.gl3.OGL31Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL32Graphics;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl4.OGL40Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL41Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL42Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL43Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL44Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL45Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL46Graphics;
 
 /**
  * A static factory for building an OpenGL context.
@@ -226,17 +232,6 @@ public final class OGLSystemFactory
 	}
 	
 	/**
-	 * Creates an OpenGL 4.0 implementation system.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL40Graphics> getOpenGL40(GLFWWindow window)
-	{
-		return getOpenGL40(DEFAULT_OPTIONS, window);
-	}
-	
-	/**
 	 * Creates an OpenGL 4.0 Core implementation system.
 	 * @param window the window to render to.
 	 * @return an OpenGL context entry.
@@ -245,6 +240,72 @@ public final class OGLSystemFactory
 	public static OGLSystem<OGL40Graphics> getOpenGL40Core(GLFWWindow window)
 	{
 		return getOpenGL40Core(DEFAULT_OPTIONS, window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.1 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL41Graphics> getOpenGL41Core(GLFWWindow window)
+	{
+		return getOpenGL41Core(DEFAULT_OPTIONS, window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.2 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL42Graphics> getOpenGL42Core(GLFWWindow window)
+	{
+		return getOpenGL42Core(DEFAULT_OPTIONS, window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.3 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL43Graphics> getOpenGL43Core(GLFWWindow window)
+	{
+		return getOpenGL43Core(DEFAULT_OPTIONS, window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.4 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL44Graphics> getOpenGL44Core(GLFWWindow window)
+	{
+		return getOpenGL44Core(DEFAULT_OPTIONS, window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.5 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL45Graphics> getOpenGL45Core(GLFWWindow window)
+	{
+		return getOpenGL45Core(DEFAULT_OPTIONS, window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.6 Core implementation system.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL46Graphics> getOpenGL46Core(GLFWWindow window)
+	{
+		return getOpenGL46Core(DEFAULT_OPTIONS, window);
 	}
 
 	/**
@@ -428,18 +489,6 @@ public final class OGLSystemFactory
 	}
 	
 	/**
-	 * Creates an OpenGL 4.0 implementation system.
-	 * @param options the system options reference to pass to the graphics instance.
-	 * @param window the window to render to.
-	 * @return an OpenGL context entry.
-	 * @throws GraphicsException if the given implementation could not be created. 
-	 */
-	public static OGLSystem<OGL40Graphics> getOpenGL40(OGLSystem.Options options, GLFWWindow window)
-	{
-		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(options, false), window);
-	}
-	
-	/**
 	 * Creates an OpenGL 4.0 Core implementation system.
 	 * @param options the system options reference to pass to the graphics instance.
 	 * @param window the window to render to.
@@ -449,6 +498,78 @@ public final class OGLSystemFactory
 	public static OGLSystem<OGL40Graphics> getOpenGL40Core(OGLSystem.Options options, GLFWWindow window)
 	{
 		return new OGLSystem<OGL40Graphics>(new OGL40Graphics(options, true), window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.1 Core implementation system.
+	 * @param options the system options reference to pass to the graphics instance.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL41Graphics> getOpenGL41Core(OGLSystem.Options options, GLFWWindow window)
+	{
+		return new OGLSystem<OGL41Graphics>(new OGL41Graphics(options, true), window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.2 Core implementation system.
+	 * @param options the system options reference to pass to the graphics instance.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL42Graphics> getOpenGL42Core(OGLSystem.Options options, GLFWWindow window)
+	{
+		return new OGLSystem<OGL42Graphics>(new OGL42Graphics(options, true), window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.3 Core implementation system.
+	 * @param options the system options reference to pass to the graphics instance.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL43Graphics> getOpenGL43Core(OGLSystem.Options options, GLFWWindow window)
+	{
+		return new OGLSystem<OGL43Graphics>(new OGL43Graphics(options, true), window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.4 Core implementation system.
+	 * @param options the system options reference to pass to the graphics instance.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL44Graphics> getOpenGL44Core(OGLSystem.Options options, GLFWWindow window)
+	{
+		return new OGLSystem<OGL44Graphics>(new OGL44Graphics(options, true), window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.5 Core implementation system.
+	 * @param options the system options reference to pass to the graphics instance.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL45Graphics> getOpenGL45Core(OGLSystem.Options options, GLFWWindow window)
+	{
+		return new OGLSystem<OGL45Graphics>(new OGL45Graphics(options, true), window);
+	}
+
+	/**
+	 * Creates an OpenGL 4.6 Core implementation system.
+	 * @param options the system options reference to pass to the graphics instance.
+	 * @param window the window to render to.
+	 * @return an OpenGL context entry.
+	 * @throws GraphicsException if the given implementation could not be created. 
+	 */
+	public static OGLSystem<OGL46Graphics> getOpenGL46Core(OGLSystem.Options options, GLFWWindow window)
+	{
+		return new OGLSystem<OGL46Graphics>(new OGL46Graphics(options, true), window);
 	}
 
 }

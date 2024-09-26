@@ -163,19 +163,6 @@ public class OGLProgram extends OGLObject
 		UNDELETED_LENGTH = 0;
 	}
 	
-	/** Vertex program. */
-	private OGLProgramShader vertexProgram;
-	/** Tessellation control program. */
-	private OGLProgramShader tessellationControlProgram;
-	/** Tessellation evaluation program. */
-	private OGLProgramShader tessellationEvaluationProgram;
-	/** Geometry program. */
-	private OGLProgramShader geometryProgram;
-	/** Fragment program. */
-	private OGLProgramShader fragmentProgram;
-	
-	/* == After link == */
-	
 	/** Linked status of the shader. */
 	private boolean linked;
 	
@@ -200,15 +187,16 @@ public class OGLProgram extends OGLObject
 	OGLProgram()
 	{
 		setName(glCreateProgram());
-		this.vertexProgram = null;
-		this.tessellationControlProgram = null;
-		this.tessellationEvaluationProgram = null;
-		this.geometryProgram = null;
-		this.fragmentProgram = null;
+	}
+	
+	// Refeshes this program's "linked" status.
+	void refreshLinkStatus()
+	{
+		this.linked = glGetProgrami(getName(), GL_LINK_STATUS) == GL_TRUE;
 	}
 
-	// Gets the uniform data.
-	private void refreshUniformsAndAttribs()
+	// Gets the uniform and attribute data.
+	void refreshUniformsAndAttribs()
 	{
 		int uniformCount = glGetProgrami(getName(), GL_ACTIVE_UNIFORMS);
 		int attribCount = glGetProgrami(getName(), GL_ACTIVE_ATTRIBUTES);
@@ -275,70 +263,7 @@ public class OGLProgram extends OGLObject
 	@Override
 	protected void free()
 	{
-		if (vertexProgram != null)
-			glDetachShader(getName(), vertexProgram.getName());
-		if (tessellationControlProgram != null)
-			glDetachShader(getName(), tessellationControlProgram.getName());
-		if (tessellationEvaluationProgram != null)
-			glDetachShader(getName(), tessellationEvaluationProgram.getName());
-		if (geometryProgram != null)
-			glDetachShader(getName(), geometryProgram.getName());
-		if (fragmentProgram != null)
-			glDetachShader(getName(), fragmentProgram.getName());
 		glDeleteProgram(getName());
-	}
-
-	/**
-	 * Attaches a shader to this pipeline program.
-	 * Throws an error if this program was already linked, 
-	 * or if a program of the same type was already attached.
-	 * @param shader the shader to attach.
-	 * @throws GraphicsException if this program was already linked, 
-	 * or if a program of the same type was already attached.
-	 */
-	void attachShader(OGLProgramShader shader)
-	{
-		if (isLinked())
-			throw new GraphicsException("Cannot attach shader: this program was already linked!");
-		
-		switch (shader.getType())
-		{
-			case VERTEX:
-				if (vertexProgram != null)
-					throw new GraphicsException("Vertex program already provided.");
-				else
-					vertexProgram = shader;
-				break;
-			case TESSELLATION_CONTROL:
-				if (tessellationControlProgram != null)
-					throw new GraphicsException("Tessellation control program already provided.");
-				else
-					tessellationControlProgram = shader;
-				break;
-			case TESSELLATION_EVALUATION:
-				if (tessellationEvaluationProgram != null)
-					throw new GraphicsException("Tessellation evaluation program already provided.");
-				else
-					tessellationEvaluationProgram = shader;
-				break;
-			case GEOMETRY:
-				if (geometryProgram != null)
-					throw new GraphicsException("Geometry program already provided.");
-				else
-					geometryProgram = shader;
-				break;
-			case FRAGMENT:
-				if (fragmentProgram != null)
-					throw new GraphicsException("Fragment program already provided.");
-				else
-					fragmentProgram = shader;
-				break;
-			case COMPUTE:
-				throw new GraphicsException("Compute shaders are not created this way."); 
-			default:
-				throw new GraphicsException("Unexpected program type."); 
-		}
-		glAttachShader(getName(), shader.getName());
 	}
 
 	/**
@@ -351,10 +276,10 @@ public class OGLProgram extends OGLObject
 			// link programs.
 			glLinkProgram(getName());
 			this.log = glGetProgramInfoLog(getName());
-			if (glGetProgrami(getName(), GL_LINK_STATUS) == 0)
+			refreshLinkStatus();
+			if (!linked)
 				throw new GraphicsException("Failed to link together program " + getName() + ".\n"+log);
 			refreshUniformsAndAttribs();
-			this.linked = true;
 		}
 	}
 	

@@ -106,22 +106,22 @@ public abstract class OGLGraphics implements OGLVersioned
         /* GL 3.1 */
 
 		protected Integer maxTextureBufferSize;
-        protected Integer maxVertexUniformBlocks;
-        protected Integer maxGeometryUniformBlocks;
-        protected Integer maxFragmentUniformBlocks;
-        protected Integer maxCombinedUniformBlocks;
-        protected Integer maxUniformBufferBindings;
-        protected Integer maxUniformBlockSize;
-        protected Integer maxCombinedVertexUniformComponents;
-        protected Integer maxCombinedGeometryUniformComponents;
-        protected Integer maxCombinedFragmentUniformComponents;
+		protected Integer maxVertexUniformBlocks;
+		protected Integer maxGeometryUniformBlocks;
+		protected Integer maxFragmentUniformBlocks;
+		protected Integer maxCombinedUniformBlocks;
+		protected Integer maxUniformBufferBindings;
+		protected Integer maxUniformBlockSize;
+		protected Integer maxCombinedVertexUniformComponents;
+		protected Integer maxCombinedGeometryUniformComponents;
+		protected Integer maxCombinedFragmentUniformComponents;
 
         /* GL 3.2 */
         
-        protected Integer maxVertexOutputComponents;
-        protected Integer maxGeometryInputComponents;
-        protected Integer maxGeometryOutputComponents;
-        protected Integer maxFragmentInputComponents;
+		protected Integer maxVertexOutputComponents;
+		protected Integer maxGeometryInputComponents;
+		protected Integer maxGeometryOutputComponents;
+		protected Integer maxFragmentInputComponents;
 
         /* GL 4.0 */
         
@@ -147,6 +147,70 @@ public abstract class OGLGraphics implements OGLVersioned
 		protected Integer maxCombinedTesselationControlUniformComponents;
 		protected Integer maxCombinedTesselationEvaluationUniformComponents;
 
+		/* GL 4.1 */
+		
+		protected Integer maxVertexUniformVectors;
+		protected Integer maxVaryingVectors;
+		protected Integer maxFragmentUniformVectors;
+		protected Integer maxViewports;
+
+		/* GL 4.2 */
+		
+		protected Integer maxVertexAtomicCounterBuffers;
+		protected Integer maxTesselationControlAtomicCounterBuffers;
+		protected Integer maxTesselationEvaluationAtomicCounterBuffers;
+		protected Integer maxGeometryAtomicCounterBuffers;
+		protected Integer maxFragmentAtomicCounterBuffers;
+		protected Integer maxCombinedAtomicCounterBuffers;
+		protected Integer maxVertexAtomicCounters;
+		protected Integer maxTesselationControlAtomicCounters;
+		protected Integer maxTesselationEvaluationAtomicCounters;
+		protected Integer maxGeometryAtomicCounters;
+		protected Integer maxFragmentAtomicCounters;
+		protected Integer maxCombinedAtomicCounters;
+		protected Integer maxAtomicCounterBufferSize;
+		protected Integer maxAtomicCounterBufferBindings;
+
+		/* GL 4.3 */
+		
+		protected Integer maxComputeUniformBlocks;
+		protected Integer maxComputeTextureImageUnits;
+		protected Integer maxComputeImageUniforms;
+		protected Integer maxComputeSharedMemorySize;
+		protected Integer maxComputeUniformComponents;
+		protected Integer maxComputeAtomicCounterBuffers;
+		protected Integer maxComputeAtomicCounters;
+		protected Integer maxCombinedComputeUniformComponents;
+		protected Integer maxComputeWorkGroupInvocations;
+		protected Integer maxDebugMessageLength;
+		protected Integer maxDebugLoggesMessages;
+		protected Integer maxDebugGroupStackDepth;
+		protected Integer maxLabelLength;
+		protected Integer maxVertexShaderStorageBlocks;
+		protected Integer maxGeometryShaderStorageBlocks;
+		protected Integer maxTesselationControlShaderStorageBlocks;
+		protected Integer maxTesselationEvaluationShaderStorageBlocks;
+		protected Integer maxFragmentShaderStorageBlocks;
+		protected Integer maxComputeShaderStorageBlocks;
+		protected Integer maxCombinedShaderStorageBlocks;
+		protected Integer maxShaderStorageBufferBindings;
+		protected Integer maxShaderStorageBlockSize;
+		protected Integer shaderStorageBufferOffsetAlignment;
+
+		/* GL 4.4 */
+		
+		protected Integer maxVertexAttribStride;
+		
+		/* GL 4.5 */
+		
+		protected Integer maxCullDistances;
+		protected Integer maxCombinedClipAndCullDistances;
+		
+		/* GL 4.6 */
+		
+		protected Integer maxTextureMaxAnisotropy;
+		
+		
 		protected Info() {}
 		
 		/**
@@ -471,6 +535,231 @@ public abstract class OGLGraphics implements OGLVersioned
 		public Integer getMaxCombinedTesselationEvaluationUniformComponents()
 		{
 			return maxCombinedTesselationEvaluationUniformComponents;
+		}
+
+		public Integer getMaxVertexUniformVectors()
+		{
+			return maxVertexUniformVectors;
+		}
+
+		public Integer getMaxVaryingVectors()
+		{
+			return maxVaryingVectors;
+		}
+
+		public Integer getMaxFragmentUniformVectors()
+		{
+			return maxFragmentUniformVectors;
+		}
+
+		public Integer getMaxViewports()
+		{
+			return maxViewports;
+		}
+
+		public Integer getMaxVertexAtomicCounterBuffers() 
+		{
+			return maxVertexAtomicCounterBuffers;
+		}
+
+		public Integer getMaxTesselationControlAtomicCounterBuffers()
+		{
+			return maxTesselationControlAtomicCounterBuffers;
+		}
+
+		public Integer getMaxTesselationEvaluationAtomicCounterBuffers()
+		{
+			return maxTesselationEvaluationAtomicCounterBuffers;
+		}
+
+		public Integer getMaxGeometryAtomicCounterBuffers() 
+		{
+			return maxGeometryAtomicCounterBuffers;
+		}
+
+		public Integer getMaxFragmentAtomicCounterBuffers()
+		{
+			return maxFragmentAtomicCounterBuffers;
+		}
+
+		public Integer getMaxCombinedAtomicCounterBuffers()
+		{
+			return maxCombinedAtomicCounterBuffers;
+		}
+
+		public Integer getMaxVertexAtomicCounters() 
+		{
+			return maxVertexAtomicCounters;
+		}
+
+		public Integer getMaxTesselationControlAtomicCounters()
+		{
+			return maxTesselationControlAtomicCounters;
+		}
+
+		public Integer getMaxTesselationEvaluationAtomicCounters() 
+		{
+			return maxTesselationEvaluationAtomicCounters;
+		}
+
+		public Integer getMaxGeometryAtomicCounters() 
+		{
+			return maxGeometryAtomicCounters;
+		}
+
+		public Integer getMaxFragmentAtomicCounters() 
+		{
+			return maxFragmentAtomicCounters;
+		}
+
+		public Integer getMaxCombinedAtomicCounters() 
+		{
+			return maxCombinedAtomicCounters;
+		}
+
+		public Integer getMaxAtomicCounterBufferSize() 
+		{
+			return maxAtomicCounterBufferSize;
+		}
+
+		public Integer getMaxAtomicCounterBufferBindings() 
+		{
+			return maxAtomicCounterBufferBindings;
+		}
+
+		public Integer getMaxComputeUniformBlocks()
+		{
+			return maxComputeUniformBlocks;
+		}
+
+		public Integer getMaxComputeTextureImageUnits()
+		{
+			return maxComputeTextureImageUnits;
+		}
+
+		public Integer getMaxComputeImageUniforms()
+		{
+			return maxComputeImageUniforms;
+		}
+
+		public Integer getMaxComputeSharedMemorySize()
+		{
+			return maxComputeSharedMemorySize;
+		}
+
+		public Integer getMaxComputeUniformComponents()
+		{
+			return maxComputeUniformComponents;
+		}
+
+		public Integer getMaxComputeAtomicCounterBuffers() 
+		{
+			return maxComputeAtomicCounterBuffers;
+		}
+
+		public Integer getMaxComputeAtomicCounters() 
+		{
+			return maxComputeAtomicCounters;
+		}
+
+		public Integer getMaxCombinedComputeUniformComponents()
+		{
+			return maxCombinedComputeUniformComponents;
+		}
+
+		public Integer getMaxComputeWorkGroupInvocations() 
+		{
+			return maxComputeWorkGroupInvocations;
+		}
+
+		public Integer getMaxDebugMessageLength() 
+		{
+			return maxDebugMessageLength;
+		}
+
+		public Integer getMaxDebugLoggesMessages()
+		{
+			return maxDebugLoggesMessages;
+		}
+
+		public Integer getMaxDebugGroupStackDepth() 
+		{
+			return maxDebugGroupStackDepth;
+		}
+
+		public Integer getMaxLabelLength()
+		{
+			return maxLabelLength;
+		}
+
+		public Integer getMaxVertexShaderStorageBlocks()
+		{
+			return maxVertexShaderStorageBlocks;
+		}
+
+		public Integer getMaxGeometryShaderStorageBlocks() 
+		{
+			return maxGeometryShaderStorageBlocks;
+		}
+
+		public Integer getMaxTesselationControlShaderStorageBlocks() 
+		{
+			return maxTesselationControlShaderStorageBlocks;
+		}
+
+		public Integer getMaxTesselationEvaluationShaderStorageBlocks()
+		{
+			return maxTesselationEvaluationShaderStorageBlocks;
+		}
+
+		public Integer getMaxFragmentShaderStorageBlocks() 
+		{
+			return maxFragmentShaderStorageBlocks;
+		}
+
+		public Integer getMaxComputeShaderStorageBlocks()
+		{
+			return maxComputeShaderStorageBlocks;
+		}
+
+		public Integer getMaxCombinedShaderStorageBlocks()
+		{
+			return maxCombinedShaderStorageBlocks;
+		}
+
+		public Integer getMaxShaderStorageBufferBindings()
+		{
+			return maxShaderStorageBufferBindings;
+		}
+
+		public Integer getMaxShaderStorageBlockSize() 
+		{
+			return maxShaderStorageBlockSize;
+		}
+
+		public Integer getShaderStorageBufferOffsetAlignment()
+		{
+			return shaderStorageBufferOffsetAlignment;
+		}
+
+		public Integer getMaxVertexAttribStride() 
+		{
+			return maxVertexAttribStride;
+		}
+
+		public Integer getMaxCullDistances() 
+		{
+			return maxCullDistances;
+		}
+
+		public Integer getMaxCombinedClipAndCullDistances() 
+		{
+			return maxCombinedClipAndCullDistances;
+		}
+
+		public Integer getMaxTextureMaxAnisotropy()
+		{
+			return maxTextureMaxAnisotropy;
 		}
 
 		/**
@@ -928,6 +1217,16 @@ public abstract class OGLGraphics implements OGLVersioned
 		return val ? GL11.GL_TRUE : GL11.GL_FALSE;
 	}
 
+	/**
+	 * Converts a GL boolean value to a Java boolean value.
+	 * @param glBoolean the GL boolean value.
+	 * @return true if GL_TRUE, false otherwise.
+	 */
+	public boolean fromGLBool(int glBoolean)
+	{
+		return glBoolean == GL11.GL_TRUE;
+	}
+	
 	/**
 	 * Clears the error bits for the GL Error flags.
 	 */

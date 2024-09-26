@@ -268,8 +268,35 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void attachProgramShaders(OGLProgram program, OGLProgramShader ... shaders)
 	{
+		if (program.isLinked())
+			throw new GraphicsException("Cannot attach shader: this program was already linked!");
+
 		for (OGLProgramShader shader : shaders)
-			program.attachShader(shader);
+			glAttachShader(program.getName(), shader.getName());
+	}
+	
+	/**
+	 * Detaches a shader from a program.
+	 * Throws an error if a program of the same type was already detached.
+	 * @param program the program to detach shaders from.
+	 * @param shaders the shaders to detach.
+	 */
+	public void detachProgramShaders(OGLProgram program, OGLProgramShader ... shaders)
+	{
+		for (OGLProgramShader shader : shaders)
+			glDetachShader(program.getName(), shader.getName());
+	}
+	
+	/**
+	 * Refreshes an OGLProgram's link status, uniforms, and attributes.
+	 * Should be called when a program is updated via binary upload.
+	 * @param program the program to update.
+	 */
+	protected void refreshProgramLinkStatusAndUniforms(OGLProgram program)
+	{
+		program.refreshLinkStatus();
+		if (program.isLinked())
+			program.refreshUniformsAndAttribs();
 	}
 	
 	/**

@@ -29,15 +29,16 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGLBuffer;
 import com.blackrook.gloop.opengl.gl1.OGLTexture;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
-import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 import com.blackrook.gloop.opengl.gl3.OGLVertexArrayState;
+import com.blackrook.gloop.opengl.gl4.OGL41Graphics;
+import com.blackrook.gloop.opengl.gl4.OGL41Graphics.ProgramBinary;
 import com.blackrook.gloop.opengl.node.OGLNode;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
 public final class OGLTest 
 {
 	private GLFWWindow window;
-	private OGLSystem<OGL33Graphics> oglSystem;
+	private OGLSystem<OGL41Graphics> oglSystem;
 	private GLFWContext.MainLoop mainLoop;
 	
 	public void run() 
@@ -50,7 +51,7 @@ public final class OGLTest
 		WindowHints hints = (new WindowHints())
 			.setVisible(false)
 			.setResizable(true)
-			.setContextVersion(3, 3)
+			.setContextVersion(4, 1)
 			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
 		GLFWInputSystem inputSystem = new GLFWInputSystem();
@@ -59,7 +60,7 @@ public final class OGLTest
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = OGLSystemFactory.getOpenGL33Core(window);
+		oglSystem = OGLSystemFactory.getOpenGL41Core(window);
 		oglSystem.addNode(new DrawNode());
 		oglSystem.setFPS(0);
 		
@@ -80,7 +81,7 @@ public final class OGLTest
 		}
 	}
 	
-	public static class DrawNode implements OGLNode<OGL33Graphics>
+	public static class DrawNode implements OGLNode<OGL41Graphics>
 	{
 		private OGLProgram program;
 		private OGLBuffer geometry;
@@ -98,7 +99,7 @@ public final class OGLTest
 		}
 		
 		@Override
-		public void onDisplay(OGL33Graphics gl)
+		public void onDisplay(OGL41Graphics gl)
 		{
 			final int VERTEX = 0;
 			final int COLOR = 1;
@@ -109,7 +110,7 @@ public final class OGLTest
 			{
 				program = gl.createProgramBuilder()
 					.setShader(ShaderType.VERTEX, (new StringBuilder())
-						.append("#version 330 core\n")
+						.append("#version 410 core\n")
 						.append("in vec3 position;\n")
 						.append("in vec4 color;\n")
 						.append("in vec2 texcoord;\n")
@@ -129,7 +130,7 @@ public final class OGLTest
 						.append("}\n")
 					.toString())
 					.setShader(ShaderType.FRAGMENT, (new StringBuilder())
-						.append("#version 330 core\n")
+						.append("#version 410 core\n")
 						.append("in vec4 varyingColor;\n")
 						.append("in vec2 varyingTexcoord;\n")
 						.append("\n")
@@ -152,6 +153,10 @@ public final class OGLTest
 				.create();
 				
 				System.out.println("Shader Link Log:\n" + program.getLog());
+				
+				// Program reflect test.
+				ProgramBinary bin = gl.getProgramBinary(program);
+				gl.setProgramBinary(program, bin);
 				
 				try (InputStream in = openResource("example/textures/earth.png"))
 				{
