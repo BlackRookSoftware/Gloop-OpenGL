@@ -183,7 +183,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		protected Integer maxCombinedComputeUniformComponents;
 		protected Integer maxComputeWorkGroupInvocations;
 		protected Integer maxDebugMessageLength;
-		protected Integer maxDebugLoggesMessages;
+		protected Integer maxDebugLoggedMessages;
 		protected Integer maxDebugGroupStackDepth;
 		protected Integer maxLabelLength;
 		protected Integer maxVertexShaderStorageBlocks;
@@ -208,7 +208,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		
 		/* GL 4.6 */
 		
-		protected Integer maxTextureMaxAnisotropy;
+		protected Float maxTextureMaxAnisotropy;
 		
 		
 		protected Info() {}
@@ -679,7 +679,7 @@ public abstract class OGLGraphics implements OGLVersioned
 
 		public Integer getMaxDebugLoggesMessages()
 		{
-			return maxDebugLoggesMessages;
+			return maxDebugLoggedMessages;
 		}
 
 		public Integer getMaxDebugGroupStackDepth() 
@@ -757,7 +757,7 @@ public abstract class OGLGraphics implements OGLVersioned
 			return maxCombinedClipAndCullDistances;
 		}
 
-		public Integer getMaxTextureMaxAnisotropy()
+		public Float getMaxTextureMaxAnisotropy()
 		{
 			return maxTextureMaxAnisotropy;
 		}

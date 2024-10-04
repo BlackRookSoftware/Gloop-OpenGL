@@ -24,7 +24,7 @@ public class OGL46Graphics extends OGL45Graphics
 		protected Info46()
 		{
 			super();
-			// TODO: Finish.
+			this.maxTextureMaxAnisotropy = getFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY);
 		}
 	}
 	

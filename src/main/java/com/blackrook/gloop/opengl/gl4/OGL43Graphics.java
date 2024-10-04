@@ -24,7 +24,29 @@ public class OGL43Graphics extends OGL42Graphics
 		protected Info43()
 		{
 			super();
-			// TODO: Finish.
+			this.maxComputeUniformBlocks = getInt(GL_MAX_COMPUTE_UNIFORM_BLOCKS);
+			this.maxComputeTextureImageUnits = getInt(GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS);
+			this.maxComputeImageUniforms = getInt(GL_MAX_COMPUTE_IMAGE_UNIFORMS);
+			this.maxComputeSharedMemorySize = getInt(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE);
+			this.maxComputeUniformComponents = getInt(GL_MAX_COMPUTE_UNIFORM_BLOCKS);
+			this.maxComputeAtomicCounterBuffers = getInt(GL_MAX_COMPUTE_ATOMIC_COUNTER_BUFFERS);
+			this.maxComputeAtomicCounters = getInt(GL_MAX_COMPUTE_ATOMIC_COUNTERS);
+			this.maxCombinedComputeUniformComponents = getInt(GL_MAX_COMBINED_COMPUTE_UNIFORM_COMPONENTS);
+			this.maxComputeWorkGroupInvocations = getInt(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS);
+			this.maxDebugMessageLength = getInt(GL_MAX_DEBUG_MESSAGE_LENGTH);
+			this.maxDebugLoggedMessages = getInt(GL_MAX_DEBUG_LOGGED_MESSAGES);
+			this.maxDebugGroupStackDepth = getInt(GL_MAX_DEBUG_GROUP_STACK_DEPTH);
+			this.maxLabelLength = getInt(GL_MAX_LABEL_LENGTH);
+			this.maxVertexShaderStorageBlocks = getInt(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS);
+			this.maxGeometryShaderStorageBlocks = getInt(GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS);
+			this.maxTesselationControlShaderStorageBlocks = getInt(GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS);
+			this.maxTesselationEvaluationShaderStorageBlocks = getInt(GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS);
+			this.maxFragmentShaderStorageBlocks = getInt(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS);
+			this.maxComputeShaderStorageBlocks = getInt(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS);
+			this.maxCombinedShaderStorageBlocks = getInt(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS);
+			this.maxShaderStorageBufferBindings = getInt(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS);
+			this.maxShaderStorageBlockSize = getInt(GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
+			this.shaderStorageBufferOffsetAlignment = getInt(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
 		}
 	}
 	

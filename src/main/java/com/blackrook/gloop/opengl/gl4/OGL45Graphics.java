@@ -24,7 +24,8 @@ public class OGL45Graphics extends OGL44Graphics
 		protected Info45()
 		{
 			super();
-			// TODO: Finish.
+			this.maxCullDistances = getInt(GL_MAX_CULL_DISTANCES);
+			this.maxCombinedClipAndCullDistances = getInt(GL_MAX_COMBINED_CLIP_AND_CULL_DISTANCES);
 		}
 	}
 	

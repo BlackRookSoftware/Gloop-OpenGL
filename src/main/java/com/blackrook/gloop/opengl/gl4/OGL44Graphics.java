@@ -24,7 +24,7 @@ public class OGL44Graphics extends OGL43Graphics
 		protected Info44()
 		{
 			super();
-			// TODO: Finish.
+			this.maxVertexAttribStride = getInt(GL_MAX_VERTEX_ATTRIB_STRIDE);
 		}
 	}
 	
