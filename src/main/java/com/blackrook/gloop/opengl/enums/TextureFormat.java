@@ -48,8 +48,8 @@ public enum TextureFormat implements OGLVersioned
 	/** Compressed RGBA Only. */
 	COMPRESSED_RGBA(OGLVersion.GL13, true, GL13.GL_COMPRESSED_RGBA, true, 4f);
 
-	private OGLVersion version;
-	private boolean core;
+	private final OGLVersion version;
+	private final boolean core;
 	
 	public final int glValue;
 	private final boolean compressed;
