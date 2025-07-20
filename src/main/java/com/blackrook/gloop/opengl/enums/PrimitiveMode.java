@@ -20,23 +20,23 @@ public enum PrimitiveMode
 	 * <p> Valid drawing primitives are: {@link GeometryType#POINTS}.
 	 * <p> Geometry shader must output <code>points</code>.
 	 */
-    POINTS(GL11.GL_POINTS),
+	POINTS(GL11.GL_POINTS),
 	
-    /** 
+	/** 
 	 * Lines feedback mode. 
 	 * <p> Valid drawing primitives are: {@link GeometryType#LINES}, {@link GeometryType#LINE_STRIP}, 
 	 * {@link GeometryType#LINE_LOOP}, {@link GeometryType#LINES_ADJACENCY}, {@link GeometryType#LINE_STRIP_ADJACENCY}.
 	 * <p> Geometry shader must output <code>line_strip</code>.
 	 */
-    LINES(GL11.GL_LINES),
+	LINES(GL11.GL_LINES),
 
-    /** 
+	/** 
 	 * Triangles feedback mode.
 	 * <p> Valid drawing primitives are: {@link GeometryType#TRIANGLES}, {@link GeometryType#TRIANGLE_STRIP}, 
 	 * {@link GeometryType#TRIANGLE_FAN}, {@link GeometryType#TRIANGLES_ADJACENCY}, {@link GeometryType#TRIANGLE_STRIP_ADJACENCY}.
 	 * <p> Geometry shader must output <code>triangle_strip</code>.
 	 */
-    TRIANGLES(GL11.GL_TRIANGLES);
+	TRIANGLES(GL11.GL_TRIANGLES);
 	
 	public final int glValue;
 	

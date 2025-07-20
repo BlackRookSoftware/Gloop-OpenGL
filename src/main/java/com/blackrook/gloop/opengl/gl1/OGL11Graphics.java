@@ -1829,7 +1829,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setFrontFillMode(FillMode mode)
 	{
-	   	glPolygonMode(FaceSide.FRONT.glValue, mode.glValue);
+		glPolygonMode(FaceSide.FRONT.glValue, mode.glValue);
 	}
 
 	/**
@@ -1838,7 +1838,7 @@ public class OGL11Graphics extends OGLGraphics
 	 */
 	public void setBackFillMode(FillMode mode)
 	{
-	   	glPolygonMode(FaceSide.BACK.glValue, mode.glValue);
+		glPolygonMode(FaceSide.BACK.glValue, mode.glValue);
 	}
 
 	/**

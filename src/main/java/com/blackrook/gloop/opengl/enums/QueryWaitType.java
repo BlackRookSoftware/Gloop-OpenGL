@@ -16,13 +16,13 @@ import org.lwjgl.opengl.GL30;
 public enum QueryWaitType
 {
 	/** Wait for query to complete. */
-    WAIT(GL30.GL_QUERY_WAIT),
+	WAIT(GL30.GL_QUERY_WAIT),
 	/** Don't wait for query to complete, use current result state. */
-    NO_WAIT(GL30.GL_QUERY_NO_WAIT),
+	NO_WAIT(GL30.GL_QUERY_NO_WAIT),
 	/** Wait for query to complete, but optionally discard based on framebuffer region. */
-    BY_REGION_WAIT(GL30.GL_QUERY_BY_REGION_WAIT),
+	BY_REGION_WAIT(GL30.GL_QUERY_BY_REGION_WAIT),
 	/** Don't wait for query to complete and use current result state, but optionally discard based on framebuffer region. */
-    BY_REGION_NO_WAIT(GL30.GL_QUERY_BY_REGION_NO_WAIT);
+	BY_REGION_NO_WAIT(GL30.GL_QUERY_BY_REGION_NO_WAIT);
 	
 	public final int glValue;
 	

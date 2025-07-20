@@ -103,7 +103,7 @@ public abstract class OGLGraphics implements OGLVersioned
 		/** Maximum multisample samples. */
 		protected Integer maxSamples;
 		
-        /* GL 3.1 */
+		/* GL 3.1 */
 
 		protected Integer maxTextureBufferSize;
 		protected Integer maxVertexUniformBlocks;
@@ -116,15 +116,15 @@ public abstract class OGLGraphics implements OGLVersioned
 		protected Integer maxCombinedGeometryUniformComponents;
 		protected Integer maxCombinedFragmentUniformComponents;
 
-        /* GL 3.2 */
-        
+		/* GL 3.2 */
+		
 		protected Integer maxVertexOutputComponents;
 		protected Integer maxGeometryInputComponents;
 		protected Integer maxGeometryOutputComponents;
 		protected Integer maxFragmentInputComponents;
 
-        /* GL 4.0 */
-        
+		/* GL 4.0 */
+		
 		protected Integer maxGeometryShaderInvocations;
 		protected Integer minFragmentInterpolationOffset;
 		protected Integer maxFragmentInterpolationOffset;

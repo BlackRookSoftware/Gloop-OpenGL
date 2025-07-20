@@ -25,10 +25,10 @@ public class OGL32Graphics extends OGL31Graphics
 		protected Info32()
 		{
 			super();
-	        this.maxVertexOutputComponents = getInt(GL_MAX_VERTEX_OUTPUT_COMPONENTS);
-	        this.maxGeometryInputComponents = getInt(GL_MAX_GEOMETRY_INPUT_COMPONENTS);
-	        this.maxGeometryOutputComponents = getInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS);
-	        this.maxFragmentInputComponents = getInt(GL_MAX_FRAGMENT_INPUT_COMPONENTS);
+			this.maxVertexOutputComponents = getInt(GL_MAX_VERTEX_OUTPUT_COMPONENTS);
+			this.maxGeometryInputComponents = getInt(GL_MAX_GEOMETRY_INPUT_COMPONENTS);
+			this.maxGeometryOutputComponents = getInt(GL_MAX_GEOMETRY_OUTPUT_COMPONENTS);
+			this.maxFragmentInputComponents = getInt(GL_MAX_FRAGMENT_INPUT_COMPONENTS);
 		}
 	}
 	

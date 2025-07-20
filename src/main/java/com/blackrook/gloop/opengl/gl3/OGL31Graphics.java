@@ -25,15 +25,15 @@ public class OGL31Graphics extends OGL30Graphics
 		{
 			super();
 			this.maxTextureBufferSize = getInt(GL_MAX_TEXTURE_BUFFER_SIZE);
-	        this.maxVertexUniformBlocks = getInt(GL_MAX_VERTEX_UNIFORM_BLOCKS);
-	        this.maxGeometryUniformBlocks = getInt(GL_MAX_GEOMETRY_UNIFORM_BLOCKS);
-	        this.maxFragmentUniformBlocks = getInt(GL_MAX_FRAGMENT_UNIFORM_BLOCKS);
-	        this.maxCombinedUniformBlocks = getInt(GL_MAX_COMBINED_UNIFORM_BLOCKS);
-	        this.maxUniformBufferBindings = getInt(GL_MAX_UNIFORM_BUFFER_BINDINGS);
-	        this.maxUniformBlockSize = getInt(GL_MAX_UNIFORM_BLOCK_SIZE);
-	        this.maxCombinedVertexUniformComponents = getInt(GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS);
-	        this.maxCombinedGeometryUniformComponents = getInt(GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS);
-	        this.maxCombinedFragmentUniformComponents = getInt(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS);
+			this.maxVertexUniformBlocks = getInt(GL_MAX_VERTEX_UNIFORM_BLOCKS);
+			this.maxGeometryUniformBlocks = getInt(GL_MAX_GEOMETRY_UNIFORM_BLOCKS);
+			this.maxFragmentUniformBlocks = getInt(GL_MAX_FRAGMENT_UNIFORM_BLOCKS);
+			this.maxCombinedUniformBlocks = getInt(GL_MAX_COMBINED_UNIFORM_BLOCKS);
+			this.maxUniformBufferBindings = getInt(GL_MAX_UNIFORM_BUFFER_BINDINGS);
+			this.maxUniformBlockSize = getInt(GL_MAX_UNIFORM_BLOCK_SIZE);
+			this.maxCombinedVertexUniformComponents = getInt(GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS);
+			this.maxCombinedGeometryUniformComponents = getInt(GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS);
+			this.maxCombinedFragmentUniformComponents = getInt(GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS);
 		}
 	}
 	
