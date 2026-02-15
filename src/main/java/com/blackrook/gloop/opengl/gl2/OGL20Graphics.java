@@ -18,10 +18,20 @@ import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL15Graphics;
 import com.blackrook.gloop.opengl.math.Matrix4F;
+import com.blackrook.gloop.opengl.struct.IOUtils;
 import com.blackrook.gloop.opengl.util.ProgramBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +108,10 @@ public class OGL20Graphics extends OGL15Graphics
 					gl.setProgramVertexAttribLocation(out, entry.getKey(), entry.getValue());
 				
 				gl.linkProgram(out);
+
+				// clean up shaders after link
+				for (OGLProgramShader ps : list)
+					gl.destroyProgramShader(ps);
 				
 			} catch (Exception e) {
 				gl.destroyProgram(out);
@@ -700,6 +714,82 @@ public class OGL20Graphics extends OGL15Graphics
 	{
 		glVertexAttribPointer(index, dimensions, dataType.glValue, normalize, stride * dataType.size, offset * dataType.size);
 		checkError();
+	}
+
+	/**
+	 * Creates a supplier that gets the source from a file.
+	 * Assumes system encoding.
+	 * @param sourceFile the source file.
+	 * @return a supplier function for retrieving the source data.
+	 * @throws FileNotFoundException if the source file was not found. 
+	 * @throws IOException if the file could not be opened.
+	 * @throws SecurityException if the file could not be opened, due to OS restrictions.
+	 */
+	public static Supplier<String> createFileSourceSupplier(File sourceFile) throws FileNotFoundException, IOException
+	{
+		return createFileSourceSupplier(sourceFile, Charset.defaultCharset());
+	}
+
+	/**
+	 * Creates a supplier that gets the source from a file.
+	 * @param sourceFile the source file.
+	 * @param encoding the encoding type of the file.
+	 * @return a supplier function for retrieving the source data.
+	 * @throws FileNotFoundException if the source file was not found. 
+	 * @throws IOException if the file could not be opened.
+	 * @throws SecurityException if the file could not be opened, due to OS restrictions.
+	 */
+	public static Supplier<String> createFileSourceSupplier(File sourceFile, Charset encoding) throws FileNotFoundException, IOException
+	{
+		return createStreamSourceSupplier(new FileInputStream(sourceFile), encoding);
+	}
+
+	/**
+	 * Creates a supplier that gets the source from an input stream.
+	 * Assumes system encoding.
+	 * @param sourceStream the input stream.
+	 * @return a supplier function for retrieving the source data.
+	 */
+	public static Supplier<String> createStreamSourceSupplier(InputStream sourceStream)
+	{
+		return createReaderSourceSupplier(new InputStreamReader(sourceStream, Charset.defaultCharset()));
+	}
+
+	/**
+	 * Creates a supplier that gets the source from an input stream.
+	 * @param sourceStream the input stream.
+	 * @param encoding the encoding type of the incoming data.
+	 * @return a supplier function for retrieving the source data.
+	 */
+	public static Supplier<String> createStreamSourceSupplier(InputStream sourceStream, Charset encoding)
+	{
+		return createReaderSourceSupplier(new InputStreamReader(sourceStream, encoding));
+	}
+
+	/**
+	 * Creates a supplier that gets the source from a Reader.
+	 * The reader is closed after the read.
+	 * @param reader the supplied reader. 
+	 * @return a supplier function for retrieving the source data.
+	 */
+	public static Supplier<String> createReaderSourceSupplier(final Reader reader)
+	{
+		return () -> 
+		{
+			try (StringWriter writer = new StringWriter())
+			{
+				IOUtils.relay(reader, writer);
+				return writer.toString();
+			} 
+			catch (IOException e) 
+			{
+				return e.getClass().getSimpleName() + ": " + e.getLocalizedMessage();
+			}
+			finally
+			{
+				IOUtils.close(reader);
+			}
+		};
 	}
 	
 }

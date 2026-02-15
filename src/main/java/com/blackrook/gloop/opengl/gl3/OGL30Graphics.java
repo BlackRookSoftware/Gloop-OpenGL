@@ -121,6 +121,10 @@ public class OGL30Graphics extends OGL21Graphics
 				
 				gl.linkProgram(out);
 				
+				// clean up shaders after link
+				for (OGLProgramShader ps : list)
+					gl.destroyProgramShader(ps);
+
 			} catch (Exception e) {
 				gl.destroyProgram(out);
 				for (OGLProgramShader ps : list)
