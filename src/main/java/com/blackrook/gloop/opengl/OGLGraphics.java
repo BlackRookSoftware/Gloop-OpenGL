@@ -1058,12 +1058,16 @@ public abstract class OGLGraphics implements OGLVersioned
 			case IGNORE:
 				return;
 			case ERROROUT:
-				StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-				StackTraceElement lastCall = trace[2];
-				System.err.println(lastCall.getClassName() + ":" + lastCall.getMethodName() + " is unavailable in a core implementation.");
+				if (isCore())
+				{
+					StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+					StackTraceElement lastCall = trace[2];
+					System.err.println(lastCall.getClassName() + ":" + lastCall.getMethodName() + " is unavailable in a core implementation.");
+				}
 				return;
 			case EXCEPTION:
-				throw new UnsupportedOperationException("This is unavailable in a core implementation.");
+				if (isCore())
+					throw new UnsupportedOperationException("This is unavailable in a core implementation.");
 		}
 	}
 	
