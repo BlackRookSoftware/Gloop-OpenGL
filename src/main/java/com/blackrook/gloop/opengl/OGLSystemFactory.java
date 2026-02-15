@@ -1,6 +1,7 @@
 package com.blackrook.gloop.opengl;
 
 import com.blackrook.gloop.glfw.GLFWWindow;
+import com.blackrook.gloop.opengl.OGLSystem.ErrorHandlingType;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
 import com.blackrook.gloop.opengl.gl1.OGL12Graphics;
@@ -36,15 +37,21 @@ public final class OGLSystemFactory
 	public static final OGLSystem.Options NO_ERROR_CHECKING = new OGLSystem.Options()
 	{
 		@Override
-		public boolean performVersionChecking()
+		public ErrorHandlingType handleErrorChecking() 
 		{
-			return false;
+			return ErrorHandlingType.IGNORE;
 		}
-		
+
 		@Override
-		public boolean performErrorChecking()
+		public ErrorHandlingType handleVersionChecking()
 		{
-			return false;
+			return ErrorHandlingType.IGNORE;
+		}
+
+		@Override
+		public ErrorHandlingType handleUndeletedObjects()
+		{
+			return ErrorHandlingType.IGNORE;
 		}
 	};
 	
@@ -54,15 +61,21 @@ public final class OGLSystemFactory
 	public static final OGLSystem.Options DEFAULT_OPTIONS = new OGLSystem.Options()
 	{
 		@Override
-		public boolean performVersionChecking()
+		public ErrorHandlingType handleErrorChecking() 
 		{
-			return true;
+			return ErrorHandlingType.EXCEPTION;
 		}
-		
+
 		@Override
-		public boolean performErrorChecking()
+		public ErrorHandlingType handleVersionChecking() 
 		{
-			return true;
+			return ErrorHandlingType.EXCEPTION;
+		}
+
+		@Override
+		public ErrorHandlingType handleUndeletedObjects() 
+		{
+			return ErrorHandlingType.EXCEPTION;
 		}
 	};
 	

@@ -53,7 +53,7 @@ public class OGL32Graphics extends OGL31Graphics
 	protected void endFrame() 
 	{
 		// Clean up abandoned objects.
-		OGLSync.destroyUndeleted();
+		handleUndeletedObjects(OGLSync.class, OGLSync.destroyUndeleted());
 		super.endFrame();
 	}
 	

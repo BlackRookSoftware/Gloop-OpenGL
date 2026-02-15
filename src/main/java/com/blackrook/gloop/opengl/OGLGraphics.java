@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL45;
 
+import com.blackrook.gloop.opengl.OGLSystem.ErrorHandlingType;
 import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 
@@ -1020,30 +1021,50 @@ public abstract class OGLGraphics implements OGLVersioned
 	 * and if the object is from a later version, throw an exception.
 	 * This will also throw an exception if this version is core and the provided object is not.
 	 * @param versioned the versioned element to check against.
-	 * @throws UnsupportedOperationException if the versioned object is a later version than this one, or is not core if this graphics instance is.
+	 * @throws UnsupportedOperationException if the versioned object is a later version than this one, or is not core if this graphics instance is, and
+	 *     Options#handleVersionChecking() returns {@link ErrorHandlingType#EXCEPTION}.
 	 */
 	public void verifyFeatureSupport(OGLVersioned versioned)
 	{
-		if (!options.performVersionChecking())
-			return;
-			
-		if (getVersion().compareTo(versioned.getVersion()) < 0)
-			throw new UnsupportedOperationException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
-		if (isCore() && !versioned.isCore())
-			throw new UnsupportedOperationException("Using " + versioned.getClass().getSimpleName() + " requires it being part of the core spec, and it isn't.");
+		switch (options.handleVersionChecking())
+		{
+			default:
+			case IGNORE:
+				return;
+			case ERROROUT:
+				if (getVersion().compareTo(versioned.getVersion()) < 0)
+					System.err.println(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
+				if (isCore() && !versioned.isCore())
+					System.err.println("Using " + versioned.getClass().getSimpleName() + " requires it being part of the core spec, and it isn't.");
+				return;
+			case EXCEPTION:
+				if (getVersion().compareTo(versioned.getVersion()) < 0)
+					throw new UnsupportedOperationException(versioned.getClass().getSimpleName() + " requires version " + versioned.getVersion().name());
+				if (isCore() && !versioned.isCore())
+					throw new UnsupportedOperationException("Using " + versioned.getClass().getSimpleName() + " requires it being part of the core spec, and it isn't.");
+				return;
+		}
 	}
 	
 	/**
-	 * Checks if the version of this graphics implementation 
-	 * is non-core, and if it is, it throws an exception.
-	 * @throws UnsupportedOperationException if this graphics instance is a core implementation.
+	 * Checks if the version of this graphics implementation is non-core, and if it is, it throws an exception.
+	 * @throws UnsupportedOperationException if this graphics instance is a core implementation and Options#handleVersionChecking() returns {@link ErrorHandlingType#EXCEPTION}.
 	 */
 	public void verifyNonCore()
 	{
-		if (!options.performVersionChecking())
-			return;
-		if (isCore())
-			throw new UnsupportedOperationException("This is unavailable in a core implementation.");
+		switch (options.handleVersionChecking())
+		{
+			default:
+			case IGNORE:
+				return;
+			case ERROROUT:
+				StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+				StackTraceElement lastCall = trace[2];
+				System.err.println(lastCall.getClassName() + ":" + lastCall.getMethodName() + " is unavailable in a core implementation.");
+				return;
+			case EXCEPTION:
+				throw new UnsupportedOperationException("This is unavailable in a core implementation.");
+		}
 	}
 	
 	@Override
@@ -1232,59 +1253,69 @@ public abstract class OGLGraphics implements OGLVersioned
 	 */
 	public void clearError()
 	{
-		if (options.performErrorChecking())
-			while (GL11.glGetError() != GL11.GL_NO_ERROR) {}
+		while (GL11.glGetError() != GL11.GL_NO_ERROR) {} 
 	}
 
 	/**
+	 * Gets the error name of a GL error enumeration value.
+	 * @param glEnum the value.
+	 * @return a string representing the error.
+	 */
+	public static String getGLErrorName(int glEnum)
+	{
+		switch (glEnum)
+		{
+			case GL11.GL_INVALID_ENUM:
+				return "Invalid Enumeration";
+			case GL11.GL_INVALID_VALUE:
+				return "Invalid Value";
+			case GL11.GL_INVALID_OPERATION:
+				return "Invalid Operation";
+			case GL11.GL_STACK_OVERFLOW:
+				return "Stack Overflow";
+			case GL11.GL_STACK_UNDERFLOW:
+				return "Stack Underflow";
+			case GL11.GL_OUT_OF_MEMORY:
+				return "Out of Memory";
+			case GL30.GL_INVALID_FRAMEBUFFER_OPERATION:
+				return "Invalid Framebuffer Operation";
+			case GL45.GL_CONTEXT_LOST:
+				return "Context Lost";
+			case ARBImaging.GL_TABLE_TOO_LARGE:
+				return "Image Table Too Large";
+			default:
+				return "(UNKNOWN ERROR CODE)";
+		}
+	}
+	
+	/**
 	 * Tests for an OpenGL error via glGetError(), but only if error checking is enabled.
-	 * If one is raised, this throws a GraphicsException with the error message.
-	 * @throws GraphicsException if an error is raised. 
-	 * @see Options#performErrorChecking()
+	 * @throws GraphicsException if an error is raised and Options#handleErrorChecking() returns {@link ErrorHandlingType#EXCEPTION}. 
+	 * @see Options#handleErrorChecking()
 	 */
 	public void checkError()
 	{
-		if (!options.performErrorChecking())
-			return;
-		
-		int error = GL11.glGetError();
-		if (error != GL11.GL_NO_ERROR)
+		switch (options.handleErrorChecking())
 		{
-			String errorName;
-			switch (error)
+			default:
+			case IGNORE:
+				return;
+			case ERROROUT:
 			{
-				case GL11.GL_INVALID_ENUM:
-					errorName = "Invalid Enumeration";
-					break;
-				case GL11.GL_INVALID_VALUE:
-					errorName = "Invalid Value";
-					break;
-				case GL11.GL_INVALID_OPERATION:
-					errorName = "Invalid Operation";
-					break;
-				case GL11.GL_STACK_OVERFLOW:
-					errorName = "Stack Overflow";
-					break;
-				case GL11.GL_STACK_UNDERFLOW:
-					errorName = "Stack Underflow";
-					break;
-				case GL11.GL_OUT_OF_MEMORY:
-					errorName = "Out of Memory";
-					break;
-				case GL30.GL_INVALID_FRAMEBUFFER_OPERATION:
-					errorName = "Invalid Framebuffer Operation";
-					break;
-				case GL45.GL_CONTEXT_LOST:
-					errorName = "Context Lost";
-					break;
-				case ARBImaging.GL_TABLE_TOO_LARGE:
-					errorName = "Image Table Too Large";
-					break;
-				default:
-					errorName = "(UNKNOWN ERROR CODE)";
-					break;
+				int error = GL11.glGetError();
+				if (error != GL11.GL_NO_ERROR)
+				{
+					StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+					StackTraceElement lastCall = trace[2];
+					System.err.println("WARNING: " + lastCall.getClassName()+ ":" + lastCall.getMethodName() + ": OpenGL raised error code " + error + ": " + getGLErrorName(error));
+				}
+				return;
 			}
-			throw new GraphicsException("OpenGL raised error code " + error + ": " + errorName);
+			case EXCEPTION:
+				int error = GL11.glGetError();
+				if (error != GL11.GL_NO_ERROR)
+					throw new GraphicsException("OpenGL raised error code " + error + ": " + getGLErrorName(error));
+				return;
 		}
 	}
 
@@ -1295,6 +1326,30 @@ public abstract class OGLGraphics implements OGLVersioned
 	protected void destroyObject(OGLObject object)
 	{
 		object.destroy();
+	}
+	
+	/**
+	 * Handles the result of undeleted objects.
+	 * @param <O> the object type.
+	 * @param type the object type.
+	 * @param amount the amount of objects deleted.
+	 */
+	protected <O extends OGLObject> void handleUndeletedObjects(Class<O> type, int amount)
+	{
+		switch (options.handleUndeletedObjects())
+		{
+			default:
+			case IGNORE:
+				return;
+			case ERROROUT:
+				if (amount > 0)
+					System.err.println("WARNING: Deleted undeleted objects this frame: " + amount + " " + type.getSimpleName());
+				return;
+			case EXCEPTION:
+				if (amount > 0)
+					throw new GraphicsException("Deleted undeleted objects this frame: " + amount + " " + type.getSimpleName());
+				return;
+		}
 	}
 	
 }

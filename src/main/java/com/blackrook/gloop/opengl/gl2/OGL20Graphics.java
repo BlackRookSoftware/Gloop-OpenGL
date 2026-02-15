@@ -135,8 +135,8 @@ public class OGL20Graphics extends OGL15Graphics
 	protected void endFrame()
 	{
 		// Clean up abandoned objects.
-		OGLProgram.destroyUndeleted();
-		OGLProgramShader.destroyUndeleted();
+		handleUndeletedObjects(OGLProgram.class, OGLProgram.destroyUndeleted());
+		handleUndeletedObjects(OGLProgramShader.class, OGLProgramShader.destroyUndeleted());
 		super.endFrame();
 	}
 

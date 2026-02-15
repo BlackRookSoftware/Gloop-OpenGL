@@ -274,27 +274,46 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 	
 	/**
+	 * Describes how to handle a particular situation in the graphics runtime.
+	 */
+	public enum ErrorHandlingType
+	{
+		/** Ignore the error condition. */
+		IGNORE,
+		/** Write a warning/error to standard error. */
+		ERROROUT,
+		/** Throw a GraphicsException when it happens. */
+		EXCEPTION;
+	}
+	
+	/**
 	 * An options class for changing runtime behavior for a created system.
 	 */
 	public interface Options
 	{
 		/**
-		 * Gets whether or not the error checking functions used to detect
-		 * OpenGL runtime errors should do anything on call. Turning this off
-		 * stops all {@link OGLGraphics#checkError()} calls from going through to OpenGL, saving calls.
+		 * Gets whether or not the error checking functions used to detect OpenGL runtime errors should do anything on call. 
+		 * Returning {@link ErrorHandlingType#IGNORE} stops all {@link OGLGraphics#checkError()} calls from going through to OpenGL, saving calls.
 		 * <p> It would be unwise to turn this off while developing.
-		 * @return true to perform error checking, false to not.
+		 * @return the error handling type.
 		 */
-		boolean performErrorChecking();
+		ErrorHandlingType handleErrorChecking();
 		
 		/**
-		 * Gets whether or not the version checking functions used to detect
-		 * mismatched features should do anything on call. Turning this off
-		 * turns all internal version checking and verification off.
+		 * Gets whether or not the version checking functions used to detect mismatched features should do anything on call. 
+		 * Returning {@link ErrorHandlingType#IGNORE} turns all internal version checking and verification off.
 		 * <p> It would be unwise to turn this off while developing.
-		 * @return true to perform feature version checking, false to not.
+		 * @return the error handling type.
 		 */
-		boolean performVersionChecking();
+		ErrorHandlingType handleVersionChecking();
+
+		/**
+		 * Gets whether or not encountering an undeleted object at the end of a frame results in an error.
+		 * Returning {@link ErrorHandlingType#IGNORE} does not report on undeleted objects, and silently deletes them.
+		 * <p> It would be unwise to turn this off while developing.
+		 * @return the error handling type.
+		 */
+		ErrorHandlingType handleUndeletedObjects();
 	}
 	
 	// The rendering thread.

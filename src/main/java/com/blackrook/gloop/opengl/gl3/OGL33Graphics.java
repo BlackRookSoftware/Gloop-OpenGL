@@ -45,7 +45,7 @@ public class OGL33Graphics extends OGL32Graphics
 	protected void endFrame() 
 	{
 		// Clean up abandoned objects.
-		OGLSampler.destroyUndeleted();
+		handleUndeletedObjects(OGLSampler.class, OGLSampler.destroyUndeleted());
 		super.endFrame();
 	}
 

@@ -73,15 +73,19 @@ public class OGLTexture extends OGLObject
 	/**
 	 * Destroys undeleted texture objects abandoned from destroyed Java objects.
 	 * <p><b>This is automatically called by OGLSystem after every frame and should NEVER be called manually!</b>
+	 * @return the amount of objects deleted.
 	 */
-	public static void destroyUndeleted()
+	public static int destroyUndeleted()
 	{
 		if (UNDELETED_LENGTH > 0)
 		{
+			int out = UNDELETED_LENGTH;
 			for (int i = 0; i < UNDELETED_LENGTH; i++)
 				glDeleteTextures(UNDELETED_IDS[i]);
 			UNDELETED_LENGTH = 0;
+			return out;
 		}
+		return 0;
 	}
 
 	// adds the OpenGL Id to the UNDELETED_IDS list.

@@ -386,7 +386,7 @@ public class OGL11Graphics extends OGLGraphics
 	protected void endFrame()
 	{
 		// Clean up abandoned objects.
-		OGLTexture.destroyUndeleted();
+		handleUndeletedObjects(OGLTexture.class, OGLTexture.destroyUndeleted());
 	}
 
 	/**

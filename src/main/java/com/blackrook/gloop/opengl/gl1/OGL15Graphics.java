@@ -104,8 +104,8 @@ public class OGL15Graphics extends OGL14Graphics
 	protected void endFrame()
 	{
 		// Clean up abandoned objects.
-		OGLQuery.destroyUndeleted();
-		OGLBuffer.destroyUndeleted();
+		handleUndeletedObjects(OGLQuery.class, OGLQuery.destroyUndeleted());
+		handleUndeletedObjects(OGLBuffer.class, OGLBuffer.destroyUndeleted());
 		super.endFrame();
 	}
 
