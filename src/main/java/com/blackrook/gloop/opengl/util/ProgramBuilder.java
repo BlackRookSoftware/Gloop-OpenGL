@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
@@ -89,11 +90,31 @@ public interface ProgramBuilder
 	/**
 	 * Sets a shader program and a shader source. 
 	 * @param type the shader type.
+	 * @param file the source file.
+	 * @param encoding the file encoding type.
+	 * @return this builder.
+	 * @throws UnsupportedOperationException if the shader type is unavailable in this version.
+	 */
+	ProgramBuilder setShader(ShaderType type, final File file, Charset encoding);
+	
+	/**
+	 * Sets a shader program and a shader source. 
+	 * @param type the shader type.
 	 * @param in the input stream to read from.
 	 * @return this builder.
 	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
 	 */
 	ProgramBuilder setShader(ShaderType type, final InputStream in);
+	
+	/**
+	 * Sets a shader program and a shader source. 
+	 * @param type the shader type.
+	 * @param in the input stream to read from.
+	 * @param encoding the file encoding type.
+	 * @return this builder.
+	 * @throws UnsupportedOperationException if the provided shader type is unavailable in this version.
+	 */
+	ProgramBuilder setShader(ShaderType type, final InputStream in, final Charset encoding);
 	
 	/**
 	 * Sets a shader program and a shader source. 
@@ -200,10 +221,16 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final File file)
 		{
+			return setShader(type, file, Charset.defaultCharset());
+		}
+		
+		@Override
+		public ProgramBuilder setShader(ShaderType type, final File file, final Charset encoding)
+		{
 			gl.verifyFeatureSupport(type);
 			return setShader(type, () ->
 			{
-				try (Reader reader = new InputStreamReader(new FileInputStream(file)))
+				try (Reader reader = new InputStreamReader(new FileInputStream(file), encoding))
 				{
 					return readSource(reader);
 				}
@@ -221,10 +248,16 @@ public interface ProgramBuilder
 		@Override
 		public ProgramBuilder setShader(ShaderType type, final InputStream in)
 		{
+			return setShader(type, in, Charset.defaultCharset());
+		}
+		
+		@Override
+		public ProgramBuilder setShader(ShaderType type, final InputStream in, final Charset encoding)
+		{
 			gl.verifyFeatureSupport(type);
 			return setShader(type, () ->
 			{
-				try (Reader reader = new InputStreamReader(in))
+				try (Reader reader = new InputStreamReader(in, encoding))
 				{
 					return readSource(reader);
 				}
