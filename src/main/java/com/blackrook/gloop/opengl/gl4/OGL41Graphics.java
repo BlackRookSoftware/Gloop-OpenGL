@@ -56,6 +56,14 @@ public class OGL41Graphics extends OGL40Graphics
 		return new Info41();
 	}
 	
+	@Override
+	protected void endFrame() 
+	{
+		// Clean up abandoned objects.
+		handleUndeletedObjects(OGLProgramPipeline.class, OGLProgramPipeline.destroyUndeleted());
+		super.endFrame();
+	}
+	
 	/**
 	 * Sets a viewport at a specific index.
 	 * @param index the index to set.

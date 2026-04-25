@@ -164,6 +164,7 @@ public class OGL30Graphics extends OGL21Graphics
 		// Clean up abandoned objects.
 		handleUndeletedObjects(OGLRenderbuffer.class, OGLRenderbuffer.destroyUndeleted());
 		handleUndeletedObjects(OGLFramebuffer.class, OGLFramebuffer.destroyUndeleted());
+		handleUndeletedObjects(OGLVertexArrayState.class, OGLVertexArrayState.destroyUndeleted());
 		super.endFrame();
 	}
 

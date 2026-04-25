@@ -9,8 +9,14 @@ package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.OGLSystem.Options;
+import com.blackrook.gloop.opengl.enums.DataType;
+import com.blackrook.gloop.opengl.enums.GeometryType;
 
 import static org.lwjgl.opengl.GL31.*;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 
 /**
@@ -54,4 +60,72 @@ public class OGL31Graphics extends OGL30Graphics
 		return new Info31();
 	}
 	
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param offset the starting offset in the bound buffers (in elements).
+	 * @param elementCount the number of elements to draw using bound buffers.
+	 * NOTE: an element is in terms of array elements, so if the bound buffers describe the coordinates of 4 vertices,
+	 * <code>elementCount</code> should be 4.
+	 * @param instances the number of instances of the element set to draw using bound buffers.
+	 */
+	public void drawGeometryArrayInstanced(GeometryType geometryType, int offset, int elementCount, int instances)
+	{
+		glDrawArraysInstanced(geometryType.glValue, offset, elementCount, instances);
+		checkError();
+	}
+	
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data,
+	 * with the provided element buffer to describe the ordering.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param dataType the data type of the indices in <code>indices</code> (must be an unsigned type).
+	 * @param indices the buffer of element indices to interpret.
+	 * @param instances the number of instances of the element set to draw using bound buffers.
+	 */
+	public void drawGeometryElementsInstanced(GeometryType geometryType, DataType dataType, ByteBuffer indices, int instances)
+	{
+		glDrawElementsInstanced(geometryType.glValue, dataType.glValue, indices, instances);
+		checkError();
+	}
+
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data, 
+	 * with the provided element buffer to describe the ordering.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param indices the buffer of element indices.
+	 * @param instances the number of instances of the element set to draw using bound buffers.
+	 */
+	public void drawGeometryElementsInstanced(GeometryType geometryType, ByteBuffer indices, int instances)
+	{
+		glDrawElementsInstanced(geometryType.glValue, indices, instances);
+		checkError();
+	}
+
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data, 
+	 * with the provided element buffer to describe the ordering.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param indices the buffer of element indices.
+	 * @param instances the number of instances of the element set to draw using bound buffers.
+	 */
+	public void drawGeometryElementsInstanced(GeometryType geometryType, ShortBuffer indices, int instances)
+	{
+		glDrawElementsInstanced(geometryType.glValue, indices, instances);
+		checkError();
+	}
+
+	/**
+	 * Draws geometry using the current bound, enabled coordinate arrays/buffers as data, 
+	 * with the provided element buffer to describe the ordering.
+	 * @param geometryType the geometry type - tells how to interpret the data.
+	 * @param indices the buffer of element indices.
+	 * @param instances the number of instances of the element set to draw using bound buffers.
+	 */
+	public void drawGeometryElementsInstanced(GeometryType geometryType, IntBuffer indices, int instances)
+	{
+		glDrawElementsInstanced(geometryType.glValue, indices, instances);
+		checkError();
+	}
+
 }
