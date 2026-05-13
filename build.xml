@@ -19,8 +19,9 @@
 	<property name="lwjgl.jar" value="lwjgl-${lwjgl.lib.version}.jar" />
 	<property name="lwjgl.glfw.jar" value="lwjgl-glfw-${lwjgl.lib.version}.jar" />
 	<property name="lwjgl.opengl.jar" value="lwjgl-opengl-${lwjgl.lib.version}.jar" />
+	<property name="lwjgl.jawt.jar" value="lwjgl-jawt-${lwjgl.lib.version}.jar" />
 
-	<property name="gloop.glfw.lib.version" value="0.3.0" />
+	<property name="gloop.glfw.lib.version" value="0.4.0" />
 	<property name="gloop.glfw.tag" value="${gloop.glfw.lib.version}-RELEASE" />
 	<property name="gloop.glfw.project" value="blackrook-gloop-glfw-${gloop.glfw.lib.version}" />	
 	<property name="gloop.glfw.jar" value="${gloop.glfw.project}.jar" />
@@ -29,7 +30,13 @@
 	<!-- Project Info -->
 	<property name="project.archive" value="blackrook-gloop-opengl" />
 	<property name="project.javadoc.title" value="Black Rook Gloop-OpenGL" />
-	<property name="project.classpath" value="${dev.base}/${lwjgl.jar}${S}${dev.base}/${lwjgl.glfw.jar}${S}${dev.base}/${lwjgl.opengl.jar}${S}${dev.base}/${gloop.glfw.jar}"/>
+	<property name="project.classpath" value="
+		${dev.base}/${lwjgl.jar}
+		${S}${dev.base}/${lwjgl.glfw.jar}
+		${S}${dev.base}/${lwjgl.opengl.jar}
+		${S}${dev.base}/${lwjgl.jawt.jar}
+		${S}${dev.base}/${gloop.glfw.jar}
+	"/>
 	<property name="project.compiler.bootclasspath" value="" />
 	<property name="project.testclass" value=""/>
 	<property name="project.testclass.main" value=""/>
@@ -50,6 +57,12 @@
 		<maven-jar-dl group-path="org/lwjgl" artifact="lwjgl" version="${lwjgl.lib.version}" extension="-natives-linux-arm64" />
 		<maven-jar-sources-dl group-path="org/lwjgl" artifact="lwjgl" version="${lwjgl.lib.version}" />
 		<maven-jar-javadoc-dl group-path="org/lwjgl" artifact="lwjgl" version="${lwjgl.lib.version}" />
+	</target>
+
+	<target name="dependency.lwjgl.jawt">
+		<maven-jar-dl group-path="org/lwjgl" artifact="lwjgl-jawt" version="${lwjgl.lib.version}" />
+		<maven-jar-sources-dl group-path="org/lwjgl" artifact="lwjgl-jawt" version="${lwjgl.lib.version}" />
+		<maven-jar-javadoc-dl group-path="org/lwjgl" artifact="lwjgl-jawt" version="${lwjgl.lib.version}" />
 	</target>
 
 	<target name="dependency.lwjglx.debug">
@@ -87,13 +100,18 @@
 		<github-dl repository="BlackRookSoftware/Gloop-GLFW" tag="${gloop.glfw.tag}" file="${gloop.glfw.jar.src}" dest="${dependencies.dir}" />	
 	</target>
 
-	<target name="dependencies" depends="init.dependencies, dependency.lwjgl, dependency.lwjglx.debug, dependency.lwjgl.glfw, dependency.lwjgl.opengl, dependency.gloop.glfw, dependency.properties" description="Downloads and compiles the dependencies.">
+	<target name="dependencies" depends="init.dependencies, dependency.lwjgl, dependency.lwjgl.jawt, dependency.lwjglx.debug, dependency.lwjgl.glfw, dependency.lwjgl.opengl, dependency.gloop.glfw, dependency.properties" description="Downloads and compiles the dependencies.">
 	</target>
 		
 	<target name="javadoc" depends="init.docs" description="Builds the documentation.">
         <javadoc access="protected" 
         	additionalparam="-J-Xmx512m  " author="true" 
-        	classpath="${bin.dir}${S}${dev.base}/${lwjgl.jar}${S}${dev.base}/${lwjgl.glfw.jar}${S}${dev.base}/${lwjgl.opengl.jar}${S}${dev.base}/${gloop.glfw.jar}" 
+        	classpath="${bin.dir}
+        	${S}${dev.base}/${lwjgl.jar}
+        	${S}${dev.base}/${lwjgl.glfw.jar}
+        	${S}${dev.base}/${lwjgl.opengl.jar}
+        	${S}${dev.base}/${gloop.glfw.jar}
+        	" 
         	doctitle="${project.javadoc.title}" 
         	sourcepath="${src.dir}" 
         	packagenames="${project.javadoc.packages}"

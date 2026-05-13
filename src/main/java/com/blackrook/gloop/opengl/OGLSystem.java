@@ -31,8 +31,6 @@ import com.blackrook.gloop.opengl.node.OGLNode;
  */
 public class OGLSystem<G extends OGLGraphics>
 {
-	/** The window attached to the rendering thread. */
-	private GLFWWindow window;
 	/** The rendering thread. */
 	private RenderingThread renderingThread;
 
@@ -56,10 +54,8 @@ public class OGLSystem<G extends OGLGraphics>
 	private volatile boolean redrawing;
 	
 	// Creates the system.
-	OGLSystem(G graphics, GLFWWindow window)
+	OGLSystem(G graphics)
 	{
-		this.window = window;
-		this.renderingThread = new RenderingThread();
 		this.graphics = graphics;
 		this.nodes = new ArrayList<>();
 		
@@ -67,8 +63,50 @@ public class OGLSystem<G extends OGLGraphics>
 		this.renderTimeNanos = -1L;
 		this.frameRenderTimeNanos = -1L;
 		this.polygonCount = 0;
-		
-		this.window.addWindowListener(new WindowAdapter()
+	}
+
+	/**
+	 * Tells all attached nodes to resize themselves.
+	 * @param width the new framebuffer width.
+	 * @param height the new framebuffer height.
+	 */
+	void resize(int width, int height)
+	{
+		for (OGLNode<?> node : nodes)
+			node.onFramebufferResize(width, height);
+	}
+
+	/**
+	 * Refreshes the display by displaying all of the added nodes.
+	 * <p><b>Should ONLY be called by the thread attached to the OpenGL context.</b>
+	 */
+	private void redrawViaWindow(GLFWWindow window)
+	{
+		redrawing = true;
+		try
+		{
+			State state = window.getState();
+			
+			renderFrame(state.getWidth(), state.getHeight());
+			
+			if (window.isCreated())
+				window.swapBuffers();
+		} 
+		finally 
+		{
+			// Even if an exception occurs, set this back to false.
+			redrawing = false;
+		}
+	}
+
+	/**
+	 * Locks this OGLSystem to a window and 
+	 * @param window the window to lock the render context to.
+	 * @return a controller for setting rendering speed.
+	 */
+	public RenderingThreadControl attachToWindow(GLFWWindow window)
+	{
+		window.addWindowListener(new WindowAdapter()
 		{
 			@Override
 			public void onFramebufferChange(GLFWWindow window, int width, int height)
@@ -83,60 +121,38 @@ public class OGLSystem<G extends OGLGraphics>
 					display();
 			}
 		});
-		this.renderingThread.start();
+		renderingThread = new RenderingThread(window);
+		renderingThread.start();
+		return new RenderingThreadControl();
 	}
-
+	
 	/**
-	 * Tells all attached nodes to resize themselves.
-	 * Called from the window listener.
-	 * @param width the new framebuffer width.
-	 * @param height the new framebuffer height.
+	 * Renders a single frame.
+	 * @param width the canvas width.
+	 * @param height the canvas height.
 	 */
-	private void resize(int width, int height)
+	void renderFrame(int width, int height)
 	{
-		for (OGLNode<?> node : nodes)
-			node.onFramebufferResize(width, height);
-	}
+		long rendertime = 0L;
+		int polys = 0;
 
-	/**
-	 * Refreshes the display by displaying all of the added nodes.
-	 * <p><b>Should ONLY be called by the thread attached to the OpenGL context.</b>
-	 */
-	private void redraw()
-	{
-		redrawing = true;
-		try
-		{
-			long rendertime = 0L;
-			int polys = 0;
+		graphics.startFrame(width, height);
 		
-			State state = window.getState();
-			
-			graphics.startFrame(state.getWidth(), state.getHeight());
-			
-			for (int i = 0; i < nodes.size(); i++)
-			{
-				OGLNode<? super G> node = nodes.get(i);
-				node.onDisplay(graphics);
-				rendertime += node.getRenderTimeNanos();
-				polys += node.getPolygonsRendered();
-			}
-			
-			frameRenderTimeNanos = System.nanoTime() - previousFrameNanos;
-			previousFrameNanos = System.nanoTime();
-		
-			renderTimeNanos = rendertime;
-			polygonCount = polys;
-			
-			graphics.endFrame();
-			if (window.isCreated())
-				window.swapBuffers();
-		} 
-		finally 
+		for (int i = 0; i < nodes.size(); i++)
 		{
-			// Even if an exception occurs, set this back to false.
-			redrawing = false;
+			OGLNode<? super G> node = nodes.get(i);
+			node.onDisplay(graphics);
+			rendertime += node.getRenderTimeNanos();
+			polys += node.getPolygonsRendered();
 		}
+		
+		frameRenderTimeNanos = System.nanoTime() - previousFrameNanos;
+		previousFrameNanos = System.nanoTime();
+
+		renderTimeNanos = rendertime;
+		polygonCount = polys;
+		
+		graphics.endFrame();
 	}
 
 	/**
@@ -218,62 +234,6 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 
 	/**
-	 * Sets the maximum amount of times per second that the rendering thread will 
-	 * attempt to automatically redraw the contents of the window.
-	 * Depending on the heft of what is being drawn, this maximum may not be reached.
-	 * <p> If set to null, no redraws occur unless triggered by the application or the windowing system. 
-	 * <p> If set to a number that is 0 or less, this will keep redrawing continuously. 
-	 * If greater than 0, it will trigger redraws that many times per second. 
-	 * Events that want to redraw the window passively are ignored in both circumstances. 
-	 * <p> By default, this is set to null. 
-	 * <p> NOTE: If an exception occurs during the rendering thread's execution, continual redraw 
-	 * is halted via <code>setFPS(null)</code> until it is started again.
-	 * @param fps the new FPS value. Can be null. 
-	 */
-	public void setFPS(int fps)
-	{
-		setFPS(Long.valueOf(fps));
-	}
-	
-	/**
-	 * Sets the maximum amount of times per second that the rendering thread will 
-	 * attempt to automatically redraw the contents of the window.
-	 * Depending on the heft of what is being drawn, this maximum may not be reached.
-	 * <p> If set to null, no redraws occur unless triggered by the application or the windowing system. 
-	 * <p> If set to a number that is 0 or less, this will keep redrawing continuously. 
-	 * If greater than 0, it will trigger redraws that many times per second. 
-	 * Events that want to redraw the window passively are ignored in both circumstances. 
-	 * <p> By default, this is set to null.
-	 * <p> NOTE: If an exception occurs during the rendering thread's execution, continual redraw 
-	 * is halted via <code>setFPS(null)</code> until it is started again.
-	 * @param fps the new FPS value. Can be null. 
-	 */
-	public void setFPS(Long fps)
-	{
-		if (fps == null)
-		{
-			renderingThread.waitMillis = null;
-			renderingThread.waitNanos = null;
-			ignoreRefresh = false;
-		}
-		else if (fps <= 0)
-		{
-			renderingThread.waitMillis = 0L;
-			renderingThread.waitNanos = 0;
-			ignoreRefresh = true;
-			display();
-		}
-		else
-		{
-			long npf = 1000000000L / fps;
-			renderingThread.waitMillis = npf / 1000000L;
-			renderingThread.waitNanos = (int)(npf % 1000000L);
-			ignoreRefresh = true;
-			display();
-		}
-	}
-	
-	/**
 	 * Describes how to handle a particular situation in the graphics runtime.
 	 */
 	public enum ErrorHandlingType
@@ -316,17 +276,81 @@ public class OGLSystem<G extends OGLGraphics>
 		ErrorHandlingType handleUndeletedObjects();
 	}
 	
+	/**
+	 * A control class for the rendering thread, now locked to a window.
+	 */
+	public class RenderingThreadControl
+	{
+		/**
+		 * Sets the maximum amount of times per second that the rendering thread will 
+		 * attempt to automatically redraw the contents of the window.
+		 * Depending on the heft of what is being drawn, this maximum may not be reached.
+		 * <p> If set to null, no redraws occur unless triggered by the application or the windowing system. 
+		 * <p> If set to a number that is 0 or less, this will keep redrawing continuously. 
+		 * If greater than 0, it will trigger redraws that many times per second. 
+		 * Events that want to redraw the window passively are ignored in both circumstances. 
+		 * <p> By default, this is set to null. 
+		 * <p> NOTE: If an exception occurs during the rendering thread's execution, continual redraw 
+		 * is halted via <code>setFPS(null)</code> until it is started again.
+		 * @param fps the new FPS value. Can be null. 
+		 */
+		public void setFPS(int fps)
+		{
+			setFPS(Long.valueOf(fps));
+		}
+		
+		/**
+		 * Sets the maximum amount of times per second that the rendering thread will 
+		 * attempt to automatically redraw the contents of the window.
+		 * Depending on the heft of what is being drawn, this maximum may not be reached.
+		 * <p> If set to null, no redraws occur unless triggered by the application or the windowing system. 
+		 * <p> If set to a number that is 0 or less, this will keep redrawing continuously. 
+		 * If greater than 0, it will trigger redraws that many times per second. 
+		 * Events that want to redraw the window passively are ignored in both circumstances. 
+		 * <p> By default, this is set to null.
+		 * <p> NOTE: If an exception occurs during the rendering thread's execution, continual redraw 
+		 * is halted via <code>setFPS(null)</code> until it is started again.
+		 * @param fps the new FPS value. Can be null. 
+		 */
+		public void setFPS(Long fps)
+		{
+			if (fps == null)
+			{
+				renderingThread.waitMillis = null;
+				renderingThread.waitNanos = null;
+				ignoreRefresh = false;
+			}
+			else if (fps <= 0)
+			{
+				renderingThread.waitMillis = 0L;
+				renderingThread.waitNanos = 0;
+				ignoreRefresh = true;
+				display();
+			}
+			else
+			{
+				long npf = 1000000000L / fps;
+				renderingThread.waitMillis = npf / 1000000L;
+				renderingThread.waitNanos = (int)(npf % 1000000L);
+				ignoreRefresh = true;
+				display();
+			}
+		}
+	}
+	
 	// The rendering thread.
 	private class RenderingThread extends Thread
 	{
+		private GLFWWindow window;
 		private Object renderLatch;
 		private Long waitMillis;
 		private Integer waitNanos;
 		
-		private RenderingThread()
+		private RenderingThread(GLFWWindow window)
 		{
 			super("Gloop-OGL-RenderingThread");
 			setDaemon(true);
+			this.window = window;
 			this.renderLatch = new Object();
 			this.waitMillis = null;
 			this.waitNanos = null;
@@ -355,9 +379,8 @@ public class OGLSystem<G extends OGLGraphics>
 							renderLatch.wait();
 						else if (waitMillis != 0 || waitNanos != 0)
 							renderLatch.wait(waitMillis, waitNanos);
-						redraw();
+						redrawViaWindow(window);
 					} catch (Throwable e) {
-						setFPS(null);
 						throw new GraphicsException("Graphics thread halted due to exception!", e);
 					}
 				}

@@ -11,8 +11,8 @@ package com.blackrook.gloop.opengl;
 import com.blackrook.gloop.glfw.GLFWContext;
 import com.blackrook.gloop.glfw.GLFWInputSystem;
 import com.blackrook.gloop.glfw.GLFWWindow;
-import com.blackrook.gloop.glfw.GLFWWindow.WindowHints;
-import com.blackrook.gloop.glfw.GLFWWindow.WindowHints.OpenGLProfile;
+import com.blackrook.gloop.glfw.GLFWWindowHints;
+import com.blackrook.gloop.glfw.GLFWWindowHints.OpenGLProfile;
 import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
 import com.blackrook.gloop.glfw.input.enums.KeyType;
 import com.blackrook.gloop.opengl.OGLGraphics.Info;
@@ -36,7 +36,7 @@ public final class OGLTest2
 		GLFWContext.setErrorStream(System.err);
 		
 		// Configure GLFW
-		WindowHints hints = (new WindowHints())
+		GLFWWindowHints hints = (new GLFWWindowHints())
 			.setVisible(false)
 			.setResizable(true)
 			.setContextVersion(4, 0)
@@ -48,9 +48,9 @@ public final class OGLTest2
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = OGLSystemFactory.getOpenGL40Core(window);
+		oglSystem = new OGLSystem<>(OGLGraphicsFactory.getOpenGL41Core());
 		oglSystem.addNode(new DrawNode());
-		oglSystem.setFPS(null);
+		oglSystem.attachToWindow(window).setFPS(null);
 		
 		mainLoop = GLFWContext.createLoop(window, inputSystem);
 		mainLoop.setShutDownOnExit(true);

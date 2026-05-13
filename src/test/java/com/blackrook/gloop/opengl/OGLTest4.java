@@ -8,18 +8,21 @@
 
 package com.blackrook.gloop.opengl;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import com.blackrook.gloop.glfw.GLFWContext;
-import com.blackrook.gloop.glfw.GLFWInputSystem;
-import com.blackrook.gloop.glfw.GLFWWindow;
 import com.blackrook.gloop.glfw.GLFWWindowHints;
 import com.blackrook.gloop.glfw.GLFWWindowHints.OpenGLProfile;
-import com.blackrook.gloop.glfw.input.annotation.OnKeyAction;
-import com.blackrook.gloop.glfw.input.enums.KeyType;
 import com.blackrook.gloop.opengl.enums.GeometryType;
 import com.blackrook.gloop.opengl.enums.ShaderType;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;
@@ -35,11 +38,9 @@ import com.blackrook.gloop.opengl.gl4.OGL41Graphics.ProgramBinary;
 import com.blackrook.gloop.opengl.node.OGLNode;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
-public final class OGLTest 
+public final class OGLTest4 
 {
-	private GLFWWindow window;
 	private OGLSystem<OGL41Graphics> oglSystem;
-	private GLFWContext.MainLoop mainLoop;
 	
 	public void run() 
 	{
@@ -54,33 +55,31 @@ public final class OGLTest
 			.setContextVersion(4, 1)
 			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
-		window = new GLFWWindow(hints, "Hello World!", 640, 480);
-
-		GLFWInputSystem inputSystem = new GLFWInputSystem();
-		inputSystem.attachToWindow(window);
-		inputSystem.addInputObject(new Keyboard());
-		
-		window.setVisible(true);
-		
 		oglSystem = new OGLSystem<>(OGLGraphicsFactory.getOpenGL41Core());
 		oglSystem.addNode(new DrawNode());
-		oglSystem.attachToWindow(window).setFPS(0);
 		
-		mainLoop = GLFWContext.createLoop(window, inputSystem);
-		mainLoop.setShutDownOnExit(true);
-		mainLoop.run();
-	}
-	
-	public class Keyboard
-	{
-		@OnKeyAction
-		public void onKey(KeyType type, boolean pressed)
+		OGLCanvas<OGL41Graphics> canvas = OGLCanvas.createCanvas(hints, oglSystem);
+		canvas.setPreferredSize(new Dimension(640, 480));
+		
+		JFrame frame = new JFrame();
+			JPanel contentPane = new JPanel();
+			contentPane.setLayout(new BorderLayout());
+			contentPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+			contentPane.add(canvas, BorderLayout.CENTER);
+		frame.setContentPane(contentPane);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setVisible(true);
+		
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() 
 		{
-			if (type == KeyType.ESCAPE && !pressed)
-				window.setClosing(true);
-			else if (type == KeyType.R && pressed)
-				oglSystem.display();
-		}
+			@Override
+			public void run()
+			{
+				canvas.repaint();
+			}
+		}, 0, 1000/120);
 	}
 	
 	public static class DrawNode implements OGLNode<OGL41Graphics>
@@ -248,7 +247,7 @@ public final class OGLTest
 
 	public static void main(String[] args)
 	{
-		(new OGLTest()).run();
+		(new OGLTest4()).run();
 	}
 	
 	/**
