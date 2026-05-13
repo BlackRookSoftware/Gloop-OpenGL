@@ -52,9 +52,12 @@ public class OGLSystem<G extends OGLGraphics>
 	private volatile boolean ignoreRefresh;
 	/** Is this redrawing? */
 	private volatile boolean redrawing;
-	
-	// Creates the system.
-	OGLSystem(G graphics)
+
+	/**
+	 * Creates a new OGLSystem attached to a graphics implementation.
+	 * @param graphics the graphics to use.
+	 */
+	public OGLSystem(G graphics)
 	{
 		this.graphics = graphics;
 		this.nodes = new ArrayList<>();
