@@ -41,6 +41,17 @@
 	<property name="project.testclass" value=""/>
 	<property name="project.testclass.main" value=""/>
 	<property name="project.javadoc.packages" value="
+		com.blackrook.gloop.opengl,
+		com.blackrook.gloop.opengl.enums,
+		com.blackrook.gloop.opengl.exception,
+		com.blackrook.gloop.opengl.gl1,
+		com.blackrook.gloop.opengl.gl2,
+		com.blackrook.gloop.opengl.gl3,
+		com.blackrook.gloop.opengl.gl4,
+		com.blackrook.gloop.opengl.math,
+		com.blackrook.gloop.opengl.node,
+		com.blackrook.gloop.opengl.struct,
+		com.blackrook.gloop.opengl.util
 		"
 	/>
 	
@@ -110,6 +121,7 @@
         	${S}${dev.base}/${lwjgl.jar}
         	${S}${dev.base}/${lwjgl.glfw.jar}
         	${S}${dev.base}/${lwjgl.opengl.jar}
+    		${S}${dev.base}/${lwjgl.jawt.jar}
         	${S}${dev.base}/${gloop.glfw.jar}
         	" 
         	doctitle="${project.javadoc.title}" 

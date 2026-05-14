@@ -19,7 +19,7 @@ import com.blackrook.gloop.opengl.exception.GraphicsException;
 /**
  * A common encapsulator for all OpenGL implementations.
  * <p><b>NOTE: No functions outside of the rendering thread (the 
- * thread that is triggered by {@link OGLSystem#display()}) should call any function in this.
+ * thread that is triggered by {@link OGLSystem#display()}) should call any function in this.</b>
  * @author Matthew Tropiano
  */
 public abstract class OGLGraphics implements OGLVersioned

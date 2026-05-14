@@ -30,7 +30,7 @@ import com.blackrook.gloop.opengl.OGLGraphics;
  * <li>{@link #afterExecute(Consumer, Throwable)}</li>
  * </ul>
  * @param <GL> the graphics object to call.
- * @param <J> the "job" type. Must be of type Consumer<GL>.
+ * @param <J> the "job" type. Must be of type Consumer&lt;? super GL&gt;.
  * @author Matthew Tropiano
  */
 public class OGLWorkerNode<GL extends OGLGraphics, J extends Consumer<? super GL>> implements OGLNode<GL>
