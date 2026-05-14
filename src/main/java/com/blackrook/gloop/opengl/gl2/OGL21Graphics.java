@@ -12,7 +12,6 @@ import java.nio.FloatBuffer;
 import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 import static org.lwjgl.opengl.GL21.*;
 

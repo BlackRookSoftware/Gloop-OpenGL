@@ -62,8 +62,7 @@ public final class OGLTest
 		
 		window.setVisible(true);
 		
-		oglSystem = new OGLSystem<>(OGLGraphicsFactory.getOpenGL41Core());
-		oglSystem.addNode(new DrawNode());
+		oglSystem = OGLSystemFactory.getOpenGL41Core().addNode(new DrawNode());
 		oglSystem.attachToWindow(window).setFPS(0);
 		
 		mainLoop = GLFWContext.createLoop(window, inputSystem);

@@ -40,16 +40,16 @@ import static org.lwjgl.system.jawt.JAWTFunctions.JAWT_VERSION_1_4;
 /**
  * A common OpenGL Canvas.
  * @author Matthew Tropiano
- * @param <OGL> the OGLGraphics type.
+ * @param <G> the OGLGraphics type.
  */
-public abstract class OGLCanvas<OGL extends OGLGraphics> extends Canvas 
+public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas 
 {
 	private static final long serialVersionUID = -5154698808503798624L;
 	
 	/**
 	 * Creates a new canvas suitable for rendering to.
 	 * @param <OGL> the {@link OGLGraphics} type that matches the context type in the provided {@link GLFWWindowHints}.
-	 * @param hints the hints for this context's creation.
+	 * @param hints the hints for this context's creation. Note that some hints for creating the window itself will have no effect, here.
 	 * @param system the rendering system to use for rendering content.
 	 * @return a canvas for rendering.
 	 */
@@ -66,7 +66,7 @@ public abstract class OGLCanvas<OGL extends OGLGraphics> extends Canvas
 		}
 	}
 	
-	private OGLSystem<OGL> system;
+	private OGLSystem<G> system;
 
     private final JAWT awt;
     private JAWTDrawingSurface drawingSurface;
@@ -81,7 +81,7 @@ public abstract class OGLCanvas<OGL extends OGLGraphics> extends Canvas
      * @param hints the window hints used to create a GL context.
      * @param system the root OGLSystem to use for rendering.
      */
-    protected OGLCanvas(GLFWWindowHints hints, OGLSystem<OGL> system)
+    protected OGLCanvas(GLFWWindowHints hints, OGLSystem<G> system)
     {
     	this.hints = hints;
     	this.system = system;
@@ -111,14 +111,14 @@ public abstract class OGLCanvas<OGL extends OGLGraphics> extends Canvas
 	}
 
     @Override
-    public void update(Graphics g)
+    public final void update(Graphics g)
     {
     	// Skip AWT buffer clear.
         paint(g);
     }
 
     @Override
-    public void paint(Graphics g)
+    public final void paint(Graphics g)
     {
         jawtRender();
     }
@@ -127,20 +127,19 @@ public abstract class OGLCanvas<OGL extends OGLGraphics> extends Canvas
     {
         if (drawingSurface == null)
         {
-            // Get the drawing surface
             drawingSurface = JAWT_GetDrawingSurface(this, awt.GetDrawingSurface());
             if (drawingSurface == null)
-                throw new IllegalStateException("awt->GetDrawingSurface() failed");
+                throw new IllegalStateException("awt.GetDrawingSurface() failed");
         }
 
         int lock = JAWT_DrawingSurface_Lock(drawingSurface, drawingSurface.Lock());
         if ((lock & JAWT_LOCK_ERROR) != 0)
-            throw new IllegalStateException("ds->Lock() failed");
+            throw new IllegalStateException("ds.Lock() failed");
 
         try {
             JAWTDrawingSurfaceInfo dsi = JAWT_DrawingSurface_GetDrawingSurfaceInfo(drawingSurface, drawingSurface.GetDrawingSurfaceInfo());
             if (dsi == null)
-                throw new IllegalStateException("ds->GetDrawingSurfaceInfo() failed");
+                throw new IllegalStateException("ds.GetDrawingSurfaceInfo() failed");
 
             try {
             	doPlatformSpecificRender(dsi);
@@ -302,7 +301,7 @@ public abstract class OGLCanvas<OGL extends OGLGraphics> extends Canvas
 
     	        caps = GL.createCapabilities();
             } 
-            else 
+            else
             {
                 if (!GLX.glXMakeCurrent(dsiX11.display(), drawable, context))
                     throw new IllegalStateException("glXMakeCurrent() failed");

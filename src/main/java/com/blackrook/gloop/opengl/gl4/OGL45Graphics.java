@@ -8,7 +8,6 @@
 package com.blackrook.gloop.opengl.gl4;
 
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 import static org.lwjgl.opengl.GL45.*;
 

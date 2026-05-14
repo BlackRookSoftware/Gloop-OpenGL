@@ -48,8 +48,7 @@ public final class OGLTest2
 		inputSystem.addInputObject(new Keyboard());
 		window.setVisible(true);
 		
-		oglSystem = new OGLSystem<>(OGLGraphicsFactory.getOpenGL41Core());
-		oglSystem.addNode(new DrawNode());
+		oglSystem = OGLSystemFactory.getOpenGL40Core().addNode(new DrawNode());
 		oglSystem.attachToWindow(window).setFPS(null);
 		
 		mainLoop = GLFWContext.createLoop(window, inputSystem);

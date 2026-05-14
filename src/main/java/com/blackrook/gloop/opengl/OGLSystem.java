@@ -57,7 +57,7 @@ public class OGLSystem<G extends OGLGraphics>
 	 * Creates a new OGLSystem attached to a graphics implementation.
 	 * @param graphics the graphics to use.
 	 */
-	public OGLSystem(G graphics)
+	OGLSystem(G graphics)
 	{
 		this.graphics = graphics;
 		this.nodes = new ArrayList<>();
@@ -103,12 +103,18 @@ public class OGLSystem<G extends OGLGraphics>
 	}
 
 	/**
-	 * Locks this OGLSystem to a window and 
+	 * Locks this OGLSystem to a window and returns a control for 
+	 * setting the screen redraw interval for the rendering thread.
+	 * <p>DO NOT call this method if you have generated an {@link OGLCanvas} for this system.
 	 * @param window the window to lock the render context to.
 	 * @return a controller for setting rendering speed.
+	 * @throws IllegalStateException if already attached to a window.
 	 */
 	public RenderingThreadControl attachToWindow(GLFWWindow window)
 	{
+		if (renderingThread != null)
+			throw new IllegalStateException("Already attached to a GLFWWindow.");
+		
 		window.addWindowListener(new WindowAdapter()
 		{
 			@Override
@@ -163,9 +169,13 @@ public class OGLSystem<G extends OGLGraphics>
 	 * If a frame is currently being drawn, this will return false, indicating a dropped frame.
 	 * Otherwise, this returns true.
 	 * @return true if redrawing, false if not.
+	 * @throws IllegalStateException if not attached to a window.
 	 */
 	public boolean display()
 	{
+		if (renderingThread == null)
+			throw new IllegalStateException("Not attached to a GLFWWindow.");
+		
 		if (redrawing)
 			return false;
 		renderingThread.trigger();
@@ -176,10 +186,12 @@ public class OGLSystem<G extends OGLGraphics>
 	 * Adds a node to this system.
 	 * <p> Compatible nodes must use an implementation of GL with a version equivalent to this one or earlier.
 	 * @param node the node to add.
+	 * @return this, for chaining calls.
 	 */
-	public void addNode(OGLNode<? super G> node)
+	public OGLSystem<G> addNode(OGLNode<? super G> node)
 	{
 		nodes.add(node);
+		return this;
 	}
 
 	/**
@@ -236,49 +248,6 @@ public class OGLSystem<G extends OGLGraphics>
 		return n > 0.0 ? (float)(1000 / n) : 0f;
 	}
 
-	/**
-	 * Describes how to handle a particular situation in the graphics runtime.
-	 */
-	public enum ErrorHandlingType
-	{
-		/** Ignore the error condition. */
-		IGNORE,
-		/** Write a warning/error to standard error. */
-		ERROROUT,
-		/** Throw a GraphicsException when it happens. */
-		EXCEPTION;
-	}
-	
-	/**
-	 * An options class for changing runtime behavior for a created system.
-	 */
-	public interface Options
-	{
-		/**
-		 * Gets whether or not the error checking functions used to detect OpenGL runtime errors should do anything on call. 
-		 * Returning {@link ErrorHandlingType#IGNORE} stops all {@link OGLGraphics#checkError()} calls from going through to OpenGL, saving calls.
-		 * <p> It would be unwise to turn this off while developing.
-		 * @return the error handling type.
-		 */
-		ErrorHandlingType handleErrorChecking();
-		
-		/**
-		 * Gets whether or not the version checking functions used to detect mismatched features should do anything on call. 
-		 * Returning {@link ErrorHandlingType#IGNORE} turns all internal version checking and verification off.
-		 * <p> It would be unwise to turn this off while developing.
-		 * @return the error handling type.
-		 */
-		ErrorHandlingType handleVersionChecking();
-
-		/**
-		 * Gets whether or not encountering an undeleted object at the end of a frame results in an error.
-		 * Returning {@link ErrorHandlingType#IGNORE} does not report on undeleted objects, and silently deletes them.
-		 * <p> It would be unwise to turn this off while developing.
-		 * @return the error handling type.
-		 */
-		ErrorHandlingType handleUndeletedObjects();
-	}
-	
 	/**
 	 * A control class for the rendering thread, now locked to a window.
 	 */

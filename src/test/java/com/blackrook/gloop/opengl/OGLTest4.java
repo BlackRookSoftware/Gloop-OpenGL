@@ -50,13 +50,10 @@ public final class OGLTest4
 		
 		// Configure GLFW
 		GLFWWindowHints hints = (new GLFWWindowHints())
-			.setVisible(false)
-			.setResizable(true)
 			.setContextVersion(4, 1)
 			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
-		oglSystem = new OGLSystem<>(OGLGraphicsFactory.getOpenGL41Core());
-		oglSystem.addNode(new DrawNode());
+		oglSystem = OGLSystemFactory.getOpenGL41Core().addNode(new DrawNode());
 		
 		OGLCanvas<OGL41Graphics> canvas = OGLCanvas.createCanvas(hints, oglSystem);
 		canvas.setPreferredSize(new Dimension(640, 480));

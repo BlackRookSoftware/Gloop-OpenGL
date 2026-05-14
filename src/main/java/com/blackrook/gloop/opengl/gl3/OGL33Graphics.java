@@ -9,7 +9,6 @@ package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.OGLVersion;
 
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.LogicFunc;
 import com.blackrook.gloop.opengl.enums.QueryTarget;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;

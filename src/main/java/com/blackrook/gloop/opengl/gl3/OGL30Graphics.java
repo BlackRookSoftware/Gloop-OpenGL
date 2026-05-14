@@ -15,7 +15,6 @@ import com.blackrook.gloop.opengl.math.MatrixStack;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 import com.blackrook.gloop.opengl.util.ProgramBuilder;
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.AttachPoint;
 import com.blackrook.gloop.opengl.enums.BufferTargetType;
 import com.blackrook.gloop.opengl.enums.DataType;

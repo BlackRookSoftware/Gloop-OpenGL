@@ -15,7 +15,6 @@ import com.blackrook.gloop.opengl.enums.DebugControlType;
 import com.blackrook.gloop.opengl.enums.DebugMessageSource;
 import com.blackrook.gloop.opengl.enums.DebugSource;
 import com.blackrook.gloop.opengl.enums.DebugType;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 import static org.lwjgl.opengl.GL43.*;
 

@@ -9,7 +9,6 @@ package com.blackrook.gloop.opengl.gl3;
 
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.SyncResultType;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 import static org.lwjgl.opengl.GL32.*;
 

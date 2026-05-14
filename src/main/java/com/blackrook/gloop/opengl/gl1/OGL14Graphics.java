@@ -16,7 +16,6 @@ import java.util.function.Function;
 import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.ColorFormat;
 import com.blackrook.gloop.opengl.enums.TextureFormat;
 import com.blackrook.gloop.opengl.enums.TextureMagFilter;

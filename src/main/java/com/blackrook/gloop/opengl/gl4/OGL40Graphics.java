@@ -10,7 +10,6 @@ package com.blackrook.gloop.opengl.gl4;
 import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.enums.QueryTarget;
 import com.blackrook.gloop.opengl.gl1.OGLQuery;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.gl3.OGL33Graphics;
 
 import java.nio.FloatBuffer;

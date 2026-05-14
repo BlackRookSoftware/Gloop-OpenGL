@@ -11,7 +11,6 @@ import com.blackrook.gloop.opengl.OGLVersion;
 import com.blackrook.gloop.opengl.exception.GraphicsException;
 import com.blackrook.gloop.opengl.gl1.OGL11Graphics;
 import com.blackrook.gloop.opengl.gl2.OGLProgram;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;

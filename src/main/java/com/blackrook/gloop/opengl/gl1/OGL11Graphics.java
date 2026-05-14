@@ -22,7 +22,6 @@ import org.lwjgl.system.MemoryStack;
 
 import com.blackrook.gloop.opengl.OGLGraphics;
 import com.blackrook.gloop.opengl.OGLVersion;
-import com.blackrook.gloop.opengl.OGLSystem.Options;
 import com.blackrook.gloop.opengl.enums.AccumOperation;
 import com.blackrook.gloop.opengl.enums.AttribType;
 import com.blackrook.gloop.opengl.enums.BlendArg;
