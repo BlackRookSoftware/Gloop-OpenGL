@@ -1,7 +1,7 @@
 # Black Rook Gloop-OpenGL
 Or... (LightWeight Java) **G**ame **L**ibrary **O**bject-**O**riented **P**aradigm for **OpenGL**
 
-Copyright (c) 2020 Black Rook Software.  
+Copyright (c) 2020-2026 Black Rook Software.  
 [https://github.com/BlackRookSoftware/Gloop-OpenGL](https://github.com/BlackRookSoftware/Gloop-OpenGL)
 
 [Latest Release](https://github.com/BlackRookSoftware/Gloop-OpenGL/releases/latest)
