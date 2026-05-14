@@ -1,0 +1,11 @@
+com.blackrook.gloop.opengl
+com.blackrook.gloop.opengl.enums
+com.blackrook.gloop.opengl.exception
+com.blackrook.gloop.opengl.gl1
+com.blackrook.gloop.opengl.gl2
+com.blackrook.gloop.opengl.gl3
+com.blackrook.gloop.opengl.gl4
+com.blackrook.gloop.opengl.math
+com.blackrook.gloop.opengl.node
+com.blackrook.gloop.opengl.struct
+com.blackrook.gloop.opengl.util
