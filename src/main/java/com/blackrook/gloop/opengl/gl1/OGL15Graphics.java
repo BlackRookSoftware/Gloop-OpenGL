@@ -39,7 +39,7 @@ public class OGL15Graphics extends OGL14Graphics
 	/**
 	 * Geometry builder used for OpenGL 1.5.  
 	 */
-	public static class OGL15GeometryBuilder extends GeometryBuilder.Abstract<OGL15Graphics>
+	private static class OGL15GeometryBuilder extends GeometryBuilder.Abstract<OGL15Graphics>
 	{
 		protected OGL15GeometryBuilder(OGL15Graphics gl, int vertices, int ... attributeSizes)
 		{

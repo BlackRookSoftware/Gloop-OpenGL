@@ -63,7 +63,7 @@ public class OGL20Graphics extends OGL15Graphics
 	/**
 	 * Shader builder used for OpenGL 2.0.  
 	 */
-	public static class OGL20ProgramBuilder extends ProgramBuilder.Abstract<OGL20Graphics>
+	private static class OGL20ProgramBuilder extends ProgramBuilder.Abstract<OGL20Graphics>
 	{
 		protected OGL20ProgramBuilder(OGL20Graphics gl)
 		{

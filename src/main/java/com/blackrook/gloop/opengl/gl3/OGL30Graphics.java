@@ -83,7 +83,7 @@ public class OGL30Graphics extends OGL21Graphics
 	/**
 	 * Shader builder used for OpenGL 3.0.  
 	 */
-	public static class OGL30ProgramBuilder extends ProgramBuilder.Abstract<OGL30Graphics>
+	private static class OGL30ProgramBuilder extends ProgramBuilder.Abstract<OGL30Graphics>
 	{
 		protected OGL30ProgramBuilder(OGL30Graphics gl)
 		{
