@@ -72,6 +72,7 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
 	 * Creates a new canvas suitable for rendering to.
 	 * @param hints the hints for this context's creation. Note that some hints for creating the window itself will have no effect, here.
 	 * @param system the rendering system to use for rendering content.
+	 * @throws UnsupportedOperationException if this canvas can't be created for this platform.
 	 */
     public OGLCanvas(GLFWWindowHints hints, OGLSystem<G> system)
     {
