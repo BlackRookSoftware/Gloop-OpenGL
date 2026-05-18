@@ -42,29 +42,9 @@ import static org.lwjgl.system.jawt.JAWTFunctions.JAWT_VERSION_1_4;
  * @author Matthew Tropiano
  * @param <G> the OGLGraphics type.
  */
-public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas 
+public class OGLCanvas<G extends OGLGraphics> extends Canvas 
 {
 	private static final long serialVersionUID = -5154698808503798624L;
-	
-	/**
-	 * Creates a new canvas suitable for rendering to.
-	 * @param <OGL> the {@link OGLGraphics} type that matches the context type in the provided {@link GLFWWindowHints}.
-	 * @param hints the hints for this context's creation. Note that some hints for creating the window itself will have no effect, here.
-	 * @param system the rendering system to use for rendering content.
-	 * @return a canvas for rendering.
-	 */
-	public static final <OGL extends OGLGraphics> OGLCanvas<OGL> createCanvas(GLFWWindowHints hints, OGLSystem<OGL> system)
-	{
-		switch (Platform.get())
-		{
-			default:
-				throw new UnsupportedOperationException(Platform.get().name() + " is not supported yet!");
-			case LINUX:
-				return new LinuxOGLCanvas<>(hints, system);
-			case WINDOWS:
-				return new WindowsOGLCanvas<>(hints, system);
-		}
-	}
 	
 	private OGLSystem<G> system;
 
@@ -76,13 +56,27 @@ public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas
     protected GLCapabilities caps;
     protected long context;
     
-    /**
-     * Creates a new WindowsOpenGLCanvas.
-     * @param hints the window hints used to create a GL context.
-     * @param system the root OGLSystem to use for rendering.
-     */
-    protected OGLCanvas(GLFWWindowHints hints, OGLSystem<G> system)
+    private static void verifySupportedPlatform(Platform platform)
     {
+		switch (Platform.get())
+		{
+			default:
+				throw new UnsupportedOperationException(Platform.get().name() + " is not supported yet!");
+			case LINUX:
+			case WINDOWS:
+				break;
+		}
+    }
+    
+	/**
+	 * Creates a new canvas suitable for rendering to.
+	 * @param hints the hints for this context's creation. Note that some hints for creating the window itself will have no effect, here.
+	 * @param system the rendering system to use for rendering content.
+	 */
+    public OGLCanvas(GLFWWindowHints hints, OGLSystem<G> system)
+    {
+    	verifySupportedPlatform(Platform.get());
+    	
     	this.hints = hints;
     	this.system = system;
         
@@ -105,7 +99,7 @@ public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas
     /**
      * @return the {@link GLFWWindowHints} used to make this canvas.
      */
-    public GLFWWindowHints getHints()
+    public final GLFWWindowHints getHints()
     {
 		return hints;
 	}
@@ -123,6 +117,15 @@ public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas
         jawtRender();
     }
 
+    /**
+     * Gets a reference to this canvas's underlying system.
+     * @return the system reference.
+     */
+    public OGLSystem<G> getSystem() 
+    {
+		return system;
+	}
+    
     private void jawtRender()
     {
         if (drawingSurface == null)
@@ -142,13 +145,125 @@ public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas
                 throw new IllegalStateException("ds.GetDrawingSurfaceInfo() failed");
 
             try {
-            	doPlatformSpecificRender(dsi);
+        		switch (Platform.get())
+        		{
+        			case LINUX:
+        				doLinuxRender(dsi);
+        				break;
+        			case WINDOWS:
+        				doWindowsRender(dsi);
+        				break;
+					default:
+						throw new UnsupportedOperationException(Platform.get().name() + " is not supported yet!");
+        		}
             } finally {
                 JAWT_DrawingSurface_FreeDrawingSurfaceInfo(dsi, drawingSurface.FreeDrawingSurfaceInfo());
             }
         } finally {
             JAWT_DrawingSurface_Unlock(drawingSurface, drawingSurface.Unlock());
         }
+    }
+    
+    private void doWindowsRender(JAWTDrawingSurfaceInfo dsi)
+    {
+		JAWTWin32DrawingSurfaceInfo dsiWin = JAWTWin32DrawingSurfaceInfo.create(dsi.platformInfo());
+
+		long hdc = dsiWin.hdc();
+		if (hdc == MemoryUtil.NULL)
+		    return;
+
+		if (context == MemoryUtil.NULL)
+		{
+			GLFW.glfwInit();
+			hints.callHints();
+			
+			context = GLFWNativeWin32.glfwAttachWin32Window(dsiWin.hwnd(), MemoryUtil.NULL);
+			if (context == MemoryUtil.NULL)
+			    throw new IllegalStateException("Failed to attach win32 window.");
+
+			GLFW.glfwMakeContextCurrent(context);
+		    caps = GL.createCapabilities();
+		} 
+		else 
+		{
+			GLFW.glfwMakeContextCurrent(context);
+		    GL.setCapabilities(caps);
+		}
+
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+		    IntBuffer pw = stack.mallocInt(1);
+		    IntBuffer ph = stack.mallocInt(1);
+		    GLFW.glfwGetFramebufferSize(context, pw, ph);
+		    renderSystem(pw.get(0), ph.get(0));
+		}
+		
+		GLFW.glfwSwapBuffers(context);
+		
+		GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
+		GL.setCapabilities(null);
+    }
+
+    private void doLinuxRender(JAWTDrawingSurfaceInfo dsi)
+    {
+        JAWTX11DrawingSurfaceInfo dsiX11 = JAWTX11DrawingSurfaceInfo.create(dsi.platformInfo());
+
+        long drawable = dsiX11.drawable();
+        if (drawable == MemoryUtil.NULL)
+            return;
+
+        if (context == MemoryUtil.NULL)
+        {
+	        long display = dsiX11.display();
+
+	        PointerBuffer configs = Objects.requireNonNull(GLX13.glXGetFBConfigs(display, 0));
+
+	        long config = MemoryUtil.NULL;
+	        for (int i = 0; i < configs.remaining(); i++)
+	        {
+	            XVisualInfo vi = GLX13.glXGetVisualFromFBConfig(display, configs.get(i));
+	            if (vi == null)
+	            {
+	                continue;
+	            }
+	            try {
+	                if (vi.visualid() == dsiX11.visualID())
+	                {
+	                    config = configs.get(i);
+	                    break;
+	                }
+	            } finally {
+	            	X11.nXFree(vi.address());
+	            }
+	        }
+	        X11.XFree(configs);
+
+	        if (config == MemoryUtil.NULL)
+	            throw new IllegalStateException("Failed to find a compatible GLXFBConfig");
+
+	        context = GLX13.glXCreateNewContext(display, config, GLX13.GLX_RGBA_TYPE, MemoryUtil.NULL, true);
+	        if (context == MemoryUtil.NULL) {
+	            throw new IllegalStateException("glXCreateContext() failed");
+	        }
+
+	        if (!GLX.glXMakeCurrent(display, drawable, context))
+	            throw new IllegalStateException("glXMakeCurrent() failed");
+
+	        caps = GL.createCapabilities();
+        } 
+        else
+        {
+            if (!GLX.glXMakeCurrent(dsiX11.display(), drawable, context))
+                throw new IllegalStateException("glXMakeCurrent() failed");
+            
+            GL.setCapabilities(caps);
+        }
+
+        renderSystem(getWidth(), getHeight());
+        GLX.glXSwapBuffers(dsiX11.display(), drawable);
+
+        GLX.glXMakeCurrent(dsiX11.display(), MemoryUtil.NULL, MemoryUtil.NULL);
+        GL.setCapabilities(null);
     }
 
     /**
@@ -161,16 +276,10 @@ public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas
 	    system.renderFrame(width, height);
     }
     
-    /**
-     * Performs the tasks necessary to secure a rendering surface for OpenGL calls.
-     * @param dsi the AWT surface info to use.
-     */
-    protected abstract void doPlatformSpecificRender(JAWTDrawingSurfaceInfo dsi);
-    
 	/**
      * Destroys this canvas.
      */
-    public void destroy()
+    public void dispose()
     {
         JAWT_FreeDrawingSurface(drawingSurface, awt.FreeDrawingSurface());
         awt.free();
@@ -181,140 +290,8 @@ public abstract class OGLCanvas<G extends OGLGraphics> extends Canvas
     @Override
     protected void finalize() throws Throwable 
     {
-    	destroy();
+    	dispose();
     	super.finalize();
     }
 
-    /**
-     * Windows implementation.
-     * @param <OGL> the OGLGraphics type.
-     */
-    private static class WindowsOGLCanvas<OGL extends OGLGraphics> extends OGLCanvas<OGL>
-    {
-		private static final long serialVersionUID = -7082706492428229355L;
-
-		private WindowsOGLCanvas(GLFWWindowHints hints, OGLSystem<OGL> system)
-    	{
-			super(hints, system);
-		}
-
-		@Override
-		protected void doPlatformSpecificRender(JAWTDrawingSurfaceInfo dsi)
-    	{
-    		JAWTWin32DrawingSurfaceInfo dsiWin = JAWTWin32DrawingSurfaceInfo.create(dsi.platformInfo());
-
-    		long hdc = dsiWin.hdc();
-    		if (hdc == MemoryUtil.NULL)
-    		    return;
-
-    		if (context == MemoryUtil.NULL)
-    		{
-    			GLFW.glfwInit();
-    			hints.callHints();
-    			
-    			context = GLFWNativeWin32.glfwAttachWin32Window(dsiWin.hwnd(), MemoryUtil.NULL);
-    			if (context == MemoryUtil.NULL)
-    			    throw new IllegalStateException("Failed to attach win32 window.");
-
-    			GLFW.glfwMakeContextCurrent(context);
-    		    caps = GL.createCapabilities();
-    		} 
-    		else 
-    		{
-    			GLFW.glfwMakeContextCurrent(context);
-    		    GL.setCapabilities(caps);
-    		}
-
-    		try (MemoryStack stack = MemoryStack.stackPush())
-    		{
-    		    IntBuffer pw = stack.mallocInt(1);
-    		    IntBuffer ph = stack.mallocInt(1);
-    		    GLFW.glfwGetFramebufferSize(context, pw, ph);
-    		    renderSystem(pw.get(0), ph.get(0));
-    		}
-    		
-    		GLFW.glfwSwapBuffers(context);
-    		
-    		GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
-    		GL.setCapabilities(null);
-    	}
-    }
-    
-    /**
-     * Linux implementation.
-     * @param <OGL> the OGLGraphics type.
-     */
-	private static class LinuxOGLCanvas<OGL extends OGLGraphics> extends OGLCanvas<OGL>
-    {
-		private static final long serialVersionUID = -2071880816459982897L;
-
-		private LinuxOGLCanvas(GLFWWindowHints hints, OGLSystem<OGL> system)
-    	{
-			super(hints, system);
-		}
-
-		@Override
-		protected void doPlatformSpecificRender(JAWTDrawingSurfaceInfo dsi)
-    	{
-            JAWTX11DrawingSurfaceInfo dsiX11 = JAWTX11DrawingSurfaceInfo.create(dsi.platformInfo());
-
-            long drawable = dsiX11.drawable();
-            if (drawable == MemoryUtil.NULL)
-                return;
-
-            if (context == MemoryUtil.NULL)
-            {
-    	        long display = dsiX11.display();
-
-    	        PointerBuffer configs = Objects.requireNonNull(GLX13.glXGetFBConfigs(display, 0));
-
-    	        long config = MemoryUtil.NULL;
-    	        for (int i = 0; i < configs.remaining(); i++)
-    	        {
-    	            XVisualInfo vi = GLX13.glXGetVisualFromFBConfig(display, configs.get(i));
-    	            if (vi == null)
-    	            {
-    	                continue;
-    	            }
-    	            try {
-    	                if (vi.visualid() == dsiX11.visualID())
-    	                {
-    	                    config = configs.get(i);
-    	                    break;
-    	                }
-    	            } finally {
-    	            	X11.nXFree(vi.address());
-    	            }
-    	        }
-    	        X11.XFree(configs);
-
-    	        if (config == MemoryUtil.NULL)
-    	            throw new IllegalStateException("Failed to find a compatible GLXFBConfig");
-
-    	        context = GLX13.glXCreateNewContext(display, config, GLX13.GLX_RGBA_TYPE, MemoryUtil.NULL, true);
-    	        if (context == MemoryUtil.NULL) {
-    	            throw new IllegalStateException("glXCreateContext() failed");
-    	        }
-
-    	        if (!GLX.glXMakeCurrent(display, drawable, context))
-    	            throw new IllegalStateException("glXMakeCurrent() failed");
-
-    	        caps = GL.createCapabilities();
-            } 
-            else
-            {
-                if (!GLX.glXMakeCurrent(dsiX11.display(), drawable, context))
-                    throw new IllegalStateException("glXMakeCurrent() failed");
-                
-                GL.setCapabilities(caps);
-            }
-
-            renderSystem(getWidth(), getHeight());
-            GLX.glXSwapBuffers(dsiX11.display(), drawable);
-
-            GLX.glXMakeCurrent(dsiX11.display(), MemoryUtil.NULL, MemoryUtil.NULL);
-            GL.setCapabilities(null);
-    	}
-    }
-    
 }

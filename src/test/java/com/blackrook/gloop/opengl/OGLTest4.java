@@ -40,8 +40,6 @@ import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
 public final class OGLTest4 
 {
-	private OGLSystem<OGL41Graphics> oglSystem;
-	
 	public void run() 
 	{
 		// Setup an error callback. The default implementation
@@ -53,10 +51,9 @@ public final class OGLTest4
 			.setContextVersion(4, 1)
 			.setOpenGLProfile(OpenGLProfile.CORE_PROFILE);
 		
-		oglSystem = OGLSystemFactory.getOpenGL41Core().addNode(new DrawNode());
-		
-		OGLCanvas<OGL41Graphics> canvas = OGLCanvas.createCanvas(hints, oglSystem);
+		OGLCanvas<OGL41Graphics> canvas = new OGLCanvas<>(hints, OGLSystemFactory.getOpenGL41Core());
 		canvas.setPreferredSize(new Dimension(640, 480));
+		canvas.getSystem().addNode(new DrawNode());
 		
 		JFrame frame = new JFrame();
 			JPanel contentPane = new JPanel();
