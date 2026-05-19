@@ -3,6 +3,13 @@ Gloop-OpenGL (C) Black Rook Software
 by Matt Tropiano et al. (see AUTHORS.txt)
 
 
+Changed in 0.1.2
+----------------
+
+- `Fixed` OGLClearNode called the wrong clear function if accumulation buffers are not cleared.
+- `Fixed` Some uniform passing on vecX structures did not work.
+
+
 Changed in 0.1.1
 ----------------
 
