@@ -32,6 +32,7 @@ import com.blackrook.gloop.opengl.gl2.OGLProgram;
 import com.blackrook.gloop.opengl.gl3.OGLVertexArrayState;
 import com.blackrook.gloop.opengl.gl4.OGL41Graphics;
 import com.blackrook.gloop.opengl.gl4.OGL41Graphics.ProgramBinary;
+import com.blackrook.gloop.opengl.node.OGLInitNode;
 import com.blackrook.gloop.opengl.node.OGLNode;
 import com.blackrook.gloop.opengl.util.GeometryBuilder;
 
@@ -62,7 +63,9 @@ public final class OGLTest
 		
 		window.setVisible(true);
 		
-		oglSystem = OGLSystemFactory.getOpenGL41Core().addNode(new DrawNode());
+		oglSystem = OGLSystemFactory.getOpenGL41Core()
+			.addNode(new OGLInitNode())
+			.addNode(new DrawNode());
 		oglSystem.attachToWindow(window).setFPS(0);
 		
 		mainLoop = GLFWContext.createLoop(window, inputSystem);

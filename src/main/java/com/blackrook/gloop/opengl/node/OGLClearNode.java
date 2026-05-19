@@ -73,7 +73,12 @@ public class OGLClearNode implements OGLNode<OGL11Graphics>
 			gl.setClearColor(clearRed, clearGreen, clearBlue, clearAlpha);
 		if (clearDepthBuffer)
 			gl.setClearDepth(depthValue);
-		gl.clear(clearColorBuffer, clearDepthBuffer, clearAccumulationBuffer, clearStencilBuffer);
+		
+		if (clearAccumulationBuffer)
+			gl.clear(clearColorBuffer, clearDepthBuffer, clearAccumulationBuffer, clearStencilBuffer);
+		else
+			gl.clear(clearColorBuffer, clearDepthBuffer, clearStencilBuffer);
+		
 		renderTimeNanos = System.nanoTime() - nanos;
 	}
 	

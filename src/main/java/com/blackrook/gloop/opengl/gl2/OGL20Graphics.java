@@ -369,6 +369,7 @@ public class OGL20Graphics extends OGL15Graphics
 	public void setProgramUniformInt(int locationId, int value)
 	{
 		glUniform1i(locationId, value);
+		checkError();
 	}
 	
 	/**
@@ -379,6 +380,7 @@ public class OGL20Graphics extends OGL15Graphics
 	public void setProgramUniformIntArray(int locationId, int ... values)
 	{
 		glUniform1iv(locationId, values);
+		checkError();
 	}
 	
 	/**
@@ -389,6 +391,7 @@ public class OGL20Graphics extends OGL15Graphics
 	public void setProgramUniformFloat(int locationId, float value)
 	{
 		glUniform1f(locationId, value);
+		checkError();
 	}
 	
 	/**
@@ -399,6 +402,7 @@ public class OGL20Graphics extends OGL15Graphics
 	public void setProgramUniformFloatArray(int locationId, float ... values)
 	{
 		glUniform1fv(locationId, values);
+		checkError();
 	}
 	
 	/**
@@ -409,13 +413,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformVec2(int locationId, float value0, float value1)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			FloatBuffer fbuf = stack.mallocFloat(2);
-			fbuf.put(0, value0);
-			fbuf.put(1, value1);
-			glUniform2fv(locationId, fbuf);
-		}
+		glUniform2f(locationId, value0, value1);
+		checkError();
 	}
 	
 	/**
@@ -427,14 +426,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformVec3(int locationId, float value0, float value1, float value2)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			FloatBuffer fbuf = stack.mallocFloat(3);
-			fbuf.put(0, value0);
-			fbuf.put(1, value1);
-			fbuf.put(2, value2);
-			glUniform3fv(locationId, fbuf);
-		}
+		glUniform3f(locationId, value0, value1, value2);
+		checkError();
 	}
 	
 	/**
@@ -447,15 +440,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformVec4(int locationId, float value0, float value1, float value2, float value3)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			FloatBuffer fbuf = stack.mallocFloat(4);
-			fbuf.put(0, value0);
-			fbuf.put(1, value1);
-			fbuf.put(2, value2);
-			fbuf.put(3, value2);
-			glUniform4fv(locationId, fbuf);
-		}
+		glUniform4f(locationId, value0, value1, value2, value3);
+		checkError();
 	}
 	
 	/**
@@ -466,13 +452,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformIVec2(int locationId, int value0, int value1)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			IntBuffer ibuf = stack.mallocInt(2);
-			ibuf.put(0, value0);
-			ibuf.put(1, value1);
-			glUniform2iv(locationId, ibuf);
-		}
+		glUniform2i(locationId, value0, value1);
+		checkError();
 	}
 
 	/**
@@ -484,14 +465,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformIVec3(int locationId, int value0, int value1, int value2)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			IntBuffer ibuf = stack.mallocInt(3);
-			ibuf.put(0, value0);
-			ibuf.put(1, value1);
-			ibuf.put(2, value2);
-			glUniform3iv(locationId, ibuf);
-		}
+		glUniform3i(locationId, value0, value1, value2);
+		checkError();
 	}
 
 	/**
@@ -504,15 +479,8 @@ public class OGL20Graphics extends OGL15Graphics
 	 */
 	public void setProgramUniformIVec4(int locationId, int value0, int value1, int value2, int value3)
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
-		{
-			IntBuffer ibuf = stack.mallocInt(4);
-			ibuf.put(0, value0);
-			ibuf.put(1, value1);
-			ibuf.put(2, value2);
-			ibuf.put(3, value3);
-			glUniform4iv(locationId, ibuf);
-		}
+		glUniform4i(locationId, value0, value1, value2, value3);
+		checkError();
 	}
 
 	/**
@@ -531,6 +499,7 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.flip();
 			glUniformMatrix2fv(locationId, false, fbuf);
 		}
+		checkError();
 	}
 
 	/**
@@ -551,6 +520,7 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.put(3, matrix[1][1]);
 			glUniformMatrix2fv(locationId, false, fbuf);
 		}
+		checkError();
 	}
 
 	/**
@@ -569,6 +539,7 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.flip();
 			glUniformMatrix3fv(locationId, false, fbuf);
 		}
+		checkError();
 	}
 
 	/**
@@ -594,6 +565,7 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.put(8, matrix[2][2]);
 			glUniformMatrix3fv(locationId, false, fbuf);
 		}
+		checkError();
 	}
 
 	/**
@@ -612,6 +584,7 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.flip();
 			glUniformMatrix4fv(locationId, false, fbuf);
 		}
+		checkError();
 	}
 
 	/**
@@ -644,6 +617,7 @@ public class OGL20Graphics extends OGL15Graphics
 			fbuf.put(15, matrix[3][3]);
 			glUniformMatrix4fv(locationId, false, fbuf);
 		}
+		checkError();
 	}
 
 	/**
