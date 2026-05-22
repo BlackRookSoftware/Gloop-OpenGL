@@ -3,6 +3,12 @@ Gloop-OpenGL (C) Black Rook Software
 by Matt Tropiano et al. (see AUTHORS.txt)
 
 
+Changed in 0.1.3
+----------------
+
+- `Changed` Slight init tweak to OGLCanvas.
+
+
 Changed in 0.1.2
 ----------------
 
