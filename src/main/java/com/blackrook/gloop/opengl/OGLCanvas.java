@@ -4,6 +4,7 @@ import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferStrategy;
 import java.nio.IntBuffer;
 import java.util.Objects;
 
@@ -55,6 +56,7 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
     
     protected GLCapabilities caps;
     protected long context;
+    protected BufferStrategy bufferStrategy;
     
     private static void verifySupportedPlatform(Platform platform)
     {
@@ -77,7 +79,9 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
     public OGLCanvas(GLFWWindowHints hints, OGLSystem<G> system)
     {
     	verifySupportedPlatform(Platform.get());
-    	
+		if (!GLFW.glfwInit())
+			throw new IllegalStateException("Could not initialize GLFW!");
+
     	this.hints = hints;
     	this.system = system;
         
@@ -90,6 +94,13 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
         {
             @Override 
             public void componentResized(ComponentEvent e)
+            {
+                if (context != MemoryUtil.NULL) 
+                    jawtRender();
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e)
             {
                 if (context != MemoryUtil.NULL) 
                     jawtRender();
@@ -115,7 +126,7 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
     @Override
     public final void paint(Graphics g)
     {
-        jawtRender();
+		jawtRender();
     }
 
     /**
@@ -127,7 +138,10 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
 		return system;
 	}
     
-    private void jawtRender()
+    /**
+     * Performs the system draw using a JAWT surface.
+     */
+    protected final void jawtRender()
     {
         if (drawingSurface == null)
         {
@@ -175,7 +189,6 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
 
 		if (context == MemoryUtil.NULL)
 		{
-			GLFW.glfwInit();
 			hints.callHints();
 			
 			context = GLFWNativeWin32.glfwAttachWin32Window(dsiWin.hwnd(), MemoryUtil.NULL);
@@ -269,6 +282,7 @@ public class OGLCanvas<G extends OGLGraphics> extends Canvas
 
     /**
      * Called when the rendering surface is secured so that rendering can be done to via a rendering system.
+     * Called by {@link #jawtRender()}.
      * @param width the width of the framebuffer.
      * @param height the height of the framebuffer.
      */

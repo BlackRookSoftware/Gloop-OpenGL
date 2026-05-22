@@ -15,8 +15,9 @@ may change many times in different ways over the course of its development!
 
 ### Required Libraries
 
-[Gloop-GLFW](https://github.com/BlackRookSoftware/Gloop-GLFW)  
+[Gloop-GLFW](https://github.com/BlackRookSoftware/Gloop-GLFW) 0.4.0+  
 [LightWeight Java Game Library (LWJGL)](https://www.lwjgl.org/download) 3.0.0+  
+[LWJGL-JAWT](https://www.lwjgl.org/download) 3.0.0+  
 [LWJGL-OpenGL](https://www.lwjgl.org/download) 3.0.0+
 
 
